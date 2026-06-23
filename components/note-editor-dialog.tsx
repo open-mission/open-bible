@@ -1,16 +1,15 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { X, Trash2, Plus, Link2, Link2Off } from "lucide-react"
+import { X, Trash2, Link2, Link2Off } from "lucide-react"
+import { BottomSheet } from "@/components/ui/bottom-sheet"
+import { useIsMobile } from "@/lib/use-media-query"
 import { getBook, getVerses } from "@/lib/bible-data"
 import type { Note } from "@/lib/types"
 
-interface NotesPanelProps {
-  /** Initial verse IDs to link (from reader selection) */
+interface NoteEditorDialogProps {
   verseIds: string[]
-  /** If editing an existing note, pass its ID */
   noteId: string | null
-  /** Existing note data if editing */
   existingNote?: Note
   onSave: (noteId: string | null, content: string, verseIds: string[]) => void
   onDelete: (noteId: string) => void
@@ -29,19 +28,20 @@ function parseVerseId(verseId: string) {
   return { bookId, book, chapter, verse, text: verseData?.text ?? "" }
 }
 
-export function NotesPanel({
+export function NoteEditorDialog({
   verseIds: initialVerseIds,
   noteId,
   existingNote,
   onSave,
   onDelete,
   onClose,
-}: NotesPanelProps) {
+}: NoteEditorDialogProps) {
   const [content, setContent] = useState(existingNote?.content ?? "")
   const [linkedVerseIds, setLinkedVerseIds] = useState<string[]>(
     existingNote?.verseIds ?? initialVerseIds
   )
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     setContent(existingNote?.content ?? "")
@@ -74,22 +74,22 @@ export function NotesPanel({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
-        <p className="text-sm font-medium text-foreground">
-          {noteId ? "Editar nota" : "Nova nota"}
-        </p>
-        <button
-          onClick={onClose}
-          aria-label="Fechar painel de notas"
-          className="flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+    <BottomSheet open onClose={onClose} fullScreen={isMobile}>
+      {isMobile && (
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+          <p className="text-sm font-medium text-foreground">
+            {noteId ? "Editar nota" : "Nova nota"}
+          </p>
+          <button
+            onClick={onClose}
+            aria-label="Fechar"
+            className="flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
-      {/* Linked verses */}
       {linkedVerseIds.length > 0 && (
         <div className="shrink-0 border-b border-border px-4 py-2.5 space-y-1.5">
           <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1.5 flex items-center gap-1">
@@ -122,7 +122,6 @@ export function NotesPanel({
         </div>
       )}
 
-      {/* Empty verses hint */}
       {linkedVerseIds.length === 0 && (
         <div className="shrink-0 border-b border-border px-4 py-2.5">
           <p className="text-xs text-muted-foreground/60 italic">
@@ -131,11 +130,8 @@ export function NotesPanel({
         </div>
       )}
 
-      {/* Textarea */}
       <div className="flex-1 overflow-y-auto px-4 py-3">
-        <label htmlFor="note-textarea" className="sr-only">
-          Nota
-        </label>
+        <label htmlFor="note-textarea" className="sr-only">Nota</label>
         <textarea
           id="note-textarea"
           ref={textareaRef}
@@ -148,15 +144,11 @@ export function NotesPanel({
         />
       </div>
 
-      {/* Footer */}
       <div className="flex items-center justify-between border-t border-border px-4 py-3 shrink-0">
         <div className="flex items-center gap-2">
           {noteId && (
             <button
-              onClick={() => {
-                onDelete(noteId)
-                onClose()
-              }}
+              onClick={() => { onDelete(noteId); onClose() }}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors"
               aria-label="Excluir nota"
             >
@@ -166,9 +158,7 @@ export function NotesPanel({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground/50 hidden sm:inline">
-            Ctrl+S
-          </span>
+          <span className="text-xs text-muted-foreground/50 hidden sm:inline">Ctrl+S</span>
           <button
             onClick={handleSave}
             disabled={isEmpty || !isDirty}
@@ -178,6 +168,6 @@ export function NotesPanel({
           </button>
         </div>
       </div>
-    </div>
+    </BottomSheet>
   )
 }
