@@ -1,29 +1,20 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import type { Highlight, HighlightColor, Note } from "./types"
 
 const HIGHLIGHTS_KEY = "openbible:highlights"
 const NOTES_KEY = "openbible:notes"
 
-function loadFromStorage<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as T) : fallback
-  } catch {
-    return fallback
-  }
+function migrateNotes(raw: unknown[]): Note[] {
+  return raw.map((n: any) => ({
+    ...n,
+    verseIds: n.verseIds ?? (n.verseId ? [n.verseId] : []),
+  }))
 }
 
-function saveToStorage<T>(key: string, value: T): void {
-  if (typeof window === "undefined") return
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-    window.dispatchEvent(new CustomEvent("openbible:storage", { detail: { key } }))
-  } catch {
-    // ignore
-  }
+function makeId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
 // ---------------------------------------------------------------------------
@@ -31,17 +22,42 @@ function saveToStorage<T>(key: string, value: T): void {
 // ---------------------------------------------------------------------------
 
 export function useHighlights() {
-  const [highlights, setHighlights] = useState<Highlight[]>([])
+  const lastSaved = useRef("")
+  const [highlights, setHighlights] = useState<Highlight[]>(() => {
+    if (typeof window === "undefined") return []
+    try {
+      const raw = localStorage.getItem(HIGHLIGHTS_KEY)
+      const data: Highlight[] = raw ? JSON.parse(raw) : []
+      lastSaved.current = JSON.stringify(data)
+      return data
+    } catch {
+      return []
+    }
+  })
 
+  // Sync to localStorage when highlights change
   useEffect(() => {
-    setHighlights(loadFromStorage<Highlight[]>(HIGHLIGHTS_KEY, []))
-  }, [])
+    const json = JSON.stringify(highlights)
+    if (json !== lastSaved.current) {
+      lastSaved.current = json
+      localStorage.setItem(HIGHLIGHTS_KEY, json)
+      window.dispatchEvent(new CustomEvent("openbible:storage", { detail: { key: HIGHLIGHTS_KEY } }))
+    }
+  }, [highlights])
 
+  // Listen for storage changes from other hook instances / tabs
   useEffect(() => {
     function handleStorage(e: CustomEvent) {
-      if (!e.detail?.key || e.detail.key === HIGHLIGHTS_KEY) {
-        setHighlights(loadFromStorage<Highlight[]>(HIGHLIGHTS_KEY, []))
-      }
+      if (!e.detail?.key || e.detail.key !== HIGHLIGHTS_KEY) return
+      try {
+        const raw = localStorage.getItem(HIGHLIGHTS_KEY)
+        const loaded: Highlight[] = raw ? JSON.parse(raw) : []
+        const json = JSON.stringify(loaded)
+        if (json !== lastSaved.current) {
+          lastSaved.current = json
+          setHighlights(loaded)
+        }
+      } catch { /* ignore */ }
     }
     window.addEventListener("openbible:storage", handleStorage as EventListener)
     return () => window.removeEventListener("openbible:storage", handleStorage as EventListener)
@@ -51,29 +67,23 @@ export function useHighlights() {
     (verseId: string, color: HighlightColor, customHex?: string) => {
       setHighlights((prev) => {
         const filtered = prev.filter((h) => h.verseId !== verseId)
-        const next: Highlight[] = [
+        return [
           ...filtered,
           {
-            id: `${verseId}-${Date.now()}`,
+            id: makeId(verseId),
             verseId,
             color,
             ...(color === "custom" && customHex ? { customHex } : {}),
             createdAt: new Date().toISOString(),
           },
         ]
-        saveToStorage(HIGHLIGHTS_KEY, next)
-        return next
       })
     },
     []
   )
 
   const removeHighlight = useCallback((verseId: string) => {
-    setHighlights((prev) => {
-      const next = prev.filter((h) => h.verseId !== verseId)
-      saveToStorage(HIGHLIGHTS_KEY, next)
-      return next
-    })
+    setHighlights((prev) => prev.filter((h) => h.verseId !== verseId))
   }, [])
 
   const getHighlight = useCallback(
@@ -87,47 +97,61 @@ export function useHighlights() {
 }
 
 // ---------------------------------------------------------------------------
-// Notes  — a note can reference multiple verses
+// Notes
 // ---------------------------------------------------------------------------
 
 export function useNotes() {
-  const [notes, setNotes] = useState<Note[]>([])
+  const lastSaved = useRef("")
+  const [notes, setNotes] = useState<Note[]>(() => {
+    if (typeof window === "undefined") return []
+    try {
+      const raw = localStorage.getItem(NOTES_KEY)
+      const data: unknown[] = raw ? JSON.parse(raw) : []
+      const migrated = migrateNotes(data)
+      lastSaved.current = JSON.stringify(migrated)
+      return migrated
+    } catch {
+      return []
+    }
+  })
 
+  // Sync to localStorage when notes change
   useEffect(() => {
-    // Migrate old notes that used a single `verseId` field
-    const raw = loadFromStorage<unknown[]>(NOTES_KEY, [])
-    const migrated: Note[] = raw.map((n: any) => ({
-      ...n,
-      verseIds: n.verseIds ?? (n.verseId ? [n.verseId] : []),
-    }))
-    setNotes(migrated)
-  }, [])
+    const json = JSON.stringify(notes)
+    if (json !== lastSaved.current) {
+      lastSaved.current = json
+      localStorage.setItem(NOTES_KEY, json)
+      window.dispatchEvent(new CustomEvent("openbible:storage", { detail: { key: NOTES_KEY } }))
+    }
+  }, [notes])
 
+  // Listen for storage changes from other hook instances / tabs
   useEffect(() => {
     function handleStorage(e: CustomEvent) {
-      if (!e.detail?.key || e.detail.key === NOTES_KEY) {
-        const raw = loadFromStorage<unknown[]>(NOTES_KEY, [])
-        const migrated: Note[] = raw.map((n: any) => ({
-          ...n,
-          verseIds: n.verseIds ?? (n.verseId ? [n.verseId] : []),
-        }))
-        setNotes(migrated)
-      }
+      if (!e.detail?.key || e.detail.key !== NOTES_KEY) return
+      try {
+        const raw = localStorage.getItem(NOTES_KEY)
+        const data: unknown[] = raw ? JSON.parse(raw) : []
+        const migrated = migrateNotes(data)
+        const json = JSON.stringify(migrated)
+        if (json !== lastSaved.current) {
+          lastSaved.current = json
+          setNotes(migrated)
+        }
+      } catch { /* ignore */ }
     }
     window.addEventListener("openbible:storage", handleStorage as EventListener)
     return () => window.removeEventListener("openbible:storage", handleStorage as EventListener)
   }, [])
 
-  /** Create or update a note by ID. Pass verseIds=[] to keep existing ones. */
   const upsertNote = useCallback(
     (noteId: string | null, content: string, verseIds: string[]) => {
       setNotes((prev) => {
         const now = new Date().toISOString()
-        let next: Note[]
         if (noteId) {
           const existing = prev.find((n) => n.id === noteId)
           if (existing) {
-            next = prev.map((n) =>
+            return prev.map((n) =>
               n.id === noteId
                 ? {
                     ...n,
@@ -137,48 +161,31 @@ export function useNotes() {
                   }
                 : n
             )
-          } else {
-            // ID provided but not found — create new with that ID
-            next = [
-              ...prev,
-              {
-                id: noteId,
-                verseIds,
-                content,
-                createdAt: now,
-                updatedAt: now,
-              },
-            ]
           }
-        } else {
-          // New note
-          next = [
+          return [
             ...prev,
-            {
-              id: `note-${Date.now()}`,
-              verseIds,
-              content,
-              createdAt: now,
-              updatedAt: now,
-            },
+            { id: noteId, verseIds, content, createdAt: now, updatedAt: now },
           ]
         }
-        saveToStorage(NOTES_KEY, next)
-        return next
+        return [
+          ...prev,
+          {
+            id: makeId("note"),
+            verseIds,
+            content,
+            createdAt: now,
+            updatedAt: now,
+          },
+        ]
       })
     },
     []
   )
 
   const deleteNote = useCallback((noteId: string) => {
-    setNotes((prev) => {
-      const next = prev.filter((n) => n.id !== noteId)
-      saveToStorage(NOTES_KEY, next)
-      return next
-    })
+    setNotes((prev) => prev.filter((n) => n.id !== noteId))
   }, [])
 
-  /** Get all notes that reference this verseId */
   const getNotesForVerse = useCallback(
     (verseId: string): Note[] => {
       return notes.filter((n) => n.verseIds.includes(verseId))
@@ -186,7 +193,6 @@ export function useNotes() {
     [notes]
   )
 
-  /** Get the first note for a verse (for legacy single-note display) */
   const getNote = useCallback(
     (verseId: string): Note | undefined => {
       return notes.find((n) => n.verseIds.includes(verseId))
