@@ -1,37 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Search } from "lucide-react"
-import { OLD_TESTAMENT, NEW_TESTAMENT } from "@/lib/bible-data"
-import type { Book } from "@/lib/types"
+import { useState } from "react";
+import { Search } from "lucide-react";
+import { OLD_TESTAMENT, NEW_TESTAMENT } from "@/lib/bible-data";
+import type { Book } from "@/lib/types";
 
 interface BookListProps {
-  selectedBookId: string | null
-  onSelectBook: (bookId: string) => void
+  selectedBookId: string | null;
+  onSelectBook: (bookId: string) => void;
 }
 
 export function BookList({ selectedBookId, onSelectBook }: BookListProps) {
-  const [query, setQuery] = useState("")
-  const [testament, setTestament] = useState<"old" | "new">("old")
+  const [query, setQuery] = useState("");
+  const [testament, setTestament] = useState<"old" | "new">("old");
 
-  const books = testament === "old" ? OLD_TESTAMENT : NEW_TESTAMENT
+  const books = testament === "old" ? OLD_TESTAMENT : NEW_TESTAMENT;
   const filtered = query.trim()
     ? books.filter(
         (b) =>
           b.name.toLowerCase().includes(query.toLowerCase()) ||
-          b.abbreviation.toLowerCase().includes(query.toLowerCase())
+          b.abbreviation.toLowerCase().includes(query.toLowerCase()),
       )
-    : books
+    : books;
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="border-b border-border px-4 py-4">
-        <h1 className="font-serif text-lg font-semibold text-foreground tracking-wide">
-          Open Bible
-        </h1>
-      </div>
-
       {/* Search */}
       <div className="px-4 py-3 border-b border-border">
         <div className="relative">
@@ -50,7 +43,7 @@ export function BookList({ selectedBookId, onSelectBook }: BookListProps) {
       <div className="flex border-b border-border">
         <button
           onClick={() => setTestament("old")}
-          className={`flex-1 py-2.5 text-xs font-medium tracking-wide transition-colors ${
+          className={`flex-1 py-4 text-xs font-medium tracking-wide transition-colors ${
             testament === "old"
               ? "text-primary border-b-2 border-primary bg-accent/40"
               : "text-muted-foreground hover:text-foreground"
@@ -60,7 +53,7 @@ export function BookList({ selectedBookId, onSelectBook }: BookListProps) {
         </button>
         <button
           onClick={() => setTestament("new")}
-          className={`flex-1 py-2.5 text-xs font-medium tracking-wide transition-colors ${
+          className={`flex-1 py-4 text-xs font-medium tracking-wide transition-colors ${
             testament === "new"
               ? "text-primary border-b-2 border-primary bg-accent/40"
               : "text-muted-foreground hover:text-foreground"
@@ -88,13 +81,13 @@ export function BookList({ selectedBookId, onSelectBook }: BookListProps) {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 interface BookItemProps {
-  book: Book
-  isSelected: boolean
-  onSelect: () => void
+  book: Book;
+  isSelected: boolean;
+  onSelect: () => void;
 }
 
 function BookItem({ book, isSelected, onSelect }: BookItemProps) {
@@ -125,5 +118,5 @@ function BookItem({ book, isSelected, onSelect }: BookItemProps) {
         {book.chapters}
       </span>
     </button>
-  )
+  );
 }

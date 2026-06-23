@@ -1,31 +1,32 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Menu } from "lucide-react"
-import { Sidebar } from "@/components/sidebar"
-import { Reader } from "@/components/reader"
+import { useState } from "react";
+import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
+import { Sidebar } from "@/components/sidebar";
+import { Reader } from "@/components/reader";
 
 export default function Home() {
-  const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
-  const [selectedChapter, setSelectedChapter] = useState<number | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
+  const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   function handleSelectBook(bookId: string) {
-    setSelectedBookId(bookId)
-    setSelectedChapter(null)
+    setSelectedBookId(bookId);
+    setSelectedChapter(null);
   }
 
   function handleSelectChapter(chapter: number) {
-    setSelectedChapter(chapter)
+    setSelectedChapter(chapter);
   }
 
   function handleChapterChange(chapter: number) {
-    setSelectedChapter(chapter)
+    setSelectedChapter(chapter);
   }
 
   function handleJumpTo(bookId: string, chapter: number) {
-    setSelectedBookId(bookId)
-    setSelectedChapter(chapter)
+    setSelectedBookId(bookId);
+    setSelectedChapter(chapter);
   }
 
   return (
@@ -39,7 +40,22 @@ export default function Home() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onJumpTo={handleJumpTo}
+        sidebarCollapsed={sidebarCollapsed}
+        onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
       />
+
+      {/* Desktop sidebar toggle — always visible */}
+      <button
+        onClick={() => setSidebarCollapsed((v) => !v)}
+        aria-label={sidebarCollapsed ? "Abrir sidebar" : "Fechar sidebar"}
+        className="hidden md:flex items-center justify-center w-6 h-12 self-center z-10 rounded-r-md border border-l-0 border-border bg-sidebar text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors shrink-0"
+      >
+        {sidebarCollapsed ? (
+          <ChevronRight className="h-4 w-4" />
+        ) : (
+          <ChevronLeft className="h-4 w-4" />
+        )}
+      </button>
 
       {/* Main content area */}
       <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
@@ -74,7 +90,7 @@ export default function Home() {
         </div>
       </div>
     </main>
-  )
+  );
 }
 
 function EmptyReader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
@@ -94,5 +110,5 @@ function EmptyReader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
         Escolher livro
       </button>
     </div>
-  )
+  );
 }
