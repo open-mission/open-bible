@@ -3,7 +3,7 @@
 import { readdirSync, mkdirSync, writeFileSync } from "fs"
 import { join, dirname } from "path"
 import { fileURLToPath } from "url"
-import { execSync } from "child_process"
+import Database from "better-sqlite3"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, "..")
@@ -80,13 +80,6 @@ const BOOK_META = [
   { id: "rev", name: "Apocalipse", abbreviation: "Ap" },
 ]
 
-function runSql(dbPath, query) {
-  return execSync(`sqlite3 -json "${dbPath}" "${query}"`, {
-    encoding: "utf-8",
-    maxBuffer: 50 * 1024 * 1024,
-  })
-}
-
 function build() {
   mkdirSync(OUT_DIR, { recursive: true })
 
@@ -96,16 +89,16 @@ function build() {
   for (const file of files) {
     const dbPath = join(BIBLES_DIR, file)
     const versionId = file.replace(/\.sqlite$/i, "").toLowerCase()
+    const db = new Database(dbPath, { readonly: true })
 
-    const metaRaw = JSON.parse(runSql(dbPath, "SELECT key, value FROM metadata"))
+    const metaRows = db.prepare("SELECT key, value FROM metadata").all()
     const meta = {}
-    for (const row of metaRaw) meta[row.key] = row.value
+    for (const row of metaRows) meta[row.key] = row.value
     const versionName = meta.name || versionId.toUpperCase()
 
     console.log(`Building ${versionId} (${versionName})...`)
 
-    const booksRaw = JSON.parse(runSql(dbPath, "SELECT * FROM book ORDER BY id"))
-
+    const booksRaw = db.prepare("SELECT * FROM book ORDER BY id").all()
     const verOutDir = join(OUT_DIR, versionId)
     mkdirSync(verOutDir, { recursive: true })
 
@@ -118,9 +111,9 @@ function build() {
         continue
       }
 
-      const versesRaw = JSON.parse(
-        runSql(dbPath, `SELECT chapter, verse, text FROM verse WHERE book_id = ${book.id} ORDER BY chapter, verse`)
-      )
+      const versesRaw = db
+        .prepare("SELECT chapter, verse, text FROM verse WHERE book_id = ? ORDER BY chapter, verse")
+        .all(book.id)
 
       const chapters = {}
       let maxChapter = 0
@@ -158,6 +151,8 @@ function build() {
         chapterVerseCounts,
       })
     }
+
+    db.close()
 
     writeFileSync(
       join(verOutDir, "meta.json"),
