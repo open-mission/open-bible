@@ -3,11 +3,11 @@
 import { X, StickyNote } from "lucide-react"
 import type { HighlightColor, Highlight } from "@/lib/types"
 
-const COLORS: { value: HighlightColor; label: string; bg: string; ring: string }[] = [
-  { value: "amber", label: "Amarelo", bg: "bg-highlight-amber", ring: "ring-highlight-amber" },
-  { value: "green", label: "Verde", bg: "bg-highlight-green", ring: "ring-highlight-green" },
-  { value: "blue", label: "Azul", bg: "bg-highlight-blue", ring: "ring-highlight-blue" },
-  { value: "rose", label: "Rosa", bg: "bg-highlight-rose", ring: "ring-highlight-rose" },
+const COLORS: { value: HighlightColor; label: string; hex: string }[] = [
+  { value: "amber", label: "Amarelo", hex: "#f5c842" },
+  { value: "green", label: "Verde",   hex: "#6aba7a" },
+  { value: "blue",  label: "Azul",    hex: "#6aabd2" },
+  { value: "rose",  label: "Rosa",    hex: "#e87b8c" },
 ]
 
 interface HighlightToolbarProps {
@@ -35,18 +35,22 @@ export function HighlightToolbar({
       </span>
 
       {/* Highlight color buttons */}
-      {COLORS.map((c) => (
-        <button
-          key={c.value}
-          onClick={() => onHighlight(c.value)}
-          aria-label={`Destacar com ${c.label}`}
-          className={`w-5 h-5 rounded-full transition-all ${c.bg} ${
-            activeHighlight?.color === c.value
-              ? `ring-2 ring-offset-1 ring-offset-card ${c.ring} scale-110`
-              : "hover:scale-110 hover:ring-2 hover:ring-offset-1 hover:ring-offset-card hover:ring-border"
-          }`}
-        />
-      ))}
+      {COLORS.map((c) => {
+        const isActive = activeHighlight?.color === c.value
+        return (
+          <button
+            key={c.value}
+            onClick={() => onHighlight(c.value)}
+            aria-label={`Destacar com ${c.label}`}
+            style={{ backgroundColor: c.hex, outlineColor: isActive ? c.hex : undefined }}
+            className={`w-5 h-5 rounded-full transition-all hover:scale-110 ${
+              isActive
+                ? "scale-110 outline outline-2 outline-offset-2"
+                : "hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-border"
+            }`}
+          />
+        )
+      })}
 
       {/* Remove highlight */}
       {activeHighlight && (
