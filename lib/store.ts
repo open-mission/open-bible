@@ -20,6 +20,7 @@ function saveToStorage<T>(key: string, value: T): void {
   if (typeof window === "undefined") return
   try {
     localStorage.setItem(key, JSON.stringify(value))
+    window.dispatchEvent(new CustomEvent("openbible:storage", { detail: { key } }))
   } catch {
     // ignore
   }
@@ -34,6 +35,16 @@ export function useHighlights() {
 
   useEffect(() => {
     setHighlights(loadFromStorage<Highlight[]>(HIGHLIGHTS_KEY, []))
+  }, [])
+
+  useEffect(() => {
+    function handleStorage(e: CustomEvent) {
+      if (!e.detail?.key || e.detail.key === HIGHLIGHTS_KEY) {
+        setHighlights(loadFromStorage<Highlight[]>(HIGHLIGHTS_KEY, []))
+      }
+    }
+    window.addEventListener("openbible:storage", handleStorage as EventListener)
+    return () => window.removeEventListener("openbible:storage", handleStorage as EventListener)
   }, [])
 
   const addHighlight = useCallback(
@@ -90,6 +101,21 @@ export function useNotes() {
       verseIds: n.verseIds ?? (n.verseId ? [n.verseId] : []),
     }))
     setNotes(migrated)
+  }, [])
+
+  useEffect(() => {
+    function handleStorage(e: CustomEvent) {
+      if (!e.detail?.key || e.detail.key === NOTES_KEY) {
+        const raw = loadFromStorage<unknown[]>(NOTES_KEY, [])
+        const migrated: Note[] = raw.map((n: any) => ({
+          ...n,
+          verseIds: n.verseIds ?? (n.verseId ? [n.verseId] : []),
+        }))
+        setNotes(migrated)
+      }
+    }
+    window.addEventListener("openbible:storage", handleStorage as EventListener)
+    return () => window.removeEventListener("openbible:storage", handleStorage as EventListener)
   }, [])
 
   /** Create or update a note by ID. Pass verseIds=[] to keep existing ones. */

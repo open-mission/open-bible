@@ -9,6 +9,7 @@ import type { HighlightColor } from "@/lib/types"
 import { VerseRow } from "./verse-row"
 import { HighlightToolbar } from "./highlight-toolbar"
 import { NotesPanel } from "./notes-panel"
+import { ReaderVersionBadge } from "./reader-version-badge"
 
 interface ReaderProps {
   bookId: string
@@ -161,6 +162,8 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
             >
               <CheckSquare className="h-4 w-4" />
             </button>
+
+            <ReaderVersionBadge />
 
             <div className="flex items-center gap-1">
               <button

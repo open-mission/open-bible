@@ -1,15 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { Reader } from "@/components/reader";
+
+const BOOK_KEY = "openbible:book";
+const CHAPTER_KEY = "openbible:chapter";
 
 export default function Home() {
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Restore last position from localStorage on mount
+  useEffect(() => {
+    try {
+      const book = localStorage.getItem(BOOK_KEY);
+      const chapter = localStorage.getItem(CHAPTER_KEY);
+      if (book) setSelectedBookId(book);
+      if (chapter) setSelectedChapter(Number(chapter));
+    } catch { /* ignore */ }
+  }, []);
+
+  // Persist position when it changes
+  useEffect(() => {
+    if (selectedBookId) {
+      try { localStorage.setItem(BOOK_KEY, selectedBookId); } catch { /* ignore */ }
+    }
+  }, [selectedBookId]);
+
+  useEffect(() => {
+    if (selectedChapter !== null) {
+      try { localStorage.setItem(CHAPTER_KEY, String(selectedChapter)); } catch { /* ignore */ }
+    }
+  }, [selectedChapter]);
 
   function handleSelectBook(bookId: string) {
     setSelectedBookId(bookId);

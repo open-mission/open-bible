@@ -5,7 +5,7 @@ import type { Verse } from "./types"
 import { useBibleVersion } from "./bible-version-context"
 
 export function useBibleVerses(bookId: string | null, chapter: number | null) {
-  const { getVerses } = useBibleVersion()
+  const { getVerses, versionId } = useBibleVersion()
   const [verses, setVerses] = useState<Verse[]>([])
   const [loading, setLoading] = useState(false)
   const lastKey = useRef("")
@@ -16,7 +16,7 @@ export function useBibleVerses(bookId: string | null, chapter: number | null) {
       return
     }
 
-    const key = `${bookId}-${chapter}`
+    const key = `${versionId}-${bookId}-${chapter}`
     if (key === lastKey.current && verses.length > 0) return
     lastKey.current = key
 
@@ -30,7 +30,7 @@ export function useBibleVerses(bookId: string | null, chapter: number | null) {
         setVerses([])
         setLoading(false)
       })
-  }, [bookId, chapter, getVerses])
+  }, [bookId, chapter, versionId, getVerses])
 
   return { verses, loading }
 }
