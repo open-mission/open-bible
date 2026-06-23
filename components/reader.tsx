@@ -8,7 +8,6 @@ import { useBibleVerses } from "@/lib/use-bible"
 import type { HighlightColor } from "@/lib/types"
 import { VerseRow } from "./verse-row"
 import { HighlightToolbar } from "./highlight-toolbar"
-import { NotesPanel } from "./notes-panel"
 import { ReaderVersionBadge } from "./reader-version-badge"
 
 interface ReaderProps {
@@ -16,25 +15,23 @@ interface ReaderProps {
   chapter: number
   onChapterChange: (chapter: number) => void
   onBack: () => void
+  onOpenNoteEditor?: (verseIds: string[], noteId: string | null) => void
 }
 
-export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps) {
+export function Reader({ bookId, chapter, onChapterChange, onBack, onOpenNoteEditor }: ReaderProps) {
   const book = getBook(bookId)
   const { verses, loading } = useBibleVerses(bookId, chapter)
   const { addHighlight, removeHighlight, getHighlight } = useHighlights()
-  const { upsertNote, deleteNote, getNote, getNotesForVerse } = useNotes()
+  const { getNote } = useNotes()
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null)
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(new Set())
   const [multiSelectMode, setMultiSelectMode] = useState(false)
-  const [noteVerseIds, setNoteVerseIds] = useState<string[]>([])
-  const [editNoteId, setEditNoteId] = useState<string | null>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setActiveVerseId(null)
-    setNoteVerseIds([])
     setSelectedVerseIds(new Set())
   }, [bookId, chapter])
 
@@ -66,8 +63,6 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
       return
     }
     setActiveVerseId((prev) => (prev === verseId ? null : verseId))
-    setNoteVerseIds([])
-    setEditNoteId(null)
   }
 
   function toggleMultiSelect() {
@@ -93,14 +88,8 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
       ? [activeVerseId]
       : []
     if (ids.length === 0) return
-    setNoteVerseIds(ids)
-    setEditNoteId(null)
+    onOpenNoteEditor?.(ids, null)
     setActiveVerseId(null)
-  }
-
-  function handleCloseNote() {
-    setNoteVerseIds([])
-    setEditNoteId(null)
   }
 
   function handleCloseToolbar() {
@@ -121,8 +110,6 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
       onChapterChange(chapter + 1)
     }
   }
-
-  const notePanelOpen = noteVerseIds.length > 0
 
   return (
     <div className="flex h-full">
@@ -263,19 +250,6 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
         </div>
       </div>
 
-      {/* Notes panel */}
-      {notePanelOpen && (
-        <div className="w-80 shrink-0 border-l border-border bg-card flex flex-col h-full">
-          <NotesPanel
-            verseIds={noteVerseIds}
-            noteId={editNoteId}
-            existingNote={editNoteId ? getNote(noteVerseIds[0]) : undefined}
-            onSave={(noteId, content, verseIds) => upsertNote(noteId, content, verseIds)}
-            onDelete={(noteId) => deleteNote(noteId)}
-            onClose={handleCloseNote}
-          />
-        </div>
-      )}
     </div>
   )
 }
