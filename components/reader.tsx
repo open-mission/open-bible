@@ -88,11 +88,11 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
         {/* Chapter header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
           <div className="flex items-center gap-2">
-            {/* Mobile back button */}
+            {/* Mobile menu button */}
             <button
               onClick={onBack}
               className="flex md:hidden items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-              aria-label="Voltar"
+              aria-label="Abrir menu"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>

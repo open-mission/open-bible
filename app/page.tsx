@@ -1,139 +1,98 @@
 "use client"
 
 import { useState } from "react"
-import { BookList } from "@/components/book-list"
-import { ChapterGrid } from "@/components/chapter-grid"
+import { Menu } from "lucide-react"
+import { Sidebar } from "@/components/sidebar"
 import { Reader } from "@/components/reader"
-
-type Panel = "books" | "chapters" | "reader"
 
 export default function Home() {
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null)
-  // Mobile panel navigation
-  const [mobilePanel, setMobilePanel] = useState<Panel>("books")
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   function handleSelectBook(bookId: string) {
     setSelectedBookId(bookId)
     setSelectedChapter(null)
-    setMobilePanel("chapters")
   }
 
   function handleSelectChapter(chapter: number) {
     setSelectedChapter(chapter)
-    setMobilePanel("reader")
-  }
-
-  function handleBackToBooks() {
-    setSelectedChapter(null)
-    setMobilePanel("books")
-  }
-
-  function handleBackToChapters() {
-    setMobilePanel("chapters")
   }
 
   function handleChapterChange(chapter: number) {
     setSelectedChapter(chapter)
   }
 
+  function handleJumpTo(bookId: string, chapter: number) {
+    setSelectedBookId(bookId)
+    setSelectedChapter(chapter)
+  }
+
   return (
     <main className="h-dvh flex overflow-hidden bg-background">
-      {/* ── Desktop 3-column layout ── */}
-      <div className="hidden md:flex w-full h-full">
-        {/* Column 1: Book list */}
-        <aside className="w-56 shrink-0 border-r border-border bg-sidebar overflow-hidden flex flex-col">
-          <BookList
-            selectedBookId={selectedBookId}
-            onSelectBook={handleSelectBook}
-          />
-        </aside>
+      {/* Sidebar — handles both desktop and mobile drawer */}
+      <Sidebar
+        selectedBookId={selectedBookId}
+        selectedChapter={selectedChapter}
+        onSelectBook={handleSelectBook}
+        onSelectChapter={handleSelectChapter}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onJumpTo={handleJumpTo}
+      />
 
-        {/* Column 2: Chapter grid */}
-        <aside className="w-52 shrink-0 border-r border-border bg-sidebar overflow-hidden flex flex-col">
-          {selectedBookId ? (
-            <ChapterGrid
-              bookId={selectedBookId}
-              selectedChapter={selectedChapter}
-              onSelectChapter={handleSelectChapter}
-              onBack={handleBackToBooks}
-            />
-          ) : (
-            <EmptyChapters />
-          )}
-        </aside>
+      {/* Main content area */}
+      <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
+        {/* Mobile top bar */}
+        <div className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-border shrink-0 bg-sidebar">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menu"
+            className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+          <span className="font-serif text-sm font-medium text-foreground">
+            {selectedBookId && selectedChapter
+              ? `${selectedBookId} · Cap. ${selectedChapter}`
+              : "Open Bible"}
+          </span>
+        </div>
 
-        {/* Column 3: Reader */}
-        <div className="flex-1 overflow-hidden flex flex-col">
+        {/* Reader or empty state */}
+        <div className="flex-1 overflow-hidden">
           {selectedBookId && selectedChapter ? (
             <Reader
               bookId={selectedBookId}
               chapter={selectedChapter}
               onChapterChange={handleChapterChange}
-              onBack={handleBackToChapters}
+              onBack={() => setSidebarOpen(true)}
             />
           ) : (
-            <EmptyReader />
+            <EmptyReader onOpenSidebar={() => setSidebarOpen(true)} />
           )}
         </div>
-      </div>
-
-      {/* ── Mobile stacked navigation ── */}
-      <div className="flex md:hidden w-full h-full">
-        {mobilePanel === "books" && (
-          <div className="flex-1 overflow-hidden flex flex-col bg-sidebar">
-            <BookList
-              selectedBookId={selectedBookId}
-              onSelectBook={handleSelectBook}
-            />
-          </div>
-        )}
-
-        {mobilePanel === "chapters" && selectedBookId && (
-          <div className="flex-1 overflow-hidden flex flex-col bg-sidebar">
-            <ChapterGrid
-              bookId={selectedBookId}
-              selectedChapter={selectedChapter}
-              onSelectChapter={handleSelectChapter}
-              onBack={handleBackToBooks}
-            />
-          </div>
-        )}
-
-        {mobilePanel === "reader" && selectedBookId && selectedChapter && (
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <Reader
-              bookId={selectedBookId}
-              chapter={selectedChapter}
-              onChapterChange={handleChapterChange}
-              onBack={handleBackToChapters}
-            />
-          </div>
-        )}
       </div>
     </main>
   )
 }
 
-function EmptyChapters() {
+function EmptyReader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   return (
-    <div className="flex flex-1 items-center justify-center p-6">
-      <p className="text-center text-sm text-muted-foreground leading-relaxed">
-        Selecione um livro para ver os capítulos.
-      </p>
-    </div>
-  )
-}
-
-function EmptyReader() {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8">
+    <div className="flex flex-1 h-full flex-col items-center justify-center gap-4 p-8">
       <p className="font-serif text-xl text-muted-foreground/60 text-balance text-center">
         Selecione um livro e um capítulo para começar a ler.
       </p>
       <p className="text-xs text-muted-foreground/40 text-center text-balance">
         Clique em qualquer versículo para destacar ou adicionar uma nota.
       </p>
+      {/* Mobile shortcut */}
+      <button
+        onClick={onOpenSidebar}
+        className="md:hidden mt-2 rounded-md px-4 py-2 text-sm bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+      >
+        Escolher livro
+      </button>
     </div>
   )
 }
