@@ -25,6 +25,10 @@ function saveToStorage<T>(key: string, value: T): void {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Highlights
+// ---------------------------------------------------------------------------
+
 export function useHighlights() {
   const [highlights, setHighlights] = useState<Highlight[]>([])
 
@@ -32,23 +36,26 @@ export function useHighlights() {
     setHighlights(loadFromStorage<Highlight[]>(HIGHLIGHTS_KEY, []))
   }, [])
 
-  const addHighlight = useCallback((verseId: string, color: HighlightColor) => {
-    setHighlights((prev) => {
-      // Remove any existing highlight for this verse
-      const filtered = prev.filter((h) => h.verseId !== verseId)
-      const next: Highlight[] = [
-        ...filtered,
-        {
-          id: `${verseId}-${Date.now()}`,
-          verseId,
-          color,
-          createdAt: new Date().toISOString(),
-        },
-      ]
-      saveToStorage(HIGHLIGHTS_KEY, next)
-      return next
-    })
-  }, [])
+  const addHighlight = useCallback(
+    (verseId: string, color: HighlightColor, customHex?: string) => {
+      setHighlights((prev) => {
+        const filtered = prev.filter((h) => h.verseId !== verseId)
+        const next: Highlight[] = [
+          ...filtered,
+          {
+            id: `${verseId}-${Date.now()}`,
+            verseId,
+            color,
+            ...(color === "custom" && customHex ? { customHex } : {}),
+            createdAt: new Date().toISOString(),
+          },
+        ]
+        saveToStorage(HIGHLIGHTS_KEY, next)
+        return next
+      })
+    },
+    []
+  )
 
   const removeHighlight = useCallback((verseId: string) => {
     setHighlights((prev) => {
@@ -68,47 +75,98 @@ export function useHighlights() {
   return { highlights, addHighlight, removeHighlight, getHighlight }
 }
 
+// ---------------------------------------------------------------------------
+// Notes  — a note can reference multiple verses
+// ---------------------------------------------------------------------------
+
 export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([])
 
   useEffect(() => {
-    setNotes(loadFromStorage<Note[]>(NOTES_KEY, []))
+    // Migrate old notes that used a single `verseId` field
+    const raw = loadFromStorage<unknown[]>(NOTES_KEY, [])
+    const migrated: Note[] = raw.map((n: any) => ({
+      ...n,
+      verseIds: n.verseIds ?? (n.verseId ? [n.verseId] : []),
+    }))
+    setNotes(migrated)
   }, [])
 
-  const upsertNote = useCallback((verseId: string, content: string) => {
-    setNotes((prev) => {
-      const existing = prev.find((n) => n.verseId === verseId)
-      let next: Note[]
-      if (existing) {
-        next = prev.map((n) =>
-          n.verseId === verseId ? { ...n, content, updatedAt: new Date().toISOString() } : n
-        )
-      } else {
+  /** Create or update a note by ID. Pass verseIds=[] to keep existing ones. */
+  const upsertNote = useCallback(
+    (noteId: string | null, content: string, verseIds: string[]) => {
+      setNotes((prev) => {
         const now = new Date().toISOString()
-        next = [
-          ...prev,
-          { id: `note-${verseId}-${Date.now()}`, verseId, content, createdAt: now, updatedAt: now },
-        ]
-      }
-      saveToStorage(NOTES_KEY, next)
-      return next
-    })
-  }, [])
+        let next: Note[]
+        if (noteId) {
+          const existing = prev.find((n) => n.id === noteId)
+          if (existing) {
+            next = prev.map((n) =>
+              n.id === noteId
+                ? {
+                    ...n,
+                    content,
+                    verseIds: verseIds.length > 0 ? verseIds : n.verseIds,
+                    updatedAt: now,
+                  }
+                : n
+            )
+          } else {
+            // ID provided but not found — create new with that ID
+            next = [
+              ...prev,
+              {
+                id: noteId,
+                verseIds,
+                content,
+                createdAt: now,
+                updatedAt: now,
+              },
+            ]
+          }
+        } else {
+          // New note
+          next = [
+            ...prev,
+            {
+              id: `note-${Date.now()}`,
+              verseIds,
+              content,
+              createdAt: now,
+              updatedAt: now,
+            },
+          ]
+        }
+        saveToStorage(NOTES_KEY, next)
+        return next
+      })
+    },
+    []
+  )
 
-  const deleteNote = useCallback((verseId: string) => {
+  const deleteNote = useCallback((noteId: string) => {
     setNotes((prev) => {
-      const next = prev.filter((n) => n.verseId !== verseId)
+      const next = prev.filter((n) => n.id !== noteId)
       saveToStorage(NOTES_KEY, next)
       return next
     })
   }, [])
 
-  const getNote = useCallback(
-    (verseId: string): Note | undefined => {
-      return notes.find((n) => n.verseId === verseId)
+  /** Get all notes that reference this verseId */
+  const getNotesForVerse = useCallback(
+    (verseId: string): Note[] => {
+      return notes.filter((n) => n.verseIds.includes(verseId))
     },
     [notes]
   )
 
-  return { notes, upsertNote, deleteNote, getNote }
+  /** Get the first note for a verse (for legacy single-note display) */
+  const getNote = useCallback(
+    (verseId: string): Note | undefined => {
+      return notes.find((n) => n.verseIds.includes(verseId))
+    },
+    [notes]
+  )
+
+  return { notes, upsertNote, deleteNote, getNote, getNotesForVerse }
 }

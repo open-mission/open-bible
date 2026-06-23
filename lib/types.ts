@@ -16,18 +16,21 @@ export interface Verse {
   text: string
 }
 
-export type HighlightColor = "amber" | "green" | "blue" | "rose"
+export type HighlightColor = "amber" | "green" | "blue" | "rose" | "custom"
 
 export interface Highlight {
   id: string
   verseId: string
   color: HighlightColor
+  /** Only set when color === "custom" */
+  customHex?: string
   createdAt: string
 }
 
 export interface Note {
   id: string
-  verseId: string
+  /** All verse IDs this note is linked to */
+  verseIds: string[]
   content: string
   createdAt: string
   updatedAt: string
