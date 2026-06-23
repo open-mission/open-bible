@@ -3,11 +3,11 @@
 import { StickyNote } from "lucide-react"
 import type { Verse, Highlight, Note } from "@/lib/types"
 
-const HIGHLIGHT_BG: Record<string, string> = {
-  amber: "bg-highlight-amber/40",
-  green: "bg-highlight-green/40",
-  blue: "bg-highlight-blue/40",
-  rose: "bg-highlight-rose/40",
+const HIGHLIGHT_HEX: Record<string, string> = {
+  amber: "#f5c842",
+  green: "#6aba7a",
+  blue:  "#6aabd2",
+  rose:  "#e87b8c",
 }
 
 interface VerseRowProps {
@@ -19,7 +19,7 @@ interface VerseRowProps {
 }
 
 export function VerseRow({ verse, highlight, note, isActive, onClick }: VerseRowProps) {
-  const highlightClass = highlight ? HIGHLIGHT_BG[highlight.color] : ""
+  const highlightHex = highlight ? HIGHLIGHT_HEX[highlight.color] : undefined
 
   return (
     <div
@@ -27,11 +27,10 @@ export function VerseRow({ verse, highlight, note, isActive, onClick }: VerseRow
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick()}
+      style={highlightHex ? { backgroundColor: `${highlightHex}55` } : undefined}
       className={`group relative flex gap-4 px-6 py-2.5 cursor-pointer rounded-md transition-colors select-text ${
-        isActive
-          ? "bg-accent/60"
-          : "hover:bg-secondary/60"
-      } ${highlightClass}`}
+        isActive ? "bg-accent/60" : "hover:bg-secondary/60"
+      }`}
       aria-pressed={isActive}
     >
       {/* Verse number */}
