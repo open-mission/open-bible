@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { Reader } from "@/components/reader";
+import { NoteEditorDialog } from "@/components/note-editor-dialog";
+import { useNotes } from "@/lib/store";
 
 const BOOK_KEY = "openbible:book";
 const CHAPTER_KEY = "openbible:chapter";
@@ -13,6 +15,12 @@ export default function Home() {
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [noteDialog, setNoteDialog] = useState<{
+    verseIds: string[];
+    noteId: string | null;
+  } | null>(null);
+
+  const { notes, upsertNote, deleteNote } = useNotes();
 
   // Restore last position from localStorage on mount
   useEffect(() => {
@@ -68,6 +76,7 @@ export default function Home() {
         onJumpTo={handleJumpTo}
         sidebarCollapsed={sidebarCollapsed}
         onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+        onOpenNoteEditor={(verseIds, noteId) => setNoteDialog({ verseIds, noteId })}
       />
 
       {/* Desktop sidebar toggle — always visible */}
@@ -109,12 +118,33 @@ export default function Home() {
               chapter={selectedChapter}
               onChapterChange={handleChapterChange}
               onBack={() => setSidebarOpen(true)}
+              onOpenNoteEditor={(verseIds, noteId) => setNoteDialog({ verseIds, noteId })}
             />
           ) : (
             <EmptyReader onOpenSidebar={() => setSidebarOpen(true)} />
           )}
         </div>
       </div>
+      {noteDialog && (
+        <NoteEditorDialog
+          verseIds={noteDialog.verseIds}
+          noteId={noteDialog.noteId}
+          existingNote={
+            noteDialog.noteId
+              ? notes.find((n) => n.id === noteDialog.noteId)
+              : undefined
+          }
+          onSave={(noteId, content, verseIds) => {
+            upsertNote(noteId, content, verseIds);
+            setNoteDialog(null);
+          }}
+          onDelete={(noteId) => {
+            deleteNote(noteId);
+            setNoteDialog(null);
+          }}
+          onClose={() => setNoteDialog(null)}
+        />
+      )}
     </main>
   );
 }
