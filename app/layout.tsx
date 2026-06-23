@@ -2,6 +2,8 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Inter, Lora, Geist_Mono } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
+import { BibleVersionProvider } from '@/lib/bible-version-context'
+import { ServiceWorkerRegister } from '@/components/service-worker-register'
 import './globals.css'
 
 const inter = Inter({
@@ -26,6 +28,7 @@ export const metadata: Metadata = {
   title: 'Open Bible',
   description: 'Leia, destaque e anote os textos bíblicos de forma simples e focada.',
   generator: 'v0.app',
+  manifest: '/manifest.json',
   icons: {
     icon: [
       { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
@@ -33,6 +36,11 @@ export const metadata: Metadata = {
       { url: '/icon.svg', type: 'image/svg+xml' },
     ],
     apple: '/apple-icon.png',
+  },
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'apple-mobile-web-app-title': 'Open Bible',
   },
 }
 
@@ -58,8 +66,11 @@ export default function RootLayout({
     >
       <body className="font-sans antialiased">
         <ThemeProvider>
-          {children}
+          <BibleVersionProvider>
+            {children}
+          </BibleVersionProvider>
         </ThemeProvider>
+        <ServiceWorkerRegister />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

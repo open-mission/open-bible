@@ -22,6 +22,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# generated bible data (build output from resources/bibles/*.sqlite)
+/public/data/bibles/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,0 +1,163 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import { Book, Check, Download, Trash2, Loader2, ChevronDown } from "lucide-react"
+import { useBibleVersion } from "@/lib/bible-version-context"
+
+export function BibleVersionSelector() {
+  const {
+    versionId,
+    setVersionId,
+    installedVersions,
+    availableVersions,
+    isInstalling,
+    downloadProgress,
+    installVersion,
+    uninstallVersion,
+  } = useBibleVersion()
+
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [open])
+
+  const currentName =
+    versionId === "default"
+      ? "Versão padrão"
+      : installedVersions.find((v) => v.id === versionId)?.name ??
+        availableVersions.find((v) => v.id === versionId)?.name ??
+        versionId.toUpperCase()
+
+  return (
+    <div ref={menuRef} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors w-full"
+      >
+        <Book className="h-3.5 w-3.5 shrink-0" />
+        <span className="truncate flex-1 text-left">{currentName}</span>
+        <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
+      </button>
+
+      {open && (
+        <div className="absolute bottom-full left-0 right-0 mb-1 max-h-80 overflow-y-auto rounded-lg border border-border bg-card shadow-lg z-50">
+          <div className="p-1.5 space-y-0.5">
+            {/* Default option */}
+            <button
+              onClick={() => {
+                setVersionId("default")
+                setOpen(false)
+              }}
+              className={`w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors ${
+                versionId === "default"
+                  ? "bg-accent text-accent-foreground"
+                  : "hover:bg-secondary text-foreground"
+              }`}
+            >
+              <span className="flex-1 font-medium">Versão padrão</span>
+              {versionId === "default" && <Check className="h-3 w-3 shrink-0" />}
+            </button>
+
+            <div className="border-t border-border my-1" />
+
+            {/* Installed versions */}
+            {installedVersions.map((v) => (
+              <div key={v.id} className="group">
+                <button
+                  onClick={() => {
+                    setVersionId(v.id)
+                    setOpen(false)
+                  }}
+                  className={`w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors ${
+                    versionId === v.id
+                      ? "bg-accent text-accent-foreground"
+                      : "hover:bg-secondary text-foreground"
+                  }`}
+                >
+                  <Check
+                    className={`h-3 w-3 shrink-0 ${
+                      versionId === v.id ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+                  <span className="flex-1 font-medium truncate">{v.name}</span>
+                  <span className="text-[10px] text-muted-foreground/60 shrink-0">
+                    {v.books.length} livros
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (confirm(`Remover "${v.name}" do dispositivo?`)) {
+                        uninstallVersion(v.id)
+                      }
+                    }}
+                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all shrink-0"
+                    aria-label={`Remover ${v.name}`}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </button>
+              </div>
+            ))}
+
+            {installedVersions.length > 0 && availableVersions.length > 0 && (
+              <div className="border-t border-border my-1" />
+            )}
+
+            {/* Available (not installed) versions */}
+            {availableVersions
+              .filter((av) => !installedVersions.find((iv) => iv.id === av.id))
+              .map((v) => (
+                <div key={v.id}>
+                  <button
+                    onClick={() => installVersion(v.id)}
+                    disabled={isInstalling}
+                    className="w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors hover:bg-secondary text-foreground disabled:opacity-50"
+                  >
+                    <Download className="h-3 w-3 shrink-0 text-muted-foreground" />
+                    <span className="flex-1 font-medium truncate">{v.name}</span>
+                    <span className="text-[10px] text-muted-foreground/60">
+                      {v.totalBooks} livros
+                    </span>
+                  </button>
+                </div>
+              ))}
+
+            {availableVersions.length === 0 && installedVersions.length === 0 && (
+              <div className="px-2.5 py-3 text-center text-[10px] text-muted-foreground/50">
+                Nenhuma versão disponível
+              </div>
+            )}
+
+            {/* Download progress */}
+            {isInstalling && downloadProgress && (
+              <div className="px-2.5 py-2 border-t border-border">
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>
+                    Baixando... {downloadProgress.current}/{downloadProgress.total}
+                  </span>
+                </div>
+                <div className="h-1 rounded-full bg-secondary overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-300"
+                    style={{
+                      width: `${(downloadProgress.current / downloadProgress.total) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

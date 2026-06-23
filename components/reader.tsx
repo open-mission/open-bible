@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { ChevronLeft, ChevronRight, CheckSquare } from "lucide-react"
-import { getBook, getVerses } from "@/lib/bible-data"
+import { useState, useRef, useEffect } from "react"
+import { ChevronLeft, ChevronRight, CheckSquare, Loader2 } from "lucide-react"
+import { getBook } from "@/lib/bible-data"
 import { useHighlights, useNotes } from "@/lib/store"
+import { useBibleVerses } from "@/lib/use-bible"
 import type { HighlightColor } from "@/lib/types"
 import { VerseRow } from "./verse-row"
 import { HighlightToolbar } from "./highlight-toolbar"
@@ -18,26 +19,28 @@ interface ReaderProps {
 
 export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps) {
   const book = getBook(bookId)
-  const verses = getVerses(bookId, chapter)
+  const { verses, loading } = useBibleVerses(bookId, chapter)
   const { addHighlight, removeHighlight, getHighlight } = useHighlights()
   const { upsertNote, deleteNote, getNote, getNotesForVerse } = useNotes()
 
-  // Single active verse (for toolbar)
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null)
-  // Multi-select mode: set of selected verse IDs
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(new Set())
   const [multiSelectMode, setMultiSelectMode] = useState(false)
-  // Note panel verse id
   const [noteVerseIds, setNoteVerseIds] = useState<string[]>([])
   const [editNoteId, setEditNoteId] = useState<string | null>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    setActiveVerseId(null)
+    setNoteVerseIds([])
+    setSelectedVerseIds(new Set())
+  }, [bookId, chapter])
+
   if (!book) return null
 
   const activeVerse = verses.find((v) => v.id === activeVerseId) ?? null
 
-  // In multi-select mode show toolbar for the selection
   const showToolbar = multiSelectMode
     ? selectedVerseIds.size > 0
     : activeVerse !== null
@@ -46,7 +49,6 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
     ? `${book.abbreviation} ${chapter}:${activeVerse.verse}`
     : ""
 
-  // Highlight for active single verse
   const activeHighlight = activeVerse ? getHighlight(activeVerse.id) : undefined
 
   function handleVerseClick(verseId: string) {
@@ -110,18 +112,12 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
   function prevChapter() {
     if (chapter > 1) {
       onChapterChange(chapter - 1)
-      setActiveVerseId(null)
-      setNoteVerseIds([])
-      setSelectedVerseIds(new Set())
     }
   }
 
   function nextChapter() {
     if (chapter < book!.chapters) {
       onChapterChange(chapter + 1)
-      setActiveVerseId(null)
-      setNoteVerseIds([])
-      setSelectedVerseIds(new Set())
     }
   }
 
@@ -134,7 +130,6 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
         {/* Chapter header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
           <div className="flex items-center gap-2">
-            {/* Mobile menu button */}
             <button
               onClick={onBack}
               className="flex md:hidden items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
@@ -153,7 +148,6 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Multi-select toggle */}
             <button
               onClick={toggleMultiSelect}
               aria-label={multiSelectMode ? "Sair da seleção múltipla" : "Selecionar múltiplos versículos"}
@@ -168,7 +162,6 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
               <CheckSquare className="h-4 w-4" />
             </button>
 
-            {/* Chapter navigation */}
             <div className="flex items-center gap-1">
               <button
                 onClick={prevChapter}
@@ -227,17 +220,23 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
 
         {/* Verses */}
         <div ref={containerRef} className="flex-1 overflow-y-auto py-4 px-2">
-          {verses.map((verse) => (
-            <VerseRow
-              key={verse.id}
-              verse={verse}
-              highlight={getHighlight(verse.id)}
-              note={getNote(verse.id)}
-              isActive={verse.id === activeVerseId}
-              isSelected={selectedVerseIds.has(verse.id)}
-              onClick={() => handleVerseClick(verse.id)}
-            />
-          ))}
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            verses.map((verse) => (
+              <VerseRow
+                key={verse.id}
+                verse={verse}
+                highlight={getHighlight(verse.id)}
+                note={getNote(verse.id)}
+                isActive={verse.id === activeVerseId}
+                isSelected={selectedVerseIds.has(verse.id)}
+                onClick={() => handleVerseClick(verse.id)}
+              />
+            ))
+          )}
 
           {/* Chapter navigation footer */}
           <div className="flex items-center justify-between mt-8 px-4">
@@ -261,7 +260,7 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
         </div>
       </div>
 
-      {/* Notes panel — slide in on the right */}
+      {/* Notes panel */}
       {notePanelOpen && (
         <div className="w-80 shrink-0 border-l border-border bg-card flex flex-col h-full">
           <NotesPanel

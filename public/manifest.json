@@ -1,0 +1,18 @@
+{
+  "name": "Open Bible",
+  "short_name": "Open Bible",
+  "description": "Leia, destaque e anote os textos bíblicos de forma simples e focada.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f4ef",
+  "theme_color": "#f8f4ef",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
