@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookOpen,
@@ -13,10 +13,6 @@ import {
   Sun,
   Moon,
   Plus,
-  Link2,
-  Link2Off,
-  Trash2,
-  ArrowLeft,
 } from "lucide-react";
 import { BookList } from "./book-list";
 import { ChapterGrid } from "./chapter-grid";
@@ -24,11 +20,10 @@ import { useNotes, useHighlights } from "@/lib/store";
 import { getBook, getVerses } from "@/lib/bible-data";
 import { useAppTheme } from "@/components/theme-provider";
 import { BibleVersionSelector } from "./bible-version-selector";
-import type { HighlightColor, Note } from "@/lib/types";
+import type { Note } from "@/lib/types";
 
 type SidebarTab = "bible" | "notes" | "highlights";
 type BiblePane = "books" | "chapters";
-type NotesView = "list" | "detail" | "new";
 
 const HIGHLIGHT_HEX: Record<string, string> = {
   amber: "#f5c842",
@@ -72,6 +67,7 @@ interface SidebarProps {
   onJumpTo: (bookId: string, chapter: number) => void;
   sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
+  onOpenNoteEditor?: (verseIds: string[], noteId: string | null) => void;
 }
 
 export function Sidebar({
@@ -84,19 +80,24 @@ export function Sidebar({
   onJumpTo,
   sidebarCollapsed,
   onToggleSidebar,
+  onOpenNoteEditor,
 }: SidebarProps) {
   const [tab, setTab] = useState<SidebarTab>("bible");
   const [biblePane, setBiblePane] = useState<BiblePane>("books");
-  const { notes, upsertNote, deleteNote } = useNotes();
+  const { notes } = useNotes();
   const { highlights } = useHighlights();
   const { isDark, setTheme } = useAppTheme();
   const router = useRouter();
 
-  // Notes tab state
-  const [notesView, setNotesView] = useState<NotesView>("list");
-  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
-  const [newNoteContent, setNewNoteContent] = useState("");
-  const [editNoteContent, setEditNoteContent] = useState("");
+  const [sidebarWidth, setSidebarWidth] = useState(256);
+  const isResizing = useRef(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("openbible:sidebar-width");
+      if (saved) setSidebarWidth(Number(saved));
+    } catch { /* ignore */ }
+  }, []);
 
   function handleSelectBook(bookId: string) {
     onSelectBook(bookId);
@@ -108,36 +109,39 @@ export function Sidebar({
     onClose();
   }
 
+  function handleMouseDown(e: React.MouseEvent) {
+    e.preventDefault();
+    isResizing.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }
+
+  useEffect(() => {
+    const sidebarWidthRef = { current: sidebarWidth };
+    function handleMouseMove(e: MouseEvent) {
+      if (!isResizing.current) return;
+      const newWidth = Math.min(480, Math.max(240, e.clientX));
+      setSidebarWidth(newWidth);
+      sidebarWidthRef.current = newWidth;
+    }
+    function handleMouseUp() {
+      if (isResizing.current) {
+        isResizing.current = false;
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        try { localStorage.setItem("openbible:sidebar-width", String(sidebarWidthRef.current)); } catch { /* ignore */ }
+      }
+    }
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [sidebarWidth]);
+
   function openNoteDetail(note: Note) {
-    setActiveNoteId(note.id);
-    setEditNoteContent(note.content);
-    setNotesView("detail");
-  }
-
-  function openNewNote() {
-    setActiveNoteId(null);
-    setNewNoteContent("");
-    setNotesView("new");
-  }
-
-  function handleSaveNewNote() {
-    if (!newNoteContent.trim()) return;
-    upsertNote(null, newNoteContent.trim(), []);
-    setNotesView("list");
-    setNewNoteContent("");
-  }
-
-  function handleSaveEdit() {
-    if (!activeNoteId || !editNoteContent.trim()) return;
-    const note = notes.find((n) => n.id === activeNoteId);
-    upsertNote(activeNoteId, editNoteContent.trim(), note?.verseIds ?? []);
-    setNotesView("list");
-  }
-
-  function handleDeleteNote(noteId: string) {
-    deleteNote(noteId);
-    setNotesView("list");
-    setActiveNoteId(null);
+    onOpenNoteEditor?.(note.verseIds, note.id);
   }
 
   // Resolve highlight metadata
@@ -168,13 +172,11 @@ export function Sidebar({
         new Date(a.note.updatedAt).getTime(),
     );
 
-  const activeNote = notes.find((n) => n.id === activeNoteId) ?? null;
-
   // -------------------------------------------------------------------------
   // Build the shared sidebar content
   // -------------------------------------------------------------------------
   const content = (
-    <div className="flex h-full flex-col bg-sidebar">
+    <div className="flex h-full w-full flex-col bg-sidebar">
       {/* ── App title header ─────────────────────────────────────────────── */}
       <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3 shrink-0">
         <span className="font-serif text-sm font-semibold text-foreground tracking-wide">
@@ -234,10 +236,7 @@ export function Sidebar({
           return (
             <button
               key={t}
-              onClick={() => {
-                setTab(t);
-                if (t === "notes") setNotesView("list");
-              }}
+              onClick={() => setTab(t)}
               aria-selected={tab === t}
               role="tab"
               className={`flex flex-1 items-center justify-center gap-1 py-4 text-xs font-medium transition-colors border-b-2 ${
@@ -340,12 +339,11 @@ export function Sidebar({
         )}
 
         {/* NOTES tab — LIST view */}
-        {tab === "notes" && notesView === "list" && (
+        {tab === "notes" && (
           <div className="flex flex-col flex-1 min-h-0">
-            {/* New note button */}
             <div className="shrink-0 px-3 py-2 border-b border-border">
               <button
-                onClick={openNewNote}
+                onClick={() => onOpenNoteEditor?.([], null)}
                 className="w-full flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-secondary/40 transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -426,148 +424,6 @@ export function Sidebar({
             )}
           </div>
         )}
-
-        {/* NOTES tab — DETAIL view */}
-        {tab === "notes" && notesView === "detail" && activeNote && (
-          <div className="flex flex-col flex-1 min-h-0">
-            {/* Back + delete header */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
-              <button
-                onClick={() => setNotesView("list")}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Notas
-              </button>
-              <button
-                onClick={() => handleDeleteNote(activeNote.id)}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Excluir
-              </button>
-            </div>
-
-            {/* Linked verses */}
-            {activeNote.verseIds.length > 0 && (
-              <div className="shrink-0 border-b border-border px-3 py-2 space-y-1">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium flex items-center gap-1 mb-1">
-                  <Link2 className="h-3 w-3" />
-                  Versículos
-                </p>
-                {activeNote.verseIds.map((vId) => {
-                  const meta = parseVerseId(vId);
-                  if (!meta) return null;
-                  const ref = `${meta.book.abbreviation} ${meta.chapter}:${meta.verse}`;
-                  return (
-                    <button
-                      key={vId}
-                      onClick={() => {
-                        onJumpTo(meta.book.id, meta.chapter);
-                        onClose();
-                      }}
-                      className="w-full text-left flex items-start gap-2 rounded-md bg-secondary/50 px-2.5 py-1.5 hover:bg-secondary transition-colors group"
-                    >
-                      <span className="font-mono text-xs text-primary shrink-0 mt-0.5">
-                        {ref}
-                      </span>
-                      <p className="flex-1 font-serif text-xs text-muted-foreground line-clamp-2 leading-snug">
-                        {meta.text}
-                      </p>
-                      <ChevronRight className="h-3 w-3 shrink-0 mt-0.5 text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Editable content */}
-            <div className="flex-1 overflow-y-auto px-4 py-3">
-              <textarea
-                value={editNoteContent}
-                onChange={(e) => setEditNoteContent(e.target.value)}
-                onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-                    e.preventDefault();
-                    handleSaveEdit();
-                  }
-                }}
-                className="w-full h-full min-h-32 resize-none bg-transparent font-serif text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
-                spellCheck
-              />
-            </div>
-
-            {/* Save footer */}
-            <div className="flex justify-end border-t border-border px-4 py-2 shrink-0 gap-2">
-              <span className="text-xs text-muted-foreground/50 self-center hidden sm:inline">
-                Ctrl+S
-              </span>
-              <button
-                onClick={handleSaveEdit}
-                disabled={
-                  !editNoteContent.trim() ||
-                  editNoteContent.trim() === activeNote.content
-                }
-                className="rounded-md px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Salvar
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* NOTES tab — NEW note view */}
-        {tab === "notes" && notesView === "new" && (
-          <div className="flex flex-col flex-1 min-h-0">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
-              <button
-                onClick={() => setNotesView("list")}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Notas
-              </button>
-              <span className="text-xs text-muted-foreground">Nova nota</span>
-            </div>
-
-            <div className="shrink-0 border-b border-border px-3 py-2">
-              <p className="text-xs text-muted-foreground/70 italic">
-                Escreva sua nota. Para vincular versículos, selecione-os no
-                leitor e use o botão &quot;Nota&quot;.
-              </p>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-4 py-3">
-              <textarea
-                autoFocus
-                value={newNoteContent}
-                onChange={(e) => setNewNoteContent(e.target.value)}
-                onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-                    e.preventDefault();
-                    handleSaveNewNote();
-                  }
-                }}
-                placeholder="Escreva sua nota aqui..."
-                className="w-full h-full min-h-32 resize-none bg-transparent font-serif text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
-                spellCheck
-              />
-            </div>
-
-            <div className="flex justify-end border-t border-border px-4 py-2 shrink-0 gap-2">
-              <span className="text-xs text-muted-foreground/50 self-center hidden sm:inline">
-                Ctrl+S
-              </span>
-              <button
-                onClick={handleSaveNewNote}
-                disabled={!newNoteContent.trim()}
-                className="rounded-md px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Salvar
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
@@ -608,9 +464,16 @@ export function Sidebar({
     <>
       {/* Desktop sidebar */}
       <aside
-        className={`hidden md:flex shrink-0 border-r border-border h-full flex-col overflow-hidden transition-all duration-200 ${sidebarCollapsed ? "w-0 border-0 overflow-hidden" : "w-64"}`}
+        className={`hidden md:flex shrink-0 border-r border-border h-full flex-col overflow-hidden relative transition-[width] duration-100 ${sidebarCollapsed ? "w-0 border-0 overflow-hidden" : ""}`}
+        style={sidebarCollapsed ? undefined : { width: sidebarWidth }}
       >
         {content}
+        {!sidebarCollapsed && (
+          <div
+            className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/30 active:bg-primary/50 transition-colors z-10 hidden md:block"
+            onMouseDown={handleMouseDown}
+          />
+        )}
       </aside>
 
       {/* Mobile drawer overlay */}
@@ -621,7 +484,7 @@ export function Sidebar({
             onClick={onClose}
             aria-hidden="true"
           />
-          <div className="relative z-50 w-72 h-full flex flex-col shadow-xl">
+          <div className="relative z-50 w-full max-w-sm h-full flex flex-col shadow-xl">
             {content}
           </div>
         </div>
