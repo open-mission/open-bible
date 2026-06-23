@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { BookOpen, FileText, Highlighter, X, ChevronRight } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { BookOpen, FileText, Highlighter, X, ChevronRight, Settings, Sun, Moon } from "lucide-react"
 import { BookList } from "./book-list"
 import { ChapterGrid } from "./chapter-grid"
 import { useNotes, useHighlights } from "@/lib/store"
 import { getBook, getVerses } from "@/lib/bible-data"
+import { useAppTheme } from "@/components/theme-provider"
 import type { HighlightColor } from "@/lib/types"
 
 type SidebarTab = "bible" | "notes" | "highlights"
@@ -50,6 +52,8 @@ export function Sidebar({
   const [biblePane, setBiblePane] = useState<BiblePane>("books")
   const { notes } = useNotes()
   const { highlights } = useHighlights()
+  const { isDark, setTheme } = useAppTheme()
+  const router = useRouter()
 
   function handleSelectBook(bookId: string) {
     onSelectBook(bookId)
@@ -302,10 +306,31 @@ export function Sidebar({
           </div>
         )}
       </div>
+
+      {/* Footer: theme toggle + settings */}
+      <div className="shrink-0 flex items-center justify-between border-t border-sidebar-border px-3 py-2">
+        <button
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          aria-label={isDark ? "Mudar para tema claro" : "Mudar para tema escuro"}
+          className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+        >
+          {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+          {isDark ? "Claro" : "Escuro"}
+        </button>
+        <button
+          onClick={() => { router.push("/config"); onClose() }}
+          aria-label="Preferencias"
+          className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+        >
+          <Settings className="h-3.5 w-3.5" />
+          Preferencias
+        </button>
+      </div>
     </div>
   )
 
   return (
+
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-64 shrink-0 border-r border-border h-full flex-col overflow-hidden">
