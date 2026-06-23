@@ -1,36 +1,65 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { X, Trash2 } from "lucide-react"
-import type { Note, Verse } from "@/lib/types"
+import { X, Trash2, Plus, Link2, Link2Off } from "lucide-react"
+import { getBook, getVerses } from "@/lib/bible-data"
+import type { Note } from "@/lib/types"
 
 interface NotesPanelProps {
-  verse: Verse
-  note?: Note
-  onSave: (content: string) => void
-  onDelete: () => void
+  /** Initial verse IDs to link (from reader selection) */
+  verseIds: string[]
+  /** If editing an existing note, pass its ID */
+  noteId: string | null
+  /** Existing note data if editing */
+  existingNote?: Note
+  onSave: (noteId: string | null, content: string, verseIds: string[]) => void
+  onDelete: (noteId: string) => void
   onClose: () => void
 }
 
-export function NotesPanel({ verse, note, onSave, onDelete, onClose }: NotesPanelProps) {
-  const [content, setContent] = useState(note?.content ?? "")
+function parseVerseId(verseId: string) {
+  const match = verseId.match(/^(.+)-(\d+)-(\d+)$/)
+  if (!match) return null
+  const [, bookId, chapterStr, verseStr] = match
+  const book = getBook(bookId)
+  if (!book) return null
+  const chapter = parseInt(chapterStr, 10)
+  const verse = parseInt(verseStr, 10)
+  const verseData = getVerses(bookId, chapter).find((v) => v.verse === verse)
+  return { bookId, book, chapter, verse, text: verseData?.text ?? "" }
+}
+
+export function NotesPanel({
+  verseIds: initialVerseIds,
+  noteId,
+  existingNote,
+  onSave,
+  onDelete,
+  onClose,
+}: NotesPanelProps) {
+  const [content, setContent] = useState(existingNote?.content ?? "")
+  const [linkedVerseIds, setLinkedVerseIds] = useState<string[]>(
+    existingNote?.verseIds ?? initialVerseIds
+  )
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    setContent(note?.content ?? "")
-  }, [note, verse.id])
+    setContent(existingNote?.content ?? "")
+    setLinkedVerseIds(existingNote?.verseIds ?? initialVerseIds)
+  }, [noteId, existingNote, initialVerseIds.join(",")])
 
   useEffect(() => {
     textareaRef.current?.focus()
   }, [])
 
-  const isDirty = content !== (note?.content ?? "")
+  const isDirty =
+    content !== (existingNote?.content ?? "") ||
+    JSON.stringify(linkedVerseIds) !== JSON.stringify(existingNote?.verseIds ?? initialVerseIds)
   const isEmpty = content.trim() === ""
 
   function handleSave() {
-    if (!isEmpty) {
-      onSave(content.trim())
-    }
+    if (isEmpty) return
+    onSave(noteId, content.trim(), linkedVerseIds)
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -40,31 +69,72 @@ export function NotesPanel({ verse, note, onSave, onDelete, onClose }: NotesPane
     }
   }
 
-  const verseRef = `${verse.chapter}:${verse.verse}`
+  function removeVerseLink(verseId: string) {
+    setLinkedVerseIds((prev) => prev.filter((id) => id !== verseId))
+  }
 
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground font-mono">Versículo {verseRef}</p>
-          <p className="mt-0.5 font-serif text-sm text-foreground line-clamp-2 leading-snug">
-            {verse.text}
-          </p>
-        </div>
+        <p className="text-sm font-medium text-foreground">
+          {noteId ? "Editar nota" : "Nova nota"}
+        </p>
         <button
           onClick={onClose}
           aria-label="Fechar painel de notas"
-          className="ml-3 shrink-0 flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          className="flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
+      {/* Linked verses */}
+      {linkedVerseIds.length > 0 && (
+        <div className="shrink-0 border-b border-border px-4 py-2.5 space-y-1.5">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1.5 flex items-center gap-1">
+            <Link2 className="h-3 w-3" />
+            Versículos vinculados
+          </p>
+          {linkedVerseIds.map((vId) => {
+            const meta = parseVerseId(vId)
+            if (!meta) return null
+            const ref = `${meta.book.abbreviation} ${meta.chapter}:${meta.verse}`
+            return (
+              <div
+                key={vId}
+                className="flex items-start gap-2 rounded-md bg-secondary/60 px-2.5 py-1.5"
+              >
+                <span className="font-mono text-xs text-primary shrink-0 mt-0.5">{ref}</span>
+                <p className="flex-1 font-serif text-xs text-muted-foreground line-clamp-2 leading-snug">
+                  {meta.text}
+                </p>
+                <button
+                  onClick={() => removeVerseLink(vId)}
+                  aria-label={`Remover vínculo com ${ref}`}
+                  className="shrink-0 mt-0.5 text-muted-foreground/50 hover:text-destructive transition-colors"
+                >
+                  <Link2Off className="h-3 w-3" />
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Empty verses hint */}
+      {linkedVerseIds.length === 0 && (
+        <div className="shrink-0 border-b border-border px-4 py-2.5">
+          <p className="text-xs text-muted-foreground/60 italic">
+            Nenhum versículo vinculado. Selecione versículos no leitor para vincular.
+          </p>
+        </div>
+      )}
+
       {/* Textarea */}
       <div className="flex-1 overflow-y-auto px-4 py-3">
         <label htmlFor="note-textarea" className="sr-only">
-          Nota para {verseRef}
+          Nota
         </label>
         <textarea
           id="note-textarea"
@@ -73,7 +143,7 @@ export function NotesPanel({ verse, note, onSave, onDelete, onClose }: NotesPane
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Escreva sua nota aqui..."
-          className="w-full h-full min-h-40 resize-none bg-transparent font-serif text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+          className="w-full h-full min-h-32 resize-none bg-transparent font-serif text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
           spellCheck
         />
       </div>
@@ -81,10 +151,10 @@ export function NotesPanel({ verse, note, onSave, onDelete, onClose }: NotesPane
       {/* Footer */}
       <div className="flex items-center justify-between border-t border-border px-4 py-3 shrink-0">
         <div className="flex items-center gap-2">
-          {note && (
+          {noteId && (
             <button
               onClick={() => {
-                onDelete()
+                onDelete(noteId)
                 onClose()
               }}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors"
@@ -96,8 +166,8 @@ export function NotesPanel({ verse, note, onSave, onDelete, onClose }: NotesPane
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground/60 hidden sm:inline">
-            {(note || !isEmpty) && "Ctrl+S para salvar"}
+          <span className="text-xs text-muted-foreground/50 hidden sm:inline">
+            Ctrl+S
           </span>
           <button
             onClick={handleSave}

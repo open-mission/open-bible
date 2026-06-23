@@ -10,16 +10,22 @@ const HIGHLIGHT_HEX: Record<string, string> = {
   rose:  "#e87b8c",
 }
 
+function resolveHex(h: Highlight): string {
+  if (h.color === "custom") return h.customHex ?? "#a78bfa"
+  return HIGHLIGHT_HEX[h.color] ?? "#f5c842"
+}
+
 interface VerseRowProps {
   verse: Verse
   highlight?: Highlight
   note?: Note
   isActive: boolean
+  isSelected?: boolean
   onClick: () => void
 }
 
-export function VerseRow({ verse, highlight, note, isActive, onClick }: VerseRowProps) {
-  const highlightHex = highlight ? HIGHLIGHT_HEX[highlight.color] : undefined
+export function VerseRow({ verse, highlight, note, isActive, isSelected, onClick }: VerseRowProps) {
+  const highlightHex = highlight ? resolveHex(highlight) : undefined
 
   return (
     <div
@@ -27,9 +33,19 @@ export function VerseRow({ verse, highlight, note, isActive, onClick }: VerseRow
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick()}
-      style={highlightHex ? { backgroundColor: `${highlightHex}55` } : undefined}
+      style={
+        highlightHex
+          ? { backgroundColor: `${highlightHex}55` }
+          : isSelected
+          ? { backgroundColor: "color-mix(in srgb, var(--color-primary) 12%, transparent)" }
+          : undefined
+      }
       className={`group relative flex gap-4 px-6 py-2.5 cursor-pointer rounded-md transition-colors select-text ${
-        isActive ? "bg-accent/60" : "hover:bg-secondary/60"
+        isActive
+          ? "bg-accent/60"
+          : isSelected
+          ? "ring-1 ring-inset ring-primary/30"
+          : "hover:bg-secondary/60"
       }`}
       aria-pressed={isActive}
     >

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, CheckSquare } from "lucide-react"
 import { getBook, getVerses } from "@/lib/bible-data"
 import { useHighlights, useNotes } from "@/lib/store"
 import type { HighlightColor } from "@/lib/types"
@@ -20,52 +20,99 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
   const book = getBook(bookId)
   const verses = getVerses(bookId, chapter)
   const { addHighlight, removeHighlight, getHighlight } = useHighlights()
-  const { upsertNote, deleteNote, getNote } = useNotes()
+  const { upsertNote, deleteNote, getNote, getNotesForVerse } = useNotes()
 
+  // Single active verse (for toolbar)
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null)
-  const [noteVerseId, setNoteVerseId] = useState<string | null>(null)
+  // Multi-select mode: set of selected verse IDs
+  const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(new Set())
+  const [multiSelectMode, setMultiSelectMode] = useState(false)
+  // Note panel verse id
+  const [noteVerseIds, setNoteVerseIds] = useState<string[]>([])
+  const [editNoteId, setEditNoteId] = useState<string | null>(null)
+
   const containerRef = useRef<HTMLDivElement>(null)
 
   if (!book) return null
 
   const activeVerse = verses.find((v) => v.id === activeVerseId) ?? null
-  const noteVerse = verses.find((v) => v.id === noteVerseId) ?? null
+
+  // In multi-select mode show toolbar for the selection
+  const showToolbar = multiSelectMode
+    ? selectedVerseIds.size > 0
+    : activeVerse !== null
+
+  const toolbarVerseRef = activeVerse
+    ? `${book.abbreviation} ${chapter}:${activeVerse.verse}`
+    : ""
+
+  // Highlight for active single verse
+  const activeHighlight = activeVerse ? getHighlight(activeVerse.id) : undefined
 
   function handleVerseClick(verseId: string) {
-    // Toggle: clicking the same verse deselects
+    if (multiSelectMode) {
+      setSelectedVerseIds((prev) => {
+        const next = new Set(prev)
+        if (next.has(verseId)) {
+          next.delete(verseId)
+        } else {
+          next.add(verseId)
+        }
+        return next
+      })
+      return
+    }
     setActiveVerseId((prev) => (prev === verseId ? null : verseId))
-    setNoteVerseId(null)
+    setNoteVerseIds([])
+    setEditNoteId(null)
   }
 
-  function handleHighlight(color: HighlightColor) {
-    if (!activeVerseId) return
-    addHighlight(activeVerseId, color)
+  function toggleMultiSelect() {
+    setMultiSelectMode((v) => !v)
+    setSelectedVerseIds(new Set())
+    setActiveVerseId(null)
+  }
+
+  function handleHighlight(color: HighlightColor, customHex?: string) {
+    const ids = multiSelectMode ? Array.from(selectedVerseIds) : activeVerseId ? [activeVerseId] : []
+    ids.forEach((id) => addHighlight(id, color, customHex))
   }
 
   function handleRemoveHighlight() {
-    if (!activeVerseId) return
-    removeHighlight(activeVerseId)
+    const ids = multiSelectMode ? Array.from(selectedVerseIds) : activeVerseId ? [activeVerseId] : []
+    ids.forEach((id) => removeHighlight(id))
   }
 
   function handleOpenNote() {
-    if (!activeVerseId) return
-    setNoteVerseId(activeVerseId)
+    const ids = multiSelectMode
+      ? Array.from(selectedVerseIds)
+      : activeVerseId
+      ? [activeVerseId]
+      : []
+    if (ids.length === 0) return
+    setNoteVerseIds(ids)
+    setEditNoteId(null)
     setActiveVerseId(null)
   }
 
   function handleCloseNote() {
-    setNoteVerseId(null)
+    setNoteVerseIds([])
+    setEditNoteId(null)
   }
 
   function handleCloseToolbar() {
     setActiveVerseId(null)
+    if (multiSelectMode) {
+      setSelectedVerseIds(new Set())
+    }
   }
 
   function prevChapter() {
     if (chapter > 1) {
       onChapterChange(chapter - 1)
       setActiveVerseId(null)
-      setNoteVerseId(null)
+      setNoteVerseIds([])
+      setSelectedVerseIds(new Set())
     }
   }
 
@@ -73,13 +120,12 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
     if (chapter < book!.chapters) {
       onChapterChange(chapter + 1)
       setActiveVerseId(null)
-      setNoteVerseId(null)
+      setNoteVerseIds([])
+      setSelectedVerseIds(new Set())
     }
   }
 
-  const activeVerseRef = activeVerse
-    ? `${book.abbreviation} ${chapter}:${activeVerse.verse}`
-    : ""
+  const notePanelOpen = noteVerseIds.length > 0
 
   return (
     <div className="flex h-full">
@@ -106,36 +152,71 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
             </div>
           </div>
 
-          {/* Chapter navigation */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            {/* Multi-select toggle */}
             <button
-              onClick={prevChapter}
-              disabled={chapter <= 1}
-              aria-label="Capítulo anterior"
-              className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              onClick={toggleMultiSelect}
+              aria-label={multiSelectMode ? "Sair da seleção múltipla" : "Selecionar múltiplos versículos"}
+              aria-pressed={multiSelectMode}
+              title={multiSelectMode ? "Sair da seleção múltipla" : "Selecionar múltiplos versículos"}
+              className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
+                multiSelectMode
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <CheckSquare className="h-4 w-4" />
             </button>
-            <span className="w-12 text-center text-sm font-mono text-muted-foreground">
-              {chapter}/{book.chapters}
-            </span>
-            <button
-              onClick={nextChapter}
-              disabled={chapter >= book.chapters}
-              aria-label="Próximo capítulo"
-              className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+
+            {/* Chapter navigation */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={prevChapter}
+                disabled={chapter <= 1}
+                aria-label="Capítulo anterior"
+                className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="w-12 text-center text-sm font-mono text-muted-foreground">
+                {chapter}/{book.chapters}
+              </span>
+              <button
+                onClick={nextChapter}
+                disabled={chapter >= book.chapters}
+                aria-label="Próximo capítulo"
+                className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
+        {/* Multi-select hint bar */}
+        {multiSelectMode && (
+          <div className="flex items-center justify-between bg-primary/10 border-b border-primary/20 px-4 py-1.5 shrink-0">
+            <span className="text-xs text-primary font-medium">
+              {selectedVerseIds.size === 0
+                ? "Clique nos versículos para selecionar"
+                : `${selectedVerseIds.size} versículo${selectedVerseIds.size > 1 ? "s" : ""} selecionado${selectedVerseIds.size > 1 ? "s" : ""}`}
+            </span>
+            <button
+              onClick={() => setSelectedVerseIds(new Set())}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Limpar
+            </button>
+          </div>
+        )}
+
         {/* Floating toolbar */}
-        {activeVerse && (
+        {showToolbar && (
           <div className="flex justify-center pt-2 px-4 shrink-0 z-10">
             <HighlightToolbar
-              verseRef={activeVerseRef}
-              activeHighlight={getHighlight(activeVerse.id)}
+              verseRef={toolbarVerseRef}
+              selectionCount={multiSelectMode ? selectedVerseIds.size : 1}
+              activeHighlight={multiSelectMode ? undefined : activeHighlight}
               onHighlight={handleHighlight}
               onRemoveHighlight={handleRemoveHighlight}
               onOpenNote={handleOpenNote}
@@ -153,6 +234,7 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
               highlight={getHighlight(verse.id)}
               note={getNote(verse.id)}
               isActive={verse.id === activeVerseId}
+              isSelected={selectedVerseIds.has(verse.id)}
               onClick={() => handleVerseClick(verse.id)}
             />
           ))}
@@ -180,13 +262,14 @@ export function Reader({ bookId, chapter, onChapterChange, onBack }: ReaderProps
       </div>
 
       {/* Notes panel — slide in on the right */}
-      {noteVerse && (
+      {notePanelOpen && (
         <div className="w-80 shrink-0 border-l border-border bg-card flex flex-col h-full">
           <NotesPanel
-            verse={noteVerse}
-            note={getNote(noteVerse.id)}
-            onSave={(content) => upsertNote(noteVerse.id, content)}
-            onDelete={() => deleteNote(noteVerse.id)}
+            verseIds={noteVerseIds}
+            noteId={editNoteId}
+            existingNote={editNoteId ? getNote(noteVerseIds[0]) : undefined}
+            onSave={(noteId, content, verseIds) => upsertNote(noteId, content, verseIds)}
+            onDelete={(noteId) => deleteNote(noteId)}
             onClose={handleCloseNote}
           />
         </div>
