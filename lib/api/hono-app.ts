@@ -333,11 +333,15 @@ app.doc("/api/openapi.json", {
   openapi: "3.1.0",
   info: {
     title: "Open Bible API",
-    version: "1.0.0",
+    version: "1.1.0",
     description:
-      "API para leitura de textos bíblicos em português. Suporta múltiplas versões, busca textual e consulta por livro/capítulo.",
+      "API para leitura de textos bíblicos em português. Suporta múltiplas versões, busca textual e consulta por livro/capítulo.\n\n## Mobile (iOS)\n\nUse `?compact=true` em qualquer endpoint para obter respostas otimizadas para mobile com menos dados.\n\n## CORS\n\nA API suporta CORS para apps nativos iOS/Android.",
   },
   servers: [{ url: "/", description: "Servidor local" }],
+  tags: [
+    { name: "Versões", description: "Consulta de versões e livros disponíveis" },
+    { name: "Texto Bíblico", description: "Consulta de versículos e busca textual" },
+  ],
 })
 
 // ─── Scalar docs ──────────────────────────────────────────────────
@@ -345,8 +349,10 @@ app.doc("/api/openapi.json", {
 app.get(
   "/api/docs",
   apiReference({
-    pageTitle: "Open Bible API",
+    pageTitle: "Open Bible API — Documentação",
     spec: { url: "/api/openapi.json" },
     theme: "purple",
+    layout: "modern",
+    hideModels: false,
   })
 )
