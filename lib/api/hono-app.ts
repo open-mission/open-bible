@@ -141,7 +141,7 @@ const chapterRoute = createRoute({
   method: "get",
   path: "/api/bibles/{version}/books/{bookId}/chapters/{chapter}",
   summary: "Versículos de um capítulo",
-  description: "Retorna todos os versículos de um capítulo específico.",
+  description: "Retorna todos os versículos de um capítulo específico. Use `?compact=true` para formato otimizado para mobile.",
   tags: ["Texto Bíblico"],
   request: {
     params: z.object({
@@ -156,6 +156,13 @@ const chapterRoute = createRoute({
       chapter: z.coerce.number().openapi({
         param: { name: "chapter", in: "path" },
         example: 1,
+      }),
+    }),
+    query: z.object({
+      compact: z.enum(["true", "false"]).optional().openapi({
+        param: { name: "compact", in: "query" },
+        example: "true",
+        description: "Retorna formato compacto (sem bookName, totalVerses). Padrão: false.",
       }),
     }),
   },
@@ -173,9 +180,18 @@ const chapterRoute = createRoute({
 
 app.openapi(chapterRoute, h(async (c) => {
   const { version, bookId, chapter } = c.req.valid("param")
+  const { compact } = c.req.valid("query")
   const result = await getChapterVerses(version, bookId, chapter)
   if (!result) {
     return c.json({ error: "Capítulo não encontrado" }, 404)
+  }
+  if (compact === "true") {
+    return c.json({
+      version,
+      bookId,
+      chapter,
+      verses: result.verses,
+    })
   }
   return c.json({
     version,
