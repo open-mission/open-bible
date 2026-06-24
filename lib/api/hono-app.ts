@@ -84,13 +84,20 @@ const versionDetailRoute = createRoute({
   method: "get",
   path: "/api/bibles/{version}",
   summary: "Detalhes da versão",
-  description: "Retorna metadados de uma versão, incluindo a lista de livros.",
+  description: "Retorna metadados de uma versão, incluindo a lista de livros. Use `?compact=true` para formato otimizado para mobile.",
   tags: ["Versões"],
   request: {
     params: z.object({
       version: z.string().openapi({
         param: { name: "version", in: "path" },
         example: "acf",
+      }),
+    }),
+    query: z.object({
+      compact: z.enum(["true", "false"]).optional().openapi({
+        param: { name: "compact", in: "query" },
+        example: "true",
+        description: "Retorna formato compacto (sem totalBooks, livros sem chapters). Padrão: false.",
       }),
     }),
   },
@@ -108,9 +115,22 @@ const versionDetailRoute = createRoute({
 
 app.openapi(versionDetailRoute, h(async (c) => {
   const { version } = c.req.valid("param")
+  const { compact } = c.req.valid("query")
   const detail = await getVersionDetail(version)
   if (!detail) {
     return c.json({ error: "Versão não encontrada" }, 404)
+  }
+  if (compact === "true") {
+    return c.json({
+      id: detail.id,
+      name: detail.name,
+      books: detail.books.map((b) => ({
+        id: b.id,
+        name: b.name,
+        abbreviation: b.abbreviation,
+        testament: b.testament,
+      })),
+    })
   }
   return c.json(detail)
 }))
