@@ -210,7 +210,7 @@ const searchRoute = createRoute({
   path: "/api/bibles/{version}/search",
   summary: "Buscar versículos",
   description:
-    "Busca textual em todos os versículos de uma versão. Retorna até 50 resultados.",
+    "Busca textual em todos os versículos de uma versão. Retorna até 50 resultados. Use `?compact=true` para formato otimizado para mobile.",
   tags: ["Texto Bíblico"],
   request: {
     params: z.object({
@@ -229,6 +229,11 @@ const searchRoute = createRoute({
         param: { name: "limit", in: "query" },
         example: 20,
         description: "Máximo de resultados (padrão: 50)",
+      }),
+      compact: z.enum(["true", "false"]).optional().openapi({
+        param: { name: "compact", in: "query" },
+        example: "true",
+        description: "Retorna formato compacto (sem totalResults, limit). Padrão: false.",
       }),
     }),
   },
@@ -250,7 +255,7 @@ const searchRoute = createRoute({
 
 app.openapi(searchRoute, h(async (c) => {
   const { version } = c.req.valid("param")
-  const { q, limit } = c.req.valid("query")
+  const { q, limit, compact } = c.req.valid("query")
 
   if (!q || q.trim().length === 0) {
     return c.json({ error: "Parâmetro 'q' é obrigatório" }, 400)
@@ -259,6 +264,19 @@ app.openapi(searchRoute, h(async (c) => {
   const results = await searchVerses(version, q.trim(), limit ?? 50)
   if (results === null) {
     return c.json({ error: "Versão não encontrada" }, 404)
+  }
+
+  if (compact === "true") {
+    return c.json({
+      version,
+      query: q.trim(),
+      results: results.map((r) => ({
+        bookId: r.bookId,
+        chapter: r.chapter,
+        verse: r.verse,
+        text: r.text,
+      })),
+    })
   }
 
   return c.json({
