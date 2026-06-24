@@ -6,12 +6,14 @@ import {
   ChapterResponseSchema,
   ErrorResponseSchema,
   SearchResultSchema,
+  BooksListSchema,
 } from "./schemas"
 import {
   listVersions,
   getVersionDetail,
   getChapterVerses,
   searchVerses,
+  listBooksForVersion,
 } from "./bible-service"
 
 export const app = new OpenAPIHono({
@@ -286,6 +288,43 @@ app.openapi(searchRoute, h(async (c) => {
     limit: limit ?? 50,
     results,
   })
+}))
+
+// ─── List books for a version ─────────────────────────────────────
+
+const booksListRoute = createRoute({
+  method: "get",
+  path: "/api/bibles/{version}/books",
+  summary: "Listar livros de uma versão",
+  description: "Retorna a lista de livros de uma versão específica da Bíblia.",
+  tags: ["Versões"],
+  request: {
+    params: z.object({
+      version: z.string().openapi({
+        param: { name: "version", in: "path" },
+        example: "acf",
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      content: { "application/json": { schema: BooksListSchema } },
+      description: "Lista de livros da versão",
+    },
+    404: {
+      content: { "application/json": { schema: ErrorResponseSchema } },
+      description: "Versão não encontrada",
+    },
+  },
+})
+
+app.openapi(booksListRoute, h(async (c) => {
+  const { version } = c.req.valid("param")
+  const result = await listBooksForVersion(version)
+  if (!result) {
+    return c.json({ error: "Versão não encontrada" }, 404)
+  }
+  return c.json(result)
 }))
 
 // ─── OpenAPI spec ─────────────────────────────────────────────────
