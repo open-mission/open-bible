@@ -193,23 +193,8 @@ export function Reader({ bookId, chapter, onChapterChange, onBack, onOpenNoteEdi
           </div>
         )}
 
-        {/* Floating toolbar */}
-        {showToolbar && (
-          <div className="flex justify-center pt-2 px-4 shrink-0 z-10">
-            <HighlightToolbar
-              verseRef={toolbarVerseRef}
-              selectionCount={multiSelectMode ? selectedVerseIds.size : 1}
-              activeHighlight={multiSelectMode ? undefined : activeHighlight}
-              onHighlight={handleHighlight}
-              onRemoveHighlight={handleRemoveHighlight}
-              onOpenNote={handleOpenNote}
-              onClose={handleCloseToolbar}
-            />
-          </div>
-        )}
-
         {/* Verses */}
-        <div ref={containerRef} className="flex-1 overflow-y-auto py-4 px-2">
+        <div ref={containerRef} className="flex-1 overflow-y-auto py-4">
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -248,6 +233,21 @@ export function Reader({ bookId, chapter, onChapterChange, onBack, onOpenNoteEdi
             </button>
           </div>
         </div>
+
+        {/* Floating toolbar at bottom */}
+        {showToolbar && (
+          <div className="flex justify-center px-4 pb-3 shrink-0 border-t border-border pt-2 bg-card/95 backdrop-blur-sm">
+            <HighlightToolbar
+              verseRef={toolbarVerseRef}
+              selectionCount={multiSelectMode ? selectedVerseIds.size : 1}
+              activeHighlight={multiSelectMode ? undefined : activeHighlight}
+              onHighlight={handleHighlight}
+              onRemoveHighlight={handleRemoveHighlight}
+              onOpenNote={handleOpenNote}
+              onClose={handleCloseToolbar}
+            />
+          </div>
+        )}
       </div>
 
     </div>

@@ -5,6 +5,7 @@ import { Book, Check, Download, Trash2, Loader2, ChevronDown } from "lucide-reac
 import { useBibleVersion } from "@/lib/bible-version-context"
 import { useIsMobile } from "@/lib/use-media-query"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
+import { useToast } from "@/lib/use-toast"
 
 export function BibleVersionSelector() {
   const {
@@ -19,8 +20,37 @@ export function BibleVersionSelector() {
   } = useBibleVersion()
 
   const [open, setOpen] = useState(false)
+  const [installingName, setInstallingName] = useState("")
   const menuRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
+  const { addToast, updateToast, removeToast } = useToast()
+  const toastIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (isInstalling && downloadProgress) {
+      if (downloadProgress.current === 1 && !toastIdRef.current) {
+        toastIdRef.current = addToast({
+          message: `Baixando ${installingName}...`,
+          type: "loading",
+          progress: downloadProgress,
+        })
+      } else if (toastIdRef.current) {
+        updateToast(toastIdRef.current, { progress: downloadProgress })
+        if (downloadProgress.current === downloadProgress.total) {
+          updateToast(toastIdRef.current, { message: `${installingName} disponível offline`, type: "success", progress: undefined })
+          setTimeout(() => {
+            if (toastIdRef.current) {
+              removeToast(toastIdRef.current)
+              toastIdRef.current = null
+            }
+          }, 4000)
+        }
+      }
+    }
+    if (!isInstalling && toastIdRef.current && (!downloadProgress || downloadProgress.current === downloadProgress.total)) {
+      toastIdRef.current = null
+    }
+  }, [isInstalling, downloadProgress, installingName, addToast, updateToast, removeToast])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -106,17 +136,36 @@ export function BibleVersionSelector() {
       {availableVersions
         .filter((av) => !installedVersions.find((iv) => iv.id === av.id))
         .map((v) => (
-          <div key={v.id}>
+          <div key={v.id} className="group">
             <button
-              onClick={() => installVersion(v.id)}
+              onClick={() => {
+                setVersionId(v.id)
+                setOpen(false)
+              }}
               disabled={isInstalling}
               className="w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors hover:bg-secondary text-foreground disabled:opacity-50"
             >
-              <Download className="h-3 w-3 shrink-0 text-muted-foreground" />
+              <Check
+                className={`h-3 w-3 shrink-0 ${
+                  versionId === v.id ? "opacity-100" : "opacity-0"
+                }`}
+              />
               <span className="flex-1 font-medium truncate">{v.name}</span>
               <span className="text-[10px] text-muted-foreground/60">
                 {v.totalBooks} livros
               </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setInstallingName(v.name)
+                  installVersion(v.id)
+                }}
+                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-all shrink-0"
+                aria-label={`Baixar ${v.name} para usar offline`}
+                title="Baixar para usar offline"
+              >
+                <Download className="h-3 w-3" />
+              </button>
             </button>
           </div>
         ))}

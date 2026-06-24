@@ -40,7 +40,7 @@ export function VerseRow({ verse, highlight, note, isActive, isSelected, onClick
           ? { backgroundColor: "color-mix(in srgb, var(--color-primary) 12%, transparent)" }
           : undefined
       }
-      className={`group relative flex gap-4 px-6 py-2.5 cursor-pointer rounded-md transition-colors select-text ${
+      className={`group relative flex gap-4 px-4 sm:px-6 py-2.5 cursor-pointer rounded-md transition-colors select-text ${
         isActive
           ? "bg-accent/60"
           : isSelected

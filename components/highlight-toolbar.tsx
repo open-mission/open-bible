@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
-import { X, StickyNote, Pipette } from "lucide-react"
-import type { HighlightColor, Highlight } from "@/lib/types"
+import { useRef } from "react";
+import { X, StickyNote, Pipette } from "lucide-react";
+import type { HighlightColor, Highlight } from "@/lib/types";
 
 const PRESET_COLORS: { value: HighlightColor; label: string; hex: string }[] = [
   { value: "amber", label: "Amarelo", hex: "#f5c842" },
-  { value: "green", label: "Verde",   hex: "#6aba7a" },
-  { value: "blue",  label: "Azul",    hex: "#6aabd2" },
-  { value: "rose",  label: "Rosa",    hex: "#e87b8c" },
-]
+  { value: "green", label: "Verde", hex: "#6aba7a" },
+  { value: "blue", label: "Azul", hex: "#6aabd2" },
+  { value: "rose", label: "Rosa", hex: "#e87b8c" },
+];
 
 interface HighlightToolbarProps {
-  verseRef: string
+  verseRef: string;
   /** Number of verses currently selected */
-  selectionCount?: number
-  activeHighlight?: Highlight
-  onHighlight: (color: HighlightColor, customHex?: string) => void
-  onRemoveHighlight: () => void
-  onOpenNote: () => void
-  onClose: () => void
+  selectionCount?: number;
+  activeHighlight?: Highlight;
+  onHighlight: (color: HighlightColor, customHex?: string) => void;
+  onRemoveHighlight: () => void;
+  onOpenNote: () => void;
+  onClose: () => void;
 }
 
 export function HighlightToolbar({
@@ -31,13 +31,13 @@ export function HighlightToolbar({
   onOpenNote,
   onClose,
 }: HighlightToolbarProps) {
-  const colorInputRef = useRef<HTMLInputElement>(null)
+  const colorInputRef = useRef<HTMLInputElement>(null);
 
   /** Resolve the display hex for the active highlight */
   function activeHex(): string | undefined {
-    if (!activeHighlight) return undefined
-    if (activeHighlight.color === "custom") return activeHighlight.customHex
-    return PRESET_COLORS.find((c) => c.value === activeHighlight.color)?.hex
+    if (!activeHighlight) return undefined;
+    if (activeHighlight.color === "custom") return activeHighlight.customHex;
+    return PRESET_COLORS.find((c) => c.value === activeHighlight.color)?.hex;
   }
 
   return (
@@ -49,20 +49,23 @@ export function HighlightToolbar({
 
       {/* Preset color swatches */}
       {PRESET_COLORS.map((c) => {
-        const isActive = activeHighlight?.color === c.value
+        const isActive = activeHighlight?.color === c.value;
         return (
           <button
             key={c.value}
             onClick={() => onHighlight(c.value)}
             aria-label={`Destacar com ${c.label}`}
-            style={{ backgroundColor: c.hex, outlineColor: isActive ? c.hex : undefined }}
+            style={{
+              backgroundColor: c.hex,
+              outlineColor: isActive ? c.hex : undefined,
+            }}
             className={`w-5 h-5 rounded-full transition-all hover:scale-110 ${
               isActive
-                ? "scale-110 outline outline-2 outline-offset-2"
-                : "hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-border"
+                ? "scale-110 outline-2 outline-offset-2"
+                : "hover:outline-2 hover:outline-offset-2 hover:outline-border"
             }`}
           />
-        )
+        );
       })}
 
       {/* Custom color picker */}
@@ -73,13 +76,16 @@ export function HighlightToolbar({
           title="Cor personalizada"
           style={
             activeHighlight?.color === "custom" && activeHighlight.customHex
-              ? { backgroundColor: activeHighlight.customHex, outlineColor: activeHighlight.customHex }
+              ? {
+                  backgroundColor: activeHighlight.customHex,
+                  outlineColor: activeHighlight.customHex,
+                }
               : undefined
           }
           className={`w-5 h-5 rounded-full transition-all hover:scale-110 flex items-center justify-center border border-border overflow-hidden ${
             activeHighlight?.color === "custom"
-              ? "scale-110 outline outline-2 outline-offset-2"
-              : "bg-gradient-to-br from-rose-400 via-violet-400 to-blue-400 hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-border"
+              ? "scale-110 outline-2 outline-offset-2"
+              : "bg-linear-to-br from-rose-400 via-violet-400 to-blue-400 hover:outline-2 hover:outline-offset-2 hover:outline-border"
           }`}
         >
           {!(activeHighlight?.color === "custom") && (
@@ -130,5 +136,5 @@ export function HighlightToolbar({
         <X className="h-3.5 w-3.5" />
       </button>
     </div>
-  )
+  );
 }

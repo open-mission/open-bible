@@ -8,7 +8,7 @@ interface VerseRecord {
   text: string
 }
 
-interface VersionMeta {
+export interface VersionMeta {
   id: string
   name: string
   downloadedAt: string
@@ -22,7 +22,7 @@ interface VersionMeta {
   }[]
 }
 
-interface AvailableVersion {
+export interface AvailableVersion {
   id: string
   name: string
   totalBooks: number
@@ -77,7 +77,7 @@ export async function getVersionMeta(versionId: string): Promise<VersionMeta | u
 }
 
 export async function fetchAvailableVersions(): Promise<AvailableVersion[]> {
-  const res = await fetch("/data/bibles/index.json")
+  const res = await fetch("/api/bibles")
   if (!res.ok) throw new Error("Failed to fetch version index")
   return res.json()
 }

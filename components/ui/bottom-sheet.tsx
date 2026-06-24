@@ -56,6 +56,7 @@ export function BottomSheet({ open, onClose, fullScreen, children }: BottomSheet
           <div className="flex-1 overflow-y-auto overscroll-contain">
             {children}
           </div>
+          <div className="shrink-0" style={{ height: "env(safe-area-inset-bottom, 16px)" }} />
         </div>
       </div>
     )

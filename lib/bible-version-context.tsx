@@ -3,23 +3,27 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import type { Verse } from "./types"
 import { getVerses as getMockVerses } from "./bible-data"
+import { fetchChapterVerses as apiFetchChapterVerses } from "./api-client"
 import {
   type VersionMeta,
   type AvailableVersion,
   getInstalledVersions,
-  isVersionInstalled as checkInstalled,
   fetchAvailableVersions,
   downloadAndInstallVersion as doDownload,
-  getChapterVerses,
+  getChapterVerses as dbGetChapterVerses,
   getVersionMeta,
   removeVersion as doRemove,
 } from "./bible-db"
 
 const VERSION_STORAGE_KEY = "openbible:version"
+const DEFAULT_VERSION_KEY = "openbible:default-version"
+const FALLBACK_VERSION = "acf"
 
 interface BibleVersionContextValue {
   versionId: string
   setVersionId: (id: string) => void
+  defaultVersionId: string
+  setDefaultVersionId: (id: string) => void
   installedVersions: VersionMeta[]
   availableVersions: AvailableVersion[]
   isInstalling: boolean
@@ -32,12 +36,12 @@ interface BibleVersionContextValue {
 
 const BibleVersionContext = createContext<BibleVersionContextValue | null>(null)
 
-function loadVersionId(): string {
-  if (typeof window === "undefined") return "default"
+function loadVersionId(fallback: string): string {
+  if (typeof window === "undefined") return fallback
   try {
-    return localStorage.getItem(VERSION_STORAGE_KEY) || "default"
+    return localStorage.getItem(VERSION_STORAGE_KEY) || fallback
   } catch {
-    return "default"
+    return fallback
   }
 }
 
@@ -48,8 +52,34 @@ function saveVersionId(id: string) {
   } catch { /* ignore */ }
 }
 
+function loadDefaultVersionId(): string {
+  if (typeof window === "undefined") return FALLBACK_VERSION
+  try {
+    return localStorage.getItem(DEFAULT_VERSION_KEY) || FALLBACK_VERSION
+  } catch {
+    return FALLBACK_VERSION
+  }
+}
+
+function saveDefaultVersionId(id: string) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(DEFAULT_VERSION_KEY, id)
+  } catch { /* ignore */ }
+}
+
+function hasDefaultVersionBeenSet(): boolean {
+  if (typeof window === "undefined") return false
+  try {
+    return localStorage.getItem(DEFAULT_VERSION_KEY) !== null
+  } catch {
+    return false
+  }
+}
+
 export function BibleVersionProvider({ children }: { children: ReactNode }) {
-  const [versionId, setVersionIdState] = useState(loadVersionId)
+  const [defaultVersionId, setDefaultVersionIdState] = useState(loadDefaultVersionId)
+  const [versionId, setVersionIdState] = useState<string>("")
   const [installedVersions, setInstalledVersions] = useState<VersionMeta[]>([])
   const [availableVersions, setAvailableVersions] = useState<AvailableVersion[]>([])
   const [isInstalling, setIsInstalling] = useState(false)
@@ -74,35 +104,66 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     refreshInstalled()
   }, [refreshInstalled])
 
+  // Init versionId after we know the default
+  useEffect(() => {
+    const saved = loadVersionId(defaultVersionId)
+    setVersionIdState(saved)
+  }, [defaultVersionId])
+
+  // If only one offline version and no default was set, use it
+  useEffect(() => {
+    if (installedVersions.length === 1 && !hasDefaultVersionBeenSet()) {
+      const only = installedVersions[0]
+      setDefaultVersionIdState(only.id)
+      saveDefaultVersionId(only.id)
+    }
+  }, [installedVersions])
+
   const setVersionId = useCallback((id: string) => {
+    setVersionIdState(id)
+    saveVersionId(id)
+  }, [])
+
+  const setDefaultVersionId = useCallback((id: string) => {
+    setDefaultVersionIdState(id)
+    saveDefaultVersionId(id)
     setVersionIdState(id)
     saveVersionId(id)
   }, [])
 
   const getVerses = useCallback(
     async (bookId: string, chapter: number): Promise<Verse[]> => {
-      if (versionId === "default") {
-        return getMockVerses(bookId, chapter)
+      const toVerses = (raw: { chapter: number; verse: number; text: string }[]) =>
+        raw.map((v) => ({
+          id: `${bookId}-${chapter}-${v.verse}`,
+          bookId,
+          chapter: v.chapter,
+          verse: v.verse,
+          text: v.text,
+        }))
+
+      // 1. Try API (online)
+      if (typeof navigator !== "undefined" && navigator.onLine) {
+        try {
+          const result = await apiFetchChapterVerses(versionId, bookId, chapter)
+          if (result.verses.length > 0) {
+            return toVerses(result.verses)
+          }
+        } catch { /* fall through */ }
       }
 
+      // 2. Try IndexedDB (offline / installed)
       const installed = versionMetaCache[versionId]
-      if (!installed) {
-        return getMockVerses(bookId, chapter)
+      if (installed) {
+        try {
+          const verses = await dbGetChapterVerses(versionId, bookId, chapter)
+          if (verses && verses.length > 0) {
+            return toVerses(verses)
+          }
+        } catch { /* fall through */ }
       }
 
-      try {
-        const verses = await getChapterVerses(versionId, bookId, chapter)
-        if (verses && verses.length > 0) {
-          return verses.map((v) => ({
-            id: `${bookId}-${chapter}-${v.verse}`,
-            bookId,
-            chapter: v.chapter,
-            verse: v.verse,
-            text: v.text,
-          }))
-        }
-      } catch { /* fall through to mock */ }
-
+      // 3. Fallback to mock data
       return getMockVerses(bookId, chapter)
     },
     [versionId, versionMetaCache]
@@ -134,15 +195,17 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     }
     await refreshInstalled()
     if (versionId === id) {
-      setVersionId("default")
+      setVersionId(defaultVersionId)
     }
-  }, [refreshInstalled, versionId, setVersionId])
+  }, [refreshInstalled, versionId, setVersionId, defaultVersionId])
 
   return (
     <BibleVersionContext.Provider
       value={{
         versionId,
         setVersionId,
+        defaultVersionId,
+        setDefaultVersionId,
         installedVersions,
         availableVersions,
         isInstalling,

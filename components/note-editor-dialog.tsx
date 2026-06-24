@@ -92,7 +92,7 @@ export function NoteEditorDialog({
 
       {linkedVerseIds.length > 0 && (
         <div className="shrink-0 border-b border-border px-4 py-2.5 space-y-1.5">
-          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1.5 flex items-center gap-1">
+          <p className="text-xs sm:text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1.5 flex items-center gap-1">
             <Link2 className="h-3 w-3" />
             Versículos vinculados
           </p>
@@ -105,8 +105,8 @@ export function NoteEditorDialog({
                 key={vId}
                 className="flex items-start gap-2 rounded-md bg-secondary/60 px-2.5 py-1.5"
               >
-                <span className="font-mono text-xs text-primary shrink-0 mt-0.5">{ref}</span>
-                <p className="flex-1 font-serif text-xs text-muted-foreground line-clamp-2 leading-snug">
+                <span className="font-mono text-xs sm:text-[10px] text-primary shrink-0 mt-0.5">{ref}</span>
+                <p className="flex-1 font-serif text-sm sm:text-xs text-muted-foreground line-clamp-2 leading-snug">
                   {meta.text}
                 </p>
                 <button
@@ -139,7 +139,7 @@ export function NoteEditorDialog({
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Escreva sua nota aqui..."
-          className="w-full h-full min-h-32 resize-none bg-transparent font-serif text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
+          className="w-full h-full min-h-32 resize-none bg-transparent font-serif text-base sm:text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
           spellCheck
         />
       </div>
@@ -149,7 +149,7 @@ export function NoteEditorDialog({
           {noteId && (
             <button
               onClick={() => { onDelete(noteId); onClose() }}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors"
+              className="flex items-center gap-1.5 text-sm sm:text-xs text-muted-foreground hover:text-destructive transition-colors"
               aria-label="Excluir nota"
             >
               <Trash2 className="h-3.5 w-3.5" />

@@ -19,7 +19,6 @@ import { ChapterGrid } from "./chapter-grid";
 import { useNotes, useHighlights } from "@/lib/store";
 import { getBook, getVerses } from "@/lib/bible-data";
 import { useAppTheme } from "@/components/theme-provider";
-import { BibleVersionSelector } from "./bible-version-selector";
 import type { Note } from "@/lib/types";
 
 type SidebarTab = "bible" | "notes" | "highlights";
@@ -428,7 +427,6 @@ export function Sidebar({
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
       <div className="shrink-0 space-y-1 border-t border-sidebar-border px-2 py-2">
-        <BibleVersionSelector />
         <div className="flex items-center justify-between">
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
