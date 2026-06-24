@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { X } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { X, Maximize2, Minimize2 } from "lucide-react"
 import { useIsMobile } from "@/lib/use-media-query"
 
 interface BottomSheetProps {
@@ -11,20 +11,42 @@ interface BottomSheetProps {
   children: React.ReactNode
 }
 
-export function BottomSheet({ open, onClose, fullScreen, children }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, fullScreen: defaultFullScreen, children }: BottomSheetProps) {
   const isMobile = useIsMobile()
   const prevOpenRef = useRef(open)
+  const [expanded, setExpanded] = useState(false)
+  const fullScreen = defaultFullScreen || expanded
+  const dragStartY = useRef(0)
+  const dragDelta = useRef(0)
 
   useEffect(() => {
     if (open) {
+      const scrollY = window.scrollY
+      document.body.style.position = "fixed"
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = "100%"
       document.body.style.overflow = "hidden"
     } else if (prevOpenRef.current) {
+      const top = document.body.style.top
+      document.body.style.position = ""
+      document.body.style.top = ""
+      document.body.style.width = ""
       document.body.style.overflow = ""
+      if (top) {
+        window.scrollTo(0, parseInt(top) * -1)
+      }
     }
     prevOpenRef.current = open
     return () => {
+      document.body.style.position = ""
+      document.body.style.top = ""
+      document.body.style.width = ""
       document.body.style.overflow = ""
     }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) setExpanded(false)
   }, [open])
 
   useEffect(() => {
@@ -50,8 +72,34 @@ export function BottomSheet({ open, onClose, fullScreen, children }: BottomSheet
             fullScreen ? "h-dvh rounded-t-none" : "max-h-[85dvh]"
           }`}
         >
-          <div className="flex justify-center pt-2 pb-1 shrink-0">
+          <div
+            className="flex items-center justify-center pt-2 pb-1 shrink-0 touch-none"
+            onTouchStart={(e) => {
+              dragStartY.current = e.touches[0].clientY
+            }}
+            onTouchMove={(e) => {
+              dragDelta.current = dragStartY.current - e.touches[0].clientY
+            }}
+            onTouchEnd={() => {
+              if (dragDelta.current > 50) {
+                setExpanded(true)
+              } else if (dragDelta.current < -50) {
+                setExpanded(false)
+              }
+              dragDelta.current = 0
+            }}
+            onClick={() => setExpanded((v) => !v)}
+          >
             <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+            {isMobile && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v) }}
+                aria-label={expanded ? " recolher" : "Expandir"}
+                className="absolute right-4 flex items-center justify-center w-6 h-6 rounded text-muted-foreground/50 hover:text-foreground hover:bg-secondary transition-colors"
+              >
+                {expanded ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+              </button>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto overscroll-contain">
             {children}

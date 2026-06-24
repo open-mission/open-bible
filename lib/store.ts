@@ -64,14 +64,19 @@ export function useHighlights() {
   }, [])
 
   const addHighlight = useCallback(
-    (verseId: string, color: HighlightColor, customHex?: string) => {
+    (verseId: string, color: HighlightColor, versionId?: string, customHex?: string) => {
       setHighlights((prev) => {
-        const filtered = prev.filter((h) => h.verseId !== verseId)
+        const filtered = prev.filter((h) =>
+          versionId
+            ? !(h.verseId === verseId && h.versionId === versionId)
+            : h.verseId !== verseId
+        )
         return [
           ...filtered,
           {
             id: makeId(verseId),
             verseId,
+            ...(versionId ? { versionId } : {}),
             color,
             ...(color === "custom" && customHex ? { customHex } : {}),
             createdAt: new Date().toISOString(),
@@ -87,8 +92,10 @@ export function useHighlights() {
   }, [])
 
   const getHighlight = useCallback(
-    (verseId: string): Highlight | undefined => {
-      return highlights.find((h) => h.verseId === verseId)
+    (verseId: string, versionId?: string): Highlight | undefined => {
+      return highlights.find(
+        (h) => h.verseId === verseId && (!versionId || !h.versionId || h.versionId === versionId)
+      )
     },
     [highlights]
   )

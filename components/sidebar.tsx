@@ -19,6 +19,7 @@ import { ChapterGrid } from "./chapter-grid";
 import { useNotes, useHighlights } from "@/lib/store";
 import { getBook, getVerses } from "@/lib/bible-data";
 import { useAppTheme } from "@/components/theme-provider";
+import { useBibleVersion } from "@/lib/bible-version-context";
 import type { Note } from "@/lib/types";
 
 type SidebarTab = "bible" | "notes" | "highlights";
@@ -86,6 +87,7 @@ export function Sidebar({
   const { notes } = useNotes();
   const { highlights } = useHighlights();
   const { isDark, setTheme } = useAppTheme();
+  const { versionId: currentVersionId, setVersionId, installedVersions } = useBibleVersion();
   const router = useRouter();
 
   const [sidebarWidth, setSidebarWidth] = useState(256);
@@ -144,11 +146,17 @@ export function Sidebar({
   }
 
   // Resolve highlight metadata
+  const versionNameMap = (() => {
+    const map: Record<string, string> = {};
+    for (const v of installedVersions) map[v.id] = v.name;
+    return map;
+  })();
+
   const highlightsWithMeta = highlights
     .map((h) => {
       const meta = parseVerseId(h.verseId);
       if (!meta) return null;
-      return { highlight: h, ...meta };
+      return { highlight: h, ...meta, versionName: h.versionId ? versionNameMap[h.versionId] ?? h.versionId.toUpperCase() : undefined };
     })
     .filter(Boolean)
     .sort(
@@ -291,13 +299,14 @@ export function Sidebar({
               <ul className="divide-y divide-border">
                 {highlightsWithMeta.map((item) => {
                   if (!item) return null;
-                  const { highlight, book, chapter, verse, text } = item;
+                  const { highlight, book, chapter, verse, text, versionName } = item;
                   const hex = resolveHighlightHex(highlight);
                   const ref = `${book.abbreviation} ${chapter}:${verse}`;
                   return (
                     <li key={highlight.id}>
                       <button
                         onClick={() => {
+                          if (highlight.versionId) setVersionId(highlight.versionId);
                           onJumpTo(book.id, chapter);
                           onClose();
                         }}
@@ -326,6 +335,11 @@ export function Sidebar({
                             }}
                           >
                             {text}
+                          </p>
+                        )}
+                        {versionName && (
+                          <p className="mt-1 text-[10px] text-muted-foreground/50 font-mono">
+                            {versionName}
                           </p>
                         )}
                       </button>
@@ -413,7 +427,7 @@ export function Sidebar({
                           </div>
                         </div>
                         <p className="text-xs text-foreground line-clamp-2 leading-relaxed">
-                          {note.content}
+                          {note.content.replace(/<[^>]+>/g, "")}
                         </p>
                       </button>
                     </li>

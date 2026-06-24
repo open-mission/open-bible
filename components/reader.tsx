@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, CheckSquare, Loader2 } from "lucide-react"
 import { getBook } from "@/lib/bible-data"
 import { useHighlights, useNotes } from "@/lib/store"
 import { useBibleVerses } from "@/lib/use-bible"
+import { useBibleVersion } from "@/lib/bible-version-context"
 import type { HighlightColor } from "@/lib/types"
 import { VerseRow } from "./verse-row"
 import { HighlightToolbar } from "./highlight-toolbar"
@@ -23,6 +24,7 @@ export function Reader({ bookId, chapter, onChapterChange, onBack, onOpenNoteEdi
   const { verses, loading } = useBibleVerses(bookId, chapter)
   const { addHighlight, removeHighlight, getHighlight } = useHighlights()
   const { getNote } = useNotes()
+  const { versionId } = useBibleVersion()
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null)
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(new Set())
@@ -73,7 +75,7 @@ export function Reader({ bookId, chapter, onChapterChange, onBack, onOpenNoteEdi
 
   function handleHighlight(color: HighlightColor, customHex?: string) {
     const ids = multiSelectMode ? Array.from(selectedVerseIds) : activeVerseId ? [activeVerseId] : []
-    ids.forEach((id) => addHighlight(id, color, customHex))
+    ids.forEach((id) => addHighlight(id, color, versionId, customHex))
   }
 
   function handleRemoveHighlight() {

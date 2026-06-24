@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { X, Trash2, Link2, Link2Off } from "lucide-react"
+import { useEffect, useRef, useState, useCallback } from "react"
+import { X, Trash2, Link2, Link2Off, Bold, Italic, Strikethrough, Highlighter } from "lucide-react"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { useIsMobile } from "@/lib/use-media-query"
 import { getBook, getVerses } from "@/lib/bible-data"
@@ -28,6 +28,22 @@ function parseVerseId(verseId: string) {
   return { bookId, book, chapter, verse, text: verseData?.text ?? "" }
 }
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]+>/g, "").trim()
+}
+
+function wrapSelection(tag: string) {
+  const sel = window.getSelection()
+  if (!sel || !sel.rangeCount || sel.isCollapsed) return
+  const range = sel.getRangeAt(0)
+  const selected = range.extractContents()
+  const wrapper = document.createElement(tag)
+  wrapper.appendChild(selected)
+  range.insertNode(wrapper)
+  sel.removeAllRanges()
+  sel.addRange(range)
+}
+
 export function NoteEditorDialog({
   verseIds: initialVerseIds,
   noteId,
@@ -40,7 +56,7 @@ export function NoteEditorDialog({
   const [linkedVerseIds, setLinkedVerseIds] = useState<string[]>(
     existingNote?.verseIds ?? initialVerseIds
   )
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const editorRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
 
   useEffect(() => {
@@ -49,23 +65,49 @@ export function NoteEditorDialog({
   }, [noteId, existingNote, initialVerseIds.join(",")])
 
   useEffect(() => {
-    textareaRef.current?.focus()
+    if (editorRef.current) {
+      editorRef.current.innerHTML = existingNote?.content ?? ""
+      editorRef.current.focus()
+    }
   }, [])
 
+  function getCurrentHtml(): string {
+    return editorRef.current?.innerHTML ?? ""
+  }
+
+  function handleFormat(command: string) {
+    document.execCommand(command, false)
+    editorRef.current?.focus()
+  }
+
+  function handleHighlight() {
+    wrapSelection("mark")
+    editorRef.current?.focus()
+  }
+
+  const isEmpty = stripHtml(content) === ""
   const isDirty =
     content !== (existingNote?.content ?? "") ||
     JSON.stringify(linkedVerseIds) !== JSON.stringify(existingNote?.verseIds ?? initialVerseIds)
-  const isEmpty = content.trim() === ""
 
   function handleSave() {
-    if (isEmpty) return
-    onSave(noteId, content.trim(), linkedVerseIds)
+    const html = getCurrentHtml()
+    if (stripHtml(html) === "") return
+    onSave(noteId, html, linkedVerseIds)
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+  function handleKeyDown(e: React.KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key === "s") {
       e.preventDefault()
       handleSave()
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === "b") {
+      e.preventDefault()
+      handleFormat("bold")
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === "i") {
+      e.preventDefault()
+      handleFormat("italic")
     }
   }
 
@@ -74,7 +116,7 @@ export function NoteEditorDialog({
   }
 
   return (
-    <BottomSheet open onClose={onClose} fullScreen={isMobile}>
+    <BottomSheet open onClose={onClose}>
       {isMobile && (
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
           <p className="text-sm font-medium text-foreground">
@@ -130,17 +172,50 @@ export function NoteEditorDialog({
         </div>
       )}
 
+      {/* Formatting toolbar */}
+      <div className="shrink-0 flex items-center gap-0.5 px-4 py-1.5 border-b border-border">
+        <button
+          onClick={() => handleFormat("bold")}
+          aria-label="Negrito"
+          className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+        >
+          <Bold className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={() => handleFormat("italic")}
+          aria-label="Itálico"
+          className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+        >
+          <Italic className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={() => handleFormat("strikeThrough")}
+          aria-label="Riscado"
+          className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+        >
+          <Strikethrough className="h-3.5 w-3.5" />
+        </button>
+        <div className="mx-1 h-4 w-px bg-border" />
+        <button
+          onClick={handleHighlight}
+          aria-label="Destacar"
+          className="flex items-center justify-center w-7 h-7 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+        >
+          <Highlighter className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
       <div className="flex-1 overflow-y-auto px-4 py-3">
-        <label htmlFor="note-textarea" className="sr-only">Nota</label>
-        <textarea
-          id="note-textarea"
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
+        <div
+          ref={editorRef}
+          contentEditable
+          role="textbox"
+          aria-multiline="true"
+          aria-label="Nota"
           onKeyDown={handleKeyDown}
-          placeholder="Escreva sua nota aqui..."
-          className="w-full h-full min-h-32 resize-none bg-transparent font-serif text-base sm:text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
-          spellCheck
+          onInput={() => setContent(getCurrentHtml())}
+          data-placeholder="Escreva sua nota aqui..."
+          className="w-full min-h-32 font-serif text-base sm:text-sm leading-relaxed text-foreground focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/50"
         />
       </div>
 

@@ -119,7 +119,7 @@ export function BibleVersionSelector() {
                   uninstallVersion(v.id)
                 }
               }}
-              className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all shrink-0"
+              className="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all shrink-0"
               aria-label={`Remover ${v.name}`}
             >
               <Trash2 className="h-3 w-3" />
@@ -160,7 +160,7 @@ export function BibleVersionSelector() {
                   setInstallingName(v.name)
                   installVersion(v.id)
                 }}
-                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-all shrink-0"
+                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-muted-foreground hover:text-primary transition-all shrink-0"
                 aria-label={`Baixar ${v.name} para usar offline`}
                 title="Baixar para usar offline"
               >

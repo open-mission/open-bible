@@ -21,6 +21,8 @@ export type HighlightColor = "amber" | "green" | "blue" | "rose" | "custom"
 export interface Highlight {
   id: string
   verseId: string
+  /** The Bible version this highlight belongs to */
+  versionId?: string
   color: HighlightColor
   /** Only set when color === "custom" */
   customHex?: string
