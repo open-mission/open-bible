@@ -52,6 +52,53 @@ export const SearchResultSchema = z.object({
   ),
 })
 
+// ─── Compact schemas (mobile-optimized) ───────────────────────────
+
+export const CompactVersionSchema = z.object({
+  id: z.string().openapi({ example: "acf" }),
+  name: z.string().openapi({ example: "Almeida Corrigida e Fiel" }),
+})
+
+export const CompactBookSchema = z.object({
+  id: z.string().openapi({ example: "gen" }),
+  name: z.string().openapi({ example: "Gênesis" }),
+  abbreviation: z.string().openapi({ example: "Gn" }),
+  testament: z.enum(["old", "new"]).openapi({ example: "old" }),
+})
+
+export const CompactVersionDetailSchema = z.object({
+  id: z.string().openapi({ example: "acf" }),
+  name: z.string().openapi({ example: "Almeida Corrigida e Fiel" }),
+  books: z.array(CompactBookSchema),
+})
+
+export const CompactChapterResponseSchema = z.object({
+  version: z.string().openapi({ example: "acf" }),
+  bookId: z.string().openapi({ example: "gen" }),
+  chapter: z.number().openapi({ example: 1 }),
+  verses: z.array(VerseSchema),
+})
+
+export const CompactSearchResultSchema = z.object({
+  version: z.string().openapi({ example: "acf" }),
+  query: z.string().openapi({ example: "amor" }),
+  results: z.array(VerseSchema),
+})
+
+export const BooksListSchema = z.object({
+  version: z.string().openapi({ example: "acf" }),
+  books: z.array(BookSchema),
+})
+
+// ─── Compact types ────────────────────────────────────────────────
+
+export type CompactVersion = z.infer<typeof CompactVersionSchema>
+export type CompactBook = z.infer<typeof CompactBookSchema>
+export type CompactVersionDetail = z.infer<typeof CompactVersionDetailSchema>
+export type CompactChapterResponse = z.infer<typeof CompactChapterResponseSchema>
+export type CompactSearchResult = z.infer<typeof CompactSearchResultSchema>
+export type BooksList = z.infer<typeof BooksListSchema>
+
 export type Version = z.infer<typeof VersionSchema>
 export type Book = z.infer<typeof BookSchema>
 export type VersionDetail = z.infer<typeof VersionDetailSchema>
