@@ -119,6 +119,28 @@ export async function getChapterVerses(
   }
 }
 
+export async function listBooksForVersion(
+  versionId: string
+): Promise<{ version: string; books: { id: string; name: string; abbreviation: string; testament: "old" | "new"; chapters: number }[] } | null> {
+  try {
+    const meta = await getVersionDetail(versionId)
+    if (!meta) return null
+
+    return {
+      version: versionId,
+      books: meta.books.map((b) => ({
+        id: b.id,
+        name: b.name,
+        abbreviation: b.abbreviation,
+        testament: b.testament,
+        chapters: b.chapters,
+      })),
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function searchVerses(
   versionId: string,
   query: string,
