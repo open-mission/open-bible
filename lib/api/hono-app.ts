@@ -46,20 +46,37 @@ const listVersionsRoute = createRoute({
   method: "get",
   path: "/api/bibles",
   summary: "Listar versões da Bíblia",
-  description: "Retorna todas as versões bíblicas disponíveis.",
+  description: "Retorna todas as versões bíblicas disponíveis. Use `?compact=true` para formato otimizado para mobile.",
   tags: ["Versões"],
+  request: {
+    query: z.object({
+      compact: z.enum(["true", "false"]).optional().openapi({
+        param: { name: "compact", in: "query" },
+        example: "true",
+        description: "Retorna formato compacto (sem totalBooks). Padrão: false.",
+      }),
+    }),
+  },
   responses: {
     200: {
-      content: { "application/json": { schema: z.array(VersionSchema) } },
+      content: {
+        "application/json": {
+          schema: z.array(VersionSchema),
+        },
+      },
       description: "Lista de versões disponíveis",
     },
   },
 })
 
-app.openapi(listVersionsRoute, async (c) => {
+app.openapi(listVersionsRoute, h(async (c) => {
+  const { compact } = c.req.valid("query")
   const versions = await listVersions()
+  if (compact === "true") {
+    return c.json(versions.map((v) => ({ id: v.id, name: v.name })))
+  }
   return c.json(versions)
-})
+}))
 
 // ─── Version detail ───────────────────────────────────────────────
 
