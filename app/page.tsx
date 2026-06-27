@@ -158,6 +158,9 @@ function EmptyReader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       <p className="text-xs text-muted-foreground/40 text-center text-balance">
         Clique em qualquer versículo para destacar ou adicionar uma nota.
       </p>
+      <p className="text-[10px] text-muted-foreground/30 mt-2">
+        v{process.env.NEXT_PUBLIC_APP_VERSION}
+      </p>
       {/* Mobile shortcut */}
       <button
         onClick={onOpenSidebar}

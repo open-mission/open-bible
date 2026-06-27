@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { BibleVersionProvider } from '@/lib/bible-version-context'
 import { ToastProvider } from '@/lib/use-toast'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
+import { UpdateBanner } from '@/components/update-banner'
 import './globals.css'
 
 const inter = Inter({
@@ -70,6 +71,7 @@ export default function RootLayout({
           </BibleVersionProvider>
         </ThemeProvider>
         <ServiceWorkerRegister />
+        <UpdateBanner />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

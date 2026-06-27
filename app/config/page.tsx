@@ -155,6 +155,13 @@ export default function ConfigPage() {
           </div>
         </section>
 
+        {/* ── Version ──────────────────────────────────────────────────── */}
+        <section className="text-center">
+          <p className="text-xs text-muted-foreground/50">
+            Open Bible v{process.env.NEXT_PUBLIC_APP_VERSION}
+          </p>
+        </section>
+
       </div>
     </div>
   )
