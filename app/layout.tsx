@@ -60,6 +60,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={`bg-background ${inter.variable} ${lora.variable} ${geistMono.variable}`}
     >
       <body className="font-sans antialiased">
