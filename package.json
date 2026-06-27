@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "node scripts/build-bible-data.mjs && next build",
     "build:data": "node scripts/build-bible-data.mjs",
+    "db:init": "node scripts/init-db.mjs",
     "start": "next start",
     "lint": "eslint ."
   },
