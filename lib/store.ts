@@ -18,6 +18,54 @@ function makeId(prefix: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// API helpers — Highlights
+// ---------------------------------------------------------------------------
+
+export async function fetchHighlightsFromAPI(userId: string): Promise<Highlight[]> {
+  const res = await fetch(`/api/highlights?userId=${userId}`);
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export async function saveHighlightToAPI(highlight: Highlight, userId: string): Promise<void> {
+  await fetch("/api/highlights", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...highlight, userId }),
+  });
+}
+
+export async function deleteHighlightFromAPI(id: string, userId: string): Promise<void> {
+  await fetch(`/api/highlights?id=${id}&userId=${userId}`, {
+    method: "DELETE",
+  });
+}
+
+// ---------------------------------------------------------------------------
+// API helpers — Notes
+// ---------------------------------------------------------------------------
+
+export async function fetchNotesFromAPI(userId: string): Promise<Note[]> {
+  const res = await fetch(`/api/notes?userId=${userId}`);
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export async function saveNoteToAPI(note: Note, userId: string): Promise<void> {
+  await fetch("/api/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...note, userId }),
+  });
+}
+
+export async function deleteNoteFromAPI(id: string, userId: string): Promise<void> {
+  await fetch(`/api/notes?id=${id}&userId=${userId}`, {
+    method: "DELETE",
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Highlights
 // ---------------------------------------------------------------------------
 
