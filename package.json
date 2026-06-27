@@ -12,6 +12,8 @@
   "dependencies": {
     "@base-ui/react": "^1.5.0",
     "@hono/zod-openapi": "^1.4.0",
+    "@libsql/client": "^0.8.1",
+    "@libsql/kysely-libsql": "^0.4.1",
     "@scalar/hono-api-reference": "^0.11.5",
     "@tursodatabase/serverless": "^1.2.3",
     "@vercel/analytics": "1.6.1",
@@ -30,7 +32,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@libsql/client": "^0.17.4",
     "@tailwindcss/postcss": "^4.2.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24",
