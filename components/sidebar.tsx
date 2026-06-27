@@ -456,6 +456,9 @@ export function Sidebar({
             )}
             {isDark ? "Claro" : "Escuro"}
           </button>
+          <span className="text-[10px] text-muted-foreground/40 font-mono">
+            v{process.env.NEXT_PUBLIC_APP_VERSION}
+          </span>
           <button
             onClick={() => {
               router.push("/config");
