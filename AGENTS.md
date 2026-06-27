@@ -10,12 +10,12 @@ A **Portuguese-language Bible reading PWA** built with Next.js. Users browse 66 
 | Command | Purpose |
 |---------|---------|
 | `pnpm dev` | Start Next.js dev server |
-| `pnpm build` | Build Bible data from SQLite, then Next.js build |
-| `pnpm build:data` | Only rebuild `public/data/bibles/` from `resources/bibles/*.sqlite` |
+| `pnpm build` | Next.js build (reads Bible data from TursoDB) |
+| `pnpm build:data` | Generate JSON from SQLite (fallback/export only) |
+| `pnpm db:init` | Initialize TursoDB tables |
+| `pnpm db:import` | Import 18 SQLite databases into TursoDB |
 | `pnpm start` | Production server |
 | `pnpm lint` | ESLint (Next.js defaults) |
-
-**Build pipeline**: `pnpm build` runs `scripts/build-bible-data.mjs` first (reads `resources/bibles/*.sqlite` → writes JSON to `public/data/bibles/`), then `next build`.
 
 ---
 
@@ -30,11 +30,15 @@ A **Portuguese-language Bible reading PWA** built with Next.js. Users browse 66 
 | `/` | `app/page.tsx` | Main SPA — sidebar + reader |
 | `/config` | `app/config/page.tsx` | Preferences — theme, accent color, default version |
 | `/api/[...route]` | `app/api/[[...route]]/route.ts` | Hono REST API (versions, chapters, search, books) |
+| `/api/auth/[...all]` | `app/api/auth/[...all]/route.ts` | Better Auth route handler |
+| `/api/highlights` | `app/api/highlights/route.ts` | Highlights CRUD |
+| `/api/notes` | `app/api/notes/route.ts` | Notes CRUD |
 
 ### Bible Version System
-- **18 SQLite databases** in `resources/bibles/` (ACF, NVI, KJA, etc.)
-- `scripts/build-bible-data.mjs` reads SQLite → generates per-chapter JSON in `public/data/bibles/<version>/<book>-<chapter>.json`
-- Generated data is gitignored (`public/data/bibles/`)
+- **TursoDB** (`libsql://open-bible-claudioalberto.aws-us-east-2.turso.io`) — primary database for all Bible data
+- Tables: `bible_versions` (18), `bible_books` (1,188), `bible_verses` (541,330)
+- `lib/turso.ts` — TursoDB serverless client singleton
+- `lib/api/bible-service.ts` — reads from TursoDB with 5-minute in-memory cache
 - **IndexedDB** (`lib/bible-db.ts`) stores downloaded versions for offline use
 - `BibleVersionProvider` (`lib/bible-version-context.tsx`) manages version state, download, and verse fetching
 - `useBibleVerses()` hook (`lib/use-bible.ts`) loads verses (IndexedDB first, then API, then mock fallback)
@@ -42,18 +46,18 @@ A **Portuguese-language Bible reading PWA** built with Next.js. Users browse 66 
 
 ### API Layer (`lib/api/`)
 - **Hono + Zod OpenAPI** (`lib/api/hono-app.ts`) — endpoints for versions, chapters, search, books
-- Schemas in `lib/api/schemas.ts`, service functions in `lib/api/bible-service.ts` (reads from `resources/bibles/*.sqlite` via better-sqlite3)
+- Schemas in `lib/api/schemas.ts`, service functions in `lib/api/bible-service.ts` (reads from TursoDB)
 - Client in `lib/api-client.ts` fetches from `/api` routes
 - API docs available at `/api/reference` (Scalar)
 - CORS enabled for iOS app access
 
-### Data Model (`lib/types.ts`)
-```typescript
-Book        { id, name, abbreviation, testament: "old"|"new", chapters }
-Verse       { id, bookId, chapter, verse, text }
-Highlight   { id, verseId, versionId?, color: HighlightColor, customHex?, createdAt }
-Note        { id, verseIds: string[], content, createdAt, updatedAt }
-BibleState  { selectedBookId, selectedChapter }
+### Database Schema (`lib/db/schema.ts`)
+```sql
+bible_versions  (id PK, name, total_books)
+bible_books     (id, version_id, name, abbreviation, testament, chapters, PK(id, version_id))
+bible_verses    (id PK, version_id, book_id, chapter, verse, text)
+highlights      (id PK, user_id, version_id, verse_id, color, custom_hex, created_at)
+notes           (id PK, user_id, verse_ids, content, created_at, updated_at)
 ```
 
 ### State & Persistence
@@ -81,8 +85,10 @@ BibleState  { selectedBookId, selectedChapter }
 | Styling | **Tailwind CSS v4** + `tw-animate-css` + shadcn/base-nova |
 | Components | `@base-ui/react` via shadcn/ui |
 | API | **Hono** + `@hono/zod-openapi` + Zod v4 |
-| DB (build) | **better-sqlite3** (reads `.sqlite` files at build time) |
+| Database | **TursoDB** (serverless libSQL) — Bible data, highlights, notes |
+| Auth | **Better Auth** with libSQL adapter |
 | Offline | **IndexedDB** for downloaded versions + service worker cache |
+| DB (build) | **better-sqlite3** (reads `.sqlite` files for data import) |
 | Icons | Lucide React |
 | Theme | `next-themes` + custom accent color system |
 | Package Manager | **pnpm** (overrides hono to 4.12.25) |
@@ -103,28 +109,36 @@ BibleState  { selectedBookId, selectedChapter }
 
 ## Known Gotchas
 
-- `pnpm build` **must** run the data build first (`scripts/build-bible-data.mjs`) — it's wired into the build script automatically
-- Generated Bible JSON (`public/data/bibles/`) is gitignored — run `pnpm build:data` to regenerate
-- `better-sqlite3` is a native module; `pnpm` only builds it for the current platform
-- Only 3 chapters have hardcoded mock verse text in `lib/bible-data.ts` (Gênesis 1, Salmos 23, João 1) — everything else loads from SQLite/IndexedDB or API
+- `pnpm build` reads Bible data from TursoDB at runtime — no local data build needed
+- `.env.local` contains `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, and `BETTER_AUTH_SECRET` — never committed
+- `better-sqlite3` is a native module used only for data import (`scripts/import-bibles.mjs`)
+- `bible_books` uses composite PK `(id, version_id)` — book IDs repeat across versions
+- Search uses `LIKE` (no FTS) — acceptable for 18 versions with ~31k verses each
 - No test framework, no ESLint config, no CI/CD (beyond Vercel auto-deploy)
 
 ---
 
-## File Tree (new additions beyond original scaffold)
+## File Tree
 
 ```
 ├── lib/
-│   ├── bible-db.ts              # IndexedDB wrapper for offline versions
-│   ├── bible-version-context.tsx # BibleVersionProvider + useBibleVersion()
-│   ├── use-bible.ts             # useBibleVerses() hook
-│   ├── use-media-query.ts       # useIsMobile() hook
-│   ├── use-toast.tsx            # ToastProvider + useToast()
-│   ├── api-client.ts            # Fetch client for /api routes
+│   ├── turso.ts                  # TursoDB serverless client
+│   ├── auth.ts                   # Better Auth server config
+│   ├── auth-client.ts            # Better Auth React client
+│   ├── bible-db.ts               # IndexedDB wrapper for offline versions
+│   ├── bible-version-context.tsx  # BibleVersionProvider + useBibleVersion()
+│   ├── use-bible.ts              # useBibleVerses() hook
+│   ├── use-media-query.ts        # useIsMobile() hook
+│   ├── use-toast.tsx             # ToastProvider + useToast()
+│   ├── api-client.ts             # Fetch client for /api routes
+│   ├── store.ts                  # localStorage persistence + API helpers
+│   ├── db/
+│   │   ├── schema.ts             # SQL schema for all 5 tables
+│   │   └── index.ts              # initializeDatabase() + turso re-export
 │   └── api/
-│       ├── hono-app.ts          # Hono app with OpenAPI routes
-│       ├── schemas.ts           # Zod schemas for API
-│       └── bible-service.ts     # Service functions (SQLite reads)
+│       ├── hono-app.ts           # Hono app with OpenAPI routes
+│       ├── schemas.ts            # Zod schemas for API
+│       └── bible-service.ts      # Service functions (TursoDB reads)
 ├── components/
 │   ├── bible-version-selector.tsx
 │   ├── reader-version-badge.tsx
@@ -132,7 +146,9 @@ BibleState  { selectedBookId, selectedChapter }
 │   ├── service-worker-register.tsx
 │   └── ui/bottom-sheet.tsx
 ├── scripts/
-│   └── build-bible-data.mjs     # SQLite → JSON build script
-├── resources/bibles/             # 18 SQLite databases (source of truth)
-└── public/sw.js                  # Service worker
+│   ├── build-bible-data.mjs      # SQLite → JSON (fallback/export only)
+│   ├── import-bibles.mjs         # SQLite → TursoDB import
+│   └── init-db.mjs               # Initialize TursoDB tables
+├── resources/bibles/              # 18 SQLite databases (source for import)
+└── public/sw.js                   # Service worker
 ```
