@@ -44,10 +44,29 @@ export function Reader({
   const [multiSelectMode, setMultiSelectMode] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerVisible, setHeaderVisible] = useState(true);
 
   useEffect(() => {
     setActiveVerseId(null);
     setSelectedVerseIds(new Set());
+  }, [bookId, chapter]);
+
+  useEffect(() => {
+    const target = headerRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeaderVisible(entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+    observer.observe(target);
+
+    return () => {
+      observer.unobserve(target);
+    };
   }, [bookId, chapter]);
 
   if (!book) return null;
@@ -83,10 +102,11 @@ export function Reader({
         onBookChapterClick={onBookChapterClick}
         onToggleReaderMode={onToggleReaderMode}
         onInspectorToggle={onInspectorToggle}
+        showMiniReference={!headerVisible}
       />
 
       <div className={`flex-1 w-full mx-auto ${readerMode === "wide" ? "max-w-none px-4 md:px-8 py-8" : "max-w-3xl px-4 md:px-12 py-8"}`}>
-        <header className="mb-12 text-center">
+        <header ref={headerRef} className="mb-12 text-center">
           <h2 className="font-serif text-4xl font-semibold text-foreground mb-3">
             {book.name}
           </h2>
