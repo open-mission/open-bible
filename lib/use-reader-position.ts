@@ -7,8 +7,8 @@ const CHAPTER_KEY = "openbible:chapter"
 const READER_MODE_KEY = "openbible:reader-mode"
 
 export function useReaderPosition() {
-  const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
-  const [selectedChapter, setSelectedChapter] = useState<number | null>(null)
+  const [selectedBookId, setSelectedBookId] = useState<string | null>("gen")
+  const [selectedChapter, setSelectedChapter] = useState<number | null>(1)
   const [readerMode, setReaderMode] = useState<"wide" | "readable">("wide")
 
   useEffect(() => {

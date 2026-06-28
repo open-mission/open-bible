@@ -8,44 +8,43 @@ import {
 
 interface PanelLayoutProps {
   left?: React.ReactNode
-  leftDefaultSize?: number
-  leftMinSize?: number
-  leftMaxSize?: number
+  leftDefaultSize?: string
+  leftMinSize?: string
+  leftMaxSize?: string
   leftCollapsible?: boolean
   main: React.ReactNode
-  mainMinSize?: number
+  mainMinSize?: string
   right?: React.ReactNode
-  rightDefaultSize?: number
-  rightMinSize?: number
-  rightMaxSize?: number
+  rightDefaultSize?: string
+  rightMinSize?: string
+  rightMaxSize?: string
   rightCollapsible?: boolean
   className?: string
 }
 
 export function PanelLayout({
   left,
-  leftDefaultSize = 20,
-  leftMinSize = 15,
-  leftMaxSize = 25,
+  leftDefaultSize = "20%",
+  leftMinSize = "10%",
+  leftMaxSize = "50%",
   leftCollapsible = false,
   main,
-  mainMinSize = 30,
+  mainMinSize = "20%",
   right,
-  rightDefaultSize = 30,
-  rightMinSize = 20,
-  rightMaxSize = 40,
+  rightDefaultSize = "30%",
+  rightMinSize = "15%",
+  rightMaxSize = "60%",
   rightCollapsible = false,
   className,
 }: PanelLayoutProps) {
   function mainDefaultSize() {
-    if (left && right) return 100 - leftDefaultSize - rightDefaultSize
-    if (left) return 100 - leftDefaultSize
-    if (right) return 100 - rightDefaultSize
-    return 100
+    const leftNum = left ? parseFloat(leftDefaultSize) : 0
+    const rightNum = right ? parseFloat(rightDefaultSize) : 0
+    return `${100 - leftNum - rightNum}%`
   }
 
   return (
-    <ResizablePanelGroup orientation="horizontal" className={`min-h-0 ${className ?? ""}`}>
+    <ResizablePanelGroup orientation="horizontal" className={`min-h-0 min-w-0 ${className ?? ""}`}>
       {left !== undefined && (
         <>
           <ResizablePanel
@@ -80,3 +79,4 @@ export function PanelLayout({
     </ResizablePanelGroup>
   )
 }
+

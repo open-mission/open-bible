@@ -6,6 +6,8 @@ import { useBibleVersion } from "@/lib/bible-version-context"
 import { useIsMobile } from "@/lib/use-media-query"
 import { useToast } from "@/lib/use-toast"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
+import { Button } from "./ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 
 export function ReaderVersionBadge() {
   const {
@@ -188,23 +190,27 @@ export function ReaderVersionBadge() {
   )
 
   return (
-    <div ref={!isMobile ? ref : undefined} className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-        aria-label="Selecionar versão da Bíblia"
-        title={currentFullName}
-      >
-        <Book className="h-3.5 w-3.5 shrink-0" />
-        <span>{currentAbbr}</span>
-        <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
-      </button>
+    <div className="relative" data-slot="button">
+      <Popover open={!isMobile && open} onOpenChange={(val) => !isMobile && setOpen(val)}>
+        <PopoverTrigger render={
+          <Button
+            onClick={() => isMobile && setOpen(true)}
+            variant="outline"
+            size="lg"
+            className="rounded-[inherit] border-l-0"
+            aria-label="Selecionar versão da Bíblia"
+            title={currentFullName}
+          />
+        }>
+          <Book className="h-3.5 w-3.5 shrink-0" />
+          <span className="text-sm font-semibold mx-1">{currentAbbr}</span>
+          <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
+        </PopoverTrigger>
 
-      {open && !isMobile && (
-        <div className="absolute right-0 top-full mt-1 min-w-56 rounded-lg border border-border bg-card shadow-lg z-50">
+        <PopoverContent className="w-56 p-0 gap-0" align="end" sideOffset={4}>
           {optionsPanel}
-        </div>
-      )}
+        </PopoverContent>
+      </Popover>
 
       {open && isMobile && (
         <BottomSheet open={open} onClose={() => setOpen(false)}>

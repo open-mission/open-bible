@@ -6,6 +6,7 @@ import { ArrowLeft, Monitor, Moon, Sun, Check } from "lucide-react"
 import { useAppTheme } from "@/components/theme-provider"
 import { useBibleVersion } from "@/lib/bible-version-context"
 import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/lib/theme"
+import { MobileNav } from "@/components/mobile-nav"
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
 
@@ -43,7 +44,7 @@ export default function ConfigPage() {
         <h1 className="font-serif text-base font-medium">Preferências</h1>
       </header>
 
-      <div className="mx-auto max-w-md px-4 py-8 space-y-10">
+      <div className="mx-auto max-w-md px-4 py-8 pb-20 md:pb-8 space-y-10">
 
         {/* ── Default Bible version ──────────────────────────────────────── */}
         <section>
@@ -163,6 +164,7 @@ export default function ConfigPage() {
         </section>
 
       </div>
+      <MobileNav activeNav="config" onNavClick={() => {}} />
     </div>
   )
 }

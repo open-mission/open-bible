@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Menu } from "lucide-react"
 import { AppSidebar } from "@/components/sidebar"
 import { Reader } from "@/components/reader"
@@ -16,8 +16,12 @@ import { useBibleVersion } from "@/lib/bible-version-context"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { useReaderPosition } from "@/lib/use-reader-position"
 import { usePanelState } from "@/lib/use-panel-state"
+import { MobileNav } from "@/components/mobile-nav"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { BottomSheet } from "@/components/ui/bottom-sheet"
 
 export default function Home() {
+  const isMobile = useIsMobile()
   const {
     selectedBookId, setSelectedBookId,
     selectedChapter, setSelectedChapter,
@@ -37,6 +41,17 @@ export default function Home() {
 
   const { notes, upsertNote, deleteNote } = useNotes()
   const { versionId, installedVersions } = useBibleVersion()
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search)
+      const navParam = searchParams.get("nav")
+      if (navParam === "notes") {
+        handleNavClick("notes")
+        window.history.replaceState({}, "", "/")
+      }
+    }
+  }, [handleNavClick])
 
   const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(false)
   const [noteDialog, setNoteDialog] = useState<{
@@ -80,24 +95,10 @@ export default function Home() {
         onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
       />
 
-      <SidebarInset className="overflow-hidden h-full">
-        <div className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-border shrink-0 bg-background">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Abrir menu"
-            className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-          >
-            <Menu className="h-4 w-4" />
-          </button>
-          <span className="font-serif text-sm font-medium text-foreground">
-            {selectedBookId && selectedChapter
-              ? `${currentBook?.abbreviation} · Cap. ${selectedChapter}`
-              : "Open Bible"}
-          </span>
-        </div>
+      <SidebarInset className="w-auto overflow-hidden h-full">
 
         <PanelLayout
-          left={secondarySidebarOpen ? (
+          left={!isMobile && secondarySidebarOpen ? (
             <SecondarySidebar
               isOpen={secondarySidebarOpen}
               onClose={handleSecondaryClose}
@@ -114,7 +115,7 @@ export default function Home() {
                 className={`flex-1 overflow-y-auto custom-scrollbar ${readerMode === "wide" ? "w-full" : "flex justify-center"}`}
               >
                 <div
-                  className={`${readerMode === "wide" ? "w-full px-4 md:px-8 py-8" : "max-w-3xl w-full px-4 md:px-12 py-8"}`}
+                  className={`${readerMode === "wide" ? "w-full px-4 md:px-8 py-8" : "max-w-3xl w-full px-4 md:px-12 py-8"} pb-36 md:pb-8`}
                 >
                   {selectedBookId && selectedChapter ? (
                     <Reader
@@ -181,6 +182,22 @@ export default function Home() {
             onClose={() => setNoteDialog(null)}
           />
         )}
+
+        {isMobile && secondarySidebarOpen && (
+          <BottomSheet open={secondarySidebarOpen} onClose={handleSecondaryClose}>
+            <SecondarySidebar
+              isOpen={secondarySidebarOpen}
+              onClose={handleSecondaryClose}
+              activeTab={secondarySidebarTab}
+              onJumpTo={handleJumpTo}
+              onOpenNoteEditor={(verseIds, noteId) =>
+                setNoteDialog({ verseIds, noteId })
+              }
+            />
+          </BottomSheet>
+        )}
+
+        <MobileNav activeNav={activeNav} onNavClick={handleNavClick} />
       </SidebarInset>
     </SidebarProvider>
   )

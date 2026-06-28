@@ -69,7 +69,7 @@ export function BottomSheet({ open, onClose, fullScreen: defaultFullScreen, chil
         />
         <div
           className={`relative z-10 flex flex-col bg-card rounded-t-xl shadow-xl animate-in slide-in-from-bottom duration-300 ${
-            fullScreen ? "h-dvh rounded-t-none" : "max-h-[85dvh]"
+            fullScreen ? "h-dvh rounded-t-none" : "h-[50dvh]"
           }`}
         >
           <div
@@ -91,15 +91,6 @@ export function BottomSheet({ open, onClose, fullScreen: defaultFullScreen, chil
             onClick={() => setExpanded((v) => !v)}
           >
             <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-            {isMobile && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v) }}
-                aria-label={expanded ? " recolher" : "Expandir"}
-                className="absolute right-4 flex items-center justify-center w-6 h-6 rounded text-muted-foreground/50 hover:text-foreground hover:bg-secondary transition-colors"
-              >
-                {expanded ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
-              </button>
-            )}
           </div>
           <div className="flex-1 overflow-y-auto overscroll-contain">
             {children}
