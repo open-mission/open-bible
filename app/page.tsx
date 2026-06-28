@@ -46,8 +46,8 @@ export default function Home() {
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search)
       const navParam = searchParams.get("nav")
-      if (navParam === "notes") {
-        handleNavClick("notes")
+      if (navParam) {
+        handleNavClick(navParam)
         window.history.replaceState({}, "", "/")
       }
     }
