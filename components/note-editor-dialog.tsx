@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState } from "react"
 import { X, Trash2, Link2, Link2Off, Bold, Italic, Strikethrough, Highlighter } from "lucide-react"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { useIsMobile } from "@/lib/use-media-query"
-import { getBook, getVerses } from "@/lib/bible-data"
 import type { Note } from "@/lib/types"
+import { parseVerseId } from "@/lib/verse-utils"
 
 interface NoteEditorDialogProps {
   verseIds: string[]
@@ -14,18 +14,6 @@ interface NoteEditorDialogProps {
   onSave: (noteId: string | null, content: string, verseIds: string[]) => void
   onDelete: (noteId: string) => void
   onClose: () => void
-}
-
-function parseVerseId(verseId: string) {
-  const match = verseId.match(/^(.+)-(\d+)-(\d+)$/)
-  if (!match) return null
-  const [, bookId, chapterStr, verseStr] = match
-  const book = getBook(bookId)
-  if (!book) return null
-  const chapter = parseInt(chapterStr, 10)
-  const verse = parseInt(verseStr, 10)
-  const verseData = getVerses(bookId, chapter).find((v) => v.verse === verse)
-  return { bookId, book, chapter, verse, text: verseData?.text ?? "" }
 }
 
 function stripHtml(html: string): string {
