@@ -3,9 +3,14 @@
 import { useState, useEffect } from "react";
 import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
+import { SecondarySidebar } from "@/components/secondary-sidebar";
 import { Reader } from "@/components/reader";
 import { NoteEditorDialog } from "@/components/note-editor-dialog";
+import { InspectorPanel } from "@/components/inspector-panel";
+import { BookChapterDialog } from "@/components/book-chapter-dialog";
 import { useNotes } from "@/lib/store";
+import { getBook } from "@/lib/bible-data";
+import { useBibleVersion } from "@/lib/bible-version-context";
 
 const BOOK_KEY = "openbible:book";
 const CHAPTER_KEY = "openbible:chapter";
@@ -15,12 +20,21 @@ export default function Home() {
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(false);
+  const [secondarySidebarOpen, setSecondarySidebarOpen] = useState(false);
+  const [secondarySidebarTab, setSecondarySidebarTab] = useState<
+    "highlights" | "notes"
+  >("highlights");
+  const [readerMode, setReaderMode] = useState<"wide" | "readable">("wide");
+  const [activeNav, setActiveNav] = useState<string | null>("library");
   const [noteDialog, setNoteDialog] = useState<{
     verseIds: string[];
     noteId: string | null;
   } | null>(null);
 
   const { notes, upsertNote, deleteNote } = useNotes();
+  const { versionId, installedVersions } = useBibleVersion();
 
   // Restore last position from localStorage on mount
   useEffect(() => {
@@ -29,21 +43,56 @@ export default function Home() {
       const chapter = localStorage.getItem(CHAPTER_KEY);
       if (book) setSelectedBookId(book);
       if (chapter) setSelectedChapter(Number(chapter));
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   // Persist position when it changes
   useEffect(() => {
     if (selectedBookId) {
-      try { localStorage.setItem(BOOK_KEY, selectedBookId); } catch { /* ignore */ }
+      try {
+        localStorage.setItem(BOOK_KEY, selectedBookId);
+      } catch {
+        /* ignore */
+      }
     }
   }, [selectedBookId]);
 
   useEffect(() => {
     if (selectedChapter !== null) {
-      try { localStorage.setItem(CHAPTER_KEY, String(selectedChapter)); } catch { /* ignore */ }
+      try {
+        localStorage.setItem(CHAPTER_KEY, String(selectedChapter));
+      } catch {
+        /* ignore */
+      }
     }
   }, [selectedChapter]);
+
+  // Restore reader mode from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("openbible:reader-mode");
+      if (saved === "wide" || saved === "readable") {
+        setReaderMode(saved);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Persist reader mode
+  useEffect(() => {
+    try {
+      localStorage.setItem("openbible:reader-mode", readerMode);
+    } catch {
+      /* ignore */
+    }
+  }, [readerMode]);
+
+  function toggleReaderMode() {
+    setReaderMode((v) => (v === "wide" ? "readable" : "wide"));
+  }
 
   function handleSelectBook(bookId: string) {
     setSelectedBookId(bookId);
@@ -63,23 +112,62 @@ export default function Home() {
     setSelectedChapter(chapter);
   }
 
+  function handleBookChapterClick() {
+    setBookChapterDialogOpen(true);
+  }
+
+  function handleSelectFromDialog(bookId: string) {
+    setSelectedBookId(bookId);
+    setSelectedChapter(null);
+  }
+
+  function handleSelectChapterFromDialog(chapter: number) {
+    setSelectedChapter(chapter);
+    setBookChapterDialogOpen(false);
+  }
+
+  function handleNavClick(navId: string) {
+    setActiveNav(navId);
+    if (navId === "highlights") {
+      setSecondarySidebarTab("highlights");
+      setSecondarySidebarOpen(true);
+    } else if (navId === "notes") {
+      setSecondarySidebarTab("notes");
+      setSecondarySidebarOpen(true);
+    } else if (navId === "library") {
+      setSecondarySidebarOpen(false);
+      setBookChapterDialogOpen(true);
+    } else {
+      setSecondarySidebarOpen(false);
+    }
+  }
+
+  function handleSecondaryClose() {
+    setSecondarySidebarOpen(false);
+    setActiveNav(null);
+  }
+
+  // Get current book and version info
+  const currentBook = selectedBookId ? getBook(selectedBookId) : null;
+  const currentVersion = installedVersions.find((v) => v.id === versionId);
+  const verseReference =
+    currentBook && selectedChapter
+      ? `${currentBook.abbreviation} ${selectedChapter}:1`
+      : "Select a verse";
+
   return (
-    <main className="h-dvh flex overflow-hidden bg-background">
-      {/* Sidebar — handles both desktop and mobile drawer */}
+    <div className="h-dvh flex overflow-hidden bg-background">
+      {/* Main Sidebar — nav-only */}
       <Sidebar
-        selectedBookId={selectedBookId}
-        selectedChapter={selectedChapter}
-        onSelectBook={handleSelectBook}
-        onSelectChapter={handleSelectChapter}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        onJumpTo={handleJumpTo}
+        onNavClick={handleNavClick}
+        activeNav={activeNav}
         sidebarCollapsed={sidebarCollapsed}
         onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
-        onOpenNoteEditor={(verseIds, noteId) => setNoteDialog({ verseIds, noteId })}
       />
 
-      {/* Desktop sidebar toggle — always visible */}
+      {/* Desktop sidebar collapse toggle */}
       <button
         onClick={() => setSidebarCollapsed((v) => !v)}
         aria-label={sidebarCollapsed ? "Abrir sidebar" : "Fechar sidebar"}
@@ -92,10 +180,25 @@ export default function Home() {
         )}
       </button>
 
+      {/* Secondary Sidebar — highlights/notes */}
+      <SecondarySidebar
+        isOpen={secondarySidebarOpen}
+        onClose={handleSecondaryClose}
+        activeTab={secondarySidebarTab}
+        onJumpTo={handleJumpTo}
+        onOpenNoteEditor={(verseIds, noteId) =>
+          setNoteDialog({ verseIds, noteId })
+        }
+      />
+
       {/* Main content area */}
-      <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
-        {/* Mobile top bar */}
-        <div className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-border shrink-0 bg-sidebar">
+      <main
+        className={`flex-1 overflow-hidden reading-area flex flex-col transition-all duration-200 ${
+          inspectorOpen ? "mr-0 md:mr-87.5" : ""
+        }`}
+      >
+        {/* Mobile top bar - full width */}
+        <div className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-border shrink-0 bg-background">
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Abrir menu"
@@ -105,26 +208,56 @@ export default function Home() {
           </button>
           <span className="font-serif text-sm font-medium text-foreground">
             {selectedBookId && selectedChapter
-              ? `${selectedBookId} · Cap. ${selectedChapter}`
+              ? `${currentBook?.abbreviation} · Cap. ${selectedChapter}`
               : "Open Bible"}
           </span>
         </div>
 
-        {/* Reader or empty state */}
-        <div className="flex-1 overflow-hidden">
-          {selectedBookId && selectedChapter ? (
-            <Reader
-              bookId={selectedBookId}
-              chapter={selectedChapter}
-              onChapterChange={handleChapterChange}
-              onBack={() => setSidebarOpen(true)}
-              onOpenNoteEditor={(verseIds, noteId) => setNoteDialog({ verseIds, noteId })}
-            />
-          ) : (
-            <EmptyReader onOpenSidebar={() => setSidebarOpen(true)} />
-          )}
+        {/* Reader container - flexible width */}
+        <div className={`flex-1 overflow-y-auto custom-scrollbar ${readerMode === 'wide' ? 'w-full' : 'flex justify-center'}`}>
+          <div className={`${readerMode === 'wide' ? 'w-full px-4 md:px-8 py-8' : 'max-w-3xl w-full px-4 md:px-12 py-8'}`}>
+            {/* Reader or empty state */}
+            {selectedBookId && selectedChapter ? (
+              <Reader
+                bookId={selectedBookId}
+                chapter={selectedChapter}
+                onChapterChange={handleChapterChange}
+                onBack={() => setSidebarOpen(true)}
+                onBookChapterClick={handleBookChapterClick}
+                onInspectorToggle={() => setInspectorOpen((v) => !v)}
+                isInspectorOpen={inspectorOpen}
+                readerMode={readerMode}
+                onToggleReaderMode={toggleReaderMode}
+                onOpenNoteEditor={(verseIds, noteId) =>
+                  setNoteDialog({ verseIds, noteId })
+                }
+              />
+            ) : (
+              <EmptyReader onOpenSidebar={() => setBookChapterDialogOpen(true)} />
+            )}
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* Inspector Panel */}
+      <InspectorPanel
+        verseReference={verseReference}
+        onVerseClick={(verseId) => console.log("Verse clicked:", verseId)}
+        isOpen={inspectorOpen}
+        onClose={() => setInspectorOpen(false)}
+      />
+
+      {/* Book/Chapter Dialog */}
+      <BookChapterDialog
+        open={bookChapterDialogOpen}
+        onClose={() => setBookChapterDialogOpen(false)}
+        onSelectBook={handleSelectFromDialog}
+        onSelectChapter={handleSelectChapterFromDialog}
+        selectedBookId={selectedBookId}
+        selectedChapter={selectedChapter}
+        versionAbbreviation={currentVersion?.name || versionId.toUpperCase()}
+      />
+
       {noteDialog && (
         <NoteEditorDialog
           verseIds={noteDialog.verseIds}
@@ -145,7 +278,7 @@ export default function Home() {
           onClose={() => setNoteDialog(null)}
         />
       )}
-    </main>
+    </div>
   );
 }
 
@@ -161,7 +294,6 @@ function EmptyReader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       <p className="text-[10px] text-muted-foreground/30 mt-2">
         v{process.env.NEXT_PUBLIC_APP_VERSION}
       </p>
-      {/* Mobile shortcut */}
       <button
         onClick={onOpenSidebar}
         className="md:hidden mt-2 rounded-md px-4 py-2 text-sm bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
