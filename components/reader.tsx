@@ -132,7 +132,6 @@ export function Reader({
                 note={getNote(verse.id)}
                 isActive={verse.id === activeVerseId}
                 isSelected={selectedVerseIds.has(verse.id)}
-                isFirst={index === 0}
                 onClick={() => handleVerseClick(verse.id)}
               />
             ))
