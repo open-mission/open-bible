@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Monitor, Moon, Sun, Check } from "lucide-react"
+import { ArrowLeft, Monitor, Moon, Sun, Check, BookOpen, Palette } from "lucide-react"
 import { useAppTheme } from "@/components/theme-provider"
 import { useBibleVersion } from "@/lib/bible-version-context"
 import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/lib/theme"
 import { MobileNav } from "@/components/mobile-nav"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
 
@@ -21,6 +22,7 @@ export default function ConfigPage() {
   const { mode, color, setTheme, setColor } = useAppTheme()
   const { defaultVersionId, setDefaultVersionId, availableVersions, installedVersions } = useBibleVersion()
   const [versions, setVersions] = useState<{ id: string; name: string }[]>([])
+  const [isDesktop, setIsDesktop] = useState(false)
 
   useEffect(() => {
     const installed = installedVersions.map((v) => ({ id: v.id, name: v.name }))
@@ -29,6 +31,14 @@ export default function ConfigPage() {
       .map((v) => ({ id: v.id, name: v.name }))
     setVersions([...installed, ...available])
   }, [availableVersions, installedVersions])
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 768px)")
+    setIsDesktop(media.matches)
+    const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    media.addEventListener("change", listener)
+    return () => media.removeEventListener("change", listener)
+  }, [])
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -44,126 +54,167 @@ export default function ConfigPage() {
         <h1 className="font-serif text-base font-medium">Preferências</h1>
       </header>
 
-      <div className="mx-auto max-w-md px-4 py-8 pb-20 md:pb-8 space-y-10">
+      <div className="mx-auto max-w-4xl px-4 py-8 pb-20 md:pb-8">
+        <Tabs
+          defaultValue="version"
+          orientation={isDesktop ? "vertical" : "horizontal"}
+          className="w-full gap-6 md:gap-8 flex flex-col md:flex-row"
+        >
+          <TabsList className="w-full md:w-64 shrink-0 flex flex-row md:flex-col justify-start items-stretch bg-muted/50 p-1 md:p-2 rounded-xl h-auto">
+            <TabsTrigger
+              value="version"
+              className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+            >
+              <BookOpen className="h-4 w-4" />
+              <span>Versão Bíblica</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="theme"
+              className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+            >
+              <Palette className="h-4 w-4" />
+              <span>Tema</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* ── Default Bible version ──────────────────────────────────────── */}
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-            Versão padrão
-          </h2>
-          <p className="text-sm text-muted-foreground mb-3">
-            Selecione a versão bíblica usada por padrão ao abrir o aplicativo.
-          </p>
-          <div className="space-y-1">
-            {versions.map((v) => {
-              const active = defaultVersionId === v.id
-              const isInstalled = !!installedVersions.find((iv) => iv.id === v.id)
-              return (
-                <button
-                  key={v.id}
-                  onClick={() => setDefaultVersionId(v.id)}
-                  className={`w-full flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
-                    active
-                      ? "border-primary bg-primary/5 text-foreground font-medium"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  }`}
-                >
-                  <span className="flex-1 text-left">{v.name}</span>
-                  {isInstalled && (
-                    <span className="text-[10px] text-muted-foreground/60">offline</span>
-                  )}
-                  {active && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                </button>
-              )
-            })}
-            {versions.length === 0 && (
-              <p className="text-sm text-muted-foreground/50 text-center py-4">
-                Carregando versões...
-              </p>
-            )}
-          </div>
-        </section>
+          <div className="flex-1 min-w-0 bg-card border border-border/60 rounded-xl p-6 shadow-sm">
+            {/* ── Default Bible version ──────────────────────────────────────── */}
+            <TabsContent value="version" className="space-y-4">
+              <div>
+                <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+                  Versão padrão
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Selecione a versão bíblica usada por padrão ao abrir o aplicativo.
+                </p>
+              </div>
+              <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+                {versions.map((v) => {
+                  const active = defaultVersionId === v.id
+                  const isInstalled = !!installedVersions.find((iv) => iv.id === v.id)
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => setDefaultVersionId(v.id)}
+                      className={`w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${
+                        active
+                          ? "border-primary bg-primary/5 text-foreground font-medium"
+                          : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                      }`}
+                    >
+                      <span className="flex-1 text-left">{v.name}</span>
+                      {isInstalled && (
+                        <span className="text-[10px] text-muted-foreground/60 px-1.5 py-0.5 bg-secondary rounded">offline</span>
+                      )}
+                      {active && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  )
+                })}
+                {versions.length === 0 && (
+                  <p className="text-sm text-muted-foreground/50 text-center py-4">
+                    Carregando versões...
+                  </p>
+                )}
+              </div>
+            </TabsContent>
 
-        {/* ── Appearance ─────────────────────────────────────────────────── */}
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-            Aparência
-          </h2>
-          <div className="grid grid-cols-3 gap-2">
-            {MODES.map((m) => {
-              const active = mode === m.value
-              return (
-                <button
-                  key={m.value}
-                  onClick={() => setTheme(m.value)}
-                  aria-pressed={active}
-                  className={`flex flex-col items-center gap-2 rounded-lg border-2 px-3 py-4 text-sm font-medium transition-colors ${
-                    active
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  }`}
-                >
-                  {m.icon}
-                  {m.label}
-                </button>
-              )
-            })}
-          </div>
-        </section>
+            {/* ── Theme (Appearance + Accent Color) ──────────────────────────── */}
+            <TabsContent value="theme" className="space-y-8">
+              {/* Appearance Mode */}
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+                    Aparência
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Escolha o tema visual do aplicativo.
+                  </p>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {MODES.map((m) => {
+                    const active = mode === m.value
+                    return (
+                      <button
+                        key={m.value}
+                        onClick={() => setTheme(m.value)}
+                        aria-pressed={active}
+                        className={`flex flex-col items-center gap-3 rounded-lg border-2 px-3 py-5 text-sm font-medium transition-colors ${
+                          active
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        }`}
+                      >
+                        <div className="p-2 rounded-full bg-secondary/50">
+                          {m.icon}
+                        </div>
+                        {m.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
 
-        {/* ── Accent color ───────────────────────────────────────────────── */}
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-            Cor de destaque
-          </h2>
-          <div className="grid grid-cols-3 gap-2">
-            {COLORS.map((c) => {
-              const active = color === c
-              return (
-                <button
-                  key={c}
-                  onClick={() => setColor(c)}
-                  aria-pressed={active}
-                  className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
-                    active
-                      ? "border-primary bg-primary/5 text-foreground font-medium"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  }`}
-                >
-                  {/* Color swatch */}
+              {/* Accent color */}
+              <div className="space-y-4 pt-4 border-t border-border/50">
+                <div>
+                  <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+                    Cor de destaque
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Escolha a cor principal para os botões e destaques do aplicativo.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  {COLORS.map((c) => {
+                    const active = color === c
+                    return (
+                      <button
+                        key={c}
+                        onClick={() => setColor(c)}
+                        aria-pressed={active}
+                        className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
+                          active
+                            ? "border-primary bg-primary/5 text-foreground font-medium"
+                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        }`}
+                      >
+                        {/* Color swatch */}
+                        <span
+                          className="h-4 w-4 rounded-full shrink-0 ring-1 ring-black/10"
+                          style={{ backgroundColor: COLOR_SWATCHES[c] }}
+                          aria-hidden="true"
+                        />
+                        <span className="flex-1 text-left">{COLOR_LABELS[c]}</span>
+                        {active && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Live preview chip */}
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-secondary/40 px-4 py-3">
                   <span
-                    className="h-4 w-4 rounded-full shrink-0 ring-1 ring-black/10"
-                    style={{ backgroundColor: COLOR_SWATCHES[c] }}
-                    aria-hidden="true"
+                    className="h-5 w-5 rounded-full shrink-0 shadow-sm"
+                    style={{ backgroundColor: COLOR_SWATCHES[color] }}
                   />
-                  <span className="flex-1 text-left">{COLOR_LABELS[c]}</span>
-                  {active && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                </button>
-              )
-            })}
+                  <p className="text-sm text-muted-foreground">
+                    Cor ativa:{" "}
+                    <span className="font-medium text-primary">{COLOR_LABELS[color]}</span>
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
           </div>
-
-          {/* Live preview chip */}
-          <div className="mt-5 flex items-center gap-3 rounded-lg border border-border bg-secondary/40 px-4 py-3">
-            <span
-              className="h-5 w-5 rounded-full shrink-0 shadow-sm"
-              style={{ backgroundColor: COLOR_SWATCHES[color] }}
-            />
-            <p className="text-sm text-muted-foreground">
-              Cor ativa:{" "}
-              <span className="font-medium text-primary">{COLOR_LABELS[color]}</span>
-            </p>
-          </div>
-        </section>
+        </Tabs>
 
         {/* ── Version ──────────────────────────────────────────────────── */}
-        <section className="text-center">
+        <section className="text-center mt-8">
           <p className="text-xs text-muted-foreground/50">
             Open Bible v{process.env.NEXT_PUBLIC_APP_VERSION}
           </p>
         </section>
-
       </div>
+
       <MobileNav activeNav="config" onNavClick={() => {}} />
     </div>
   )
