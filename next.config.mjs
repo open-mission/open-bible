@@ -1,6 +1,20 @@
 import { readFileSync } from "fs"
+import withPWAInit from "@ducanh2912/next-pwa"
 
 const pkg = JSON.parse(readFileSync("./package.json", "utf-8"))
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  fallbacks: {
+    document: "/~offline",
+  },
+})
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -12,6 +26,12 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
+  },
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.cache = false
+    }
+    return config
   },
   async headers() {
     return [
@@ -45,4 +65,4 @@ const nextConfig = {
   },
 }
 
-export default nextConfig
+export default withPWA(nextConfig)
