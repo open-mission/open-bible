@@ -27,7 +27,7 @@ export function ReaderHeader({
   onInspectorToggle,
 }: ReaderHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 md:px-6 pb-3 mb-8">
+    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur flex items-center justify-between pb-3 pt-3 px-4 border-b border-border">
       <nav className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-30 flex justify-center pb-5 pt-10 bg-linear-to-t from-background via-background/95 to-transparent md:relative md:bottom-auto md:left-auto md:right-auto md:z-auto md:flex md:justify-start md:pb-0 md:pt-0 md:bg-none text-sm font-medium w-full md:w-auto">
         <ButtonGroup className="shadow-lg md:shadow-none">
           <Button onClick={onBookChapterClick} variant="outline" size="lg">

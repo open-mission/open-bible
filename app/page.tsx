@@ -112,10 +112,10 @@ export default function Home() {
           main={
             <main className="overflow-hidden reading-area flex flex-col h-full">
               <div
-                className={`flex-1 overflow-y-auto custom-scrollbar ${readerMode === "wide" ? "w-full" : "flex justify-center"}`}
+                className="flex-1 overflow-y-auto custom-scrollbar w-full"
               >
                 <div
-                  className={`${readerMode === "wide" ? "w-full px-4 md:px-8 py-8" : "max-w-3xl w-full px-4 md:px-12 py-8"} pb-36 md:pb-8`}
+                  className="w-full pb-36 md:pb-8"
                 >
                   {selectedBookId && selectedChapter ? (
                     <Reader

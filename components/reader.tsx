@@ -85,65 +85,67 @@ export function Reader({
         onInspectorToggle={onInspectorToggle}
       />
 
-      <header className="mb-12 text-center">
-        <h2 className="font-serif text-4xl font-semibold text-foreground mb-3">
-          {book.name}
-        </h2>
-        <div className="flex items-center justify-center gap-3">
-          <div className="h-px w-8 bg-border" />
-          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
-            Chapter {chapter}
-          </p>
-          <div className="h-px w-8 bg-border" />
-        </div>
-      </header>
-
-      {multiSelectMode && (
-        <div className="flex items-center justify-between bg-primary/10 border-b border-primary/20 px-4 py-1.5 mb-4 shrink-0">
-          <span className="text-xs text-primary font-medium">
-            {selectedVerseIds.size === 0
-              ? "Clique nos versículos para selecionar"
-              : `${selectedVerseIds.size} versículo${selectedVerseIds.size > 1 ? "s" : ""} selecionado${selectedVerseIds.size > 1 ? "s" : ""}`}
-          </span>
-          <button
-            onClick={() => setSelectedVerseIds(new Set())}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Limpar
-          </button>
-        </div>
-      )}
-
-      <article
-        ref={containerRef}
-        className="font-serif text-[20px] leading-[1.8] text-foreground selection:bg-highlight"
-      >
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className={`flex-1 w-full mx-auto ${readerMode === "wide" ? "max-w-none px-4 md:px-8 py-8" : "max-w-3xl px-4 md:px-12 py-8"}`}>
+        <header className="mb-12 text-center">
+          <h2 className="font-serif text-4xl font-semibold text-foreground mb-3">
+            {book.name}
+          </h2>
+          <div className="flex items-center justify-center gap-3">
+            <div className="h-px w-8 bg-border" />
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+              Chapter {chapter}
+            </p>
+            <div className="h-px w-8 bg-border" />
           </div>
-        ) : (
-          verses.map((verse, index) => (
-            <VerseRow
-              key={verse.id}
-              verse={verse}
-              highlight={getHighlight(verse.id)}
-              note={getNote(verse.id)}
-              isActive={verse.id === activeVerseId}
-              isSelected={selectedVerseIds.has(verse.id)}
-              isFirst={index === 0}
-              onClick={() => handleVerseClick(verse.id)}
-            />
-          ))
-        )}
-      </article>
+        </header>
 
-      <ReaderChapterNav
-        book={book}
-        chapter={chapter}
-        onPrevChapter={prevChapter}
-        onNextChapter={nextChapter}
-      />
+        {multiSelectMode && (
+          <div className="flex items-center justify-between bg-primary/10 border-b border-primary/20 px-4 py-1.5 mb-4 shrink-0">
+            <span className="text-xs text-primary font-medium">
+              {selectedVerseIds.size === 0
+                ? "Clique nos versículos para selecionar"
+                : `${selectedVerseIds.size} versículo${selectedVerseIds.size > 1 ? "s" : ""} selecionado${selectedVerseIds.size > 1 ? "s" : ""}`}
+            </span>
+            <button
+              onClick={() => setSelectedVerseIds(new Set())}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Limpar
+            </button>
+          </div>
+        )}
+
+        <article
+          ref={containerRef}
+          className="font-serif text-[20px] leading-[1.8] text-foreground selection:bg-highlight"
+        >
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            verses.map((verse, index) => (
+              <VerseRow
+                key={verse.id}
+                verse={verse}
+                highlight={getHighlight(verse.id)}
+                note={getNote(verse.id)}
+                isActive={verse.id === activeVerseId}
+                isSelected={selectedVerseIds.has(verse.id)}
+                isFirst={index === 0}
+                onClick={() => handleVerseClick(verse.id)}
+              />
+            ))
+          )}
+        </article>
+
+        <ReaderChapterNav
+          book={book}
+          chapter={chapter}
+          onPrevChapter={prevChapter}
+          onNextChapter={nextChapter}
+        />
+      </div>
     </div>
   );
 }
