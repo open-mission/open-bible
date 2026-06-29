@@ -33,6 +33,8 @@ const nextConfig = {
     }
     return config
   },
+  transpilePackages: ["@open-bible/ui"],
+  turbopack: {},
   async headers() {
     return [
       {

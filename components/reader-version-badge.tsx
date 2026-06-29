@@ -90,16 +90,14 @@ export function ReaderVersionBadge() {
               setVersionId(v.id)
               setOpen(false)
             }}
-            className={`w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors ${
-              versionId === v.id
-                ? "bg-accent text-accent-foreground"
-                : "hover:bg-secondary text-foreground"
-            }`}
+            className={`w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors ${versionId === v.id
+              ? "bg-accent text-accent-foreground"
+              : "hover:bg-secondary text-foreground"
+              }`}
           >
             <Check
-              className={`h-3 w-3 shrink-0 ${
-                versionId === v.id ? "opacity-100" : "opacity-0"
-              }`}
+              className={`h-3 w-3 shrink-0 ${versionId === v.id ? "opacity-100" : "opacity-0"
+                }`}
             />
             <span className="flex-1 font-medium truncate">{v.name}</span>
             <span className="text-[10px] text-muted-foreground/60 shrink-0">
@@ -137,9 +135,8 @@ export function ReaderVersionBadge() {
             className="w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors hover:bg-secondary text-foreground disabled:opacity-50"
           >
             <Check
-              className={`h-3 w-3 shrink-0 ${
-                versionId === v.id ? "opacity-100" : "opacity-0"
-              }`}
+              className={`h-3 w-3 shrink-0 ${versionId === v.id ? "opacity-100" : "opacity-0"
+                }`}
             />
             <span className="flex-1 font-medium truncate">{v.name}</span>
             <span className="text-[10px] text-muted-foreground/60">
@@ -151,8 +148,8 @@ export function ReaderVersionBadge() {
                 setInstallingName(v.name)
                 installVersion(v.id)
               }}
-                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-muted-foreground hover:text-primary transition-all shrink-0"
-                aria-label={`Baixar ${v.name} para usar offline`}
+              className="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-muted-foreground hover:text-primary transition-all shrink-0"
+              aria-label={`Baixar ${v.name} para usar offline`}
               title="Baixar para usar offline"
             >
               <Download className="h-3 w-3" />
@@ -197,14 +194,12 @@ export function ReaderVersionBadge() {
             onClick={() => isMobile && setOpen(true)}
             variant="outline"
             size="lg"
-            className="rounded-[inherit] border-l-0"
+            className="rounded-[inherit] border-l-0 h-9"
             aria-label="Selecionar versão da Bíblia"
             title={currentFullName}
           />
         }>
-          <Book className="h-3.5 w-3.5 shrink-0" />
           <span className="text-sm font-semibold mx-1">{currentAbbr}</span>
-          <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
         </PopoverTrigger>
 
         <PopoverContent className="w-56 p-0 gap-0" align="end" sideOffset={4}>
