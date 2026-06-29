@@ -33,6 +33,15 @@ export class DatabaseManager {
     else entry.reject(new Error(res.error ?? "worker error"))
   }
 
+  private onWorkerError = (e: ErrorEvent) => {
+    console.error("[DatabaseManager] worker error:", e.message, e)
+    const err = new Error(`SQLite worker crashed: ${e.message ?? "unknown error"}`)
+    for (const { reject } of this.pending.values()) {
+      reject(err)
+    }
+    this.pending.clear()
+  }
+
   /** Idempotent. Boots the worker + SAHPool VFS and ensures app.db exists. */
   async initialize(): Promise<void> {
     if (this.initialized) return
@@ -41,6 +50,7 @@ export class DatabaseManager {
       if (typeof window === "undefined") throw new Error("DatabaseManager is client-only")
       this.worker = new Worker(WORKER_URL, { type: "module" })
       this.worker.addEventListener("message", this.onMessage)
+      this.worker.addEventListener("error", this.onWorkerError)
       await this.rpc({ type: "init" })
       await this.rpc({ type: "open", path: USER_DB })
       this.initialized = true

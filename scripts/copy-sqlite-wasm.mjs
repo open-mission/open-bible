@@ -16,6 +16,10 @@ const root = dirname(fileURLToPath(import.meta.url)) + "/.."
 const SRC_JSWASM = join(root, "node_modules/@sqlite.org/sqlite-wasm/dist")
 const DST_JSWASM = join(root, "public/sqlite-wasm/jswasm")
 
+// The worker source is tracked in git and deployed here at build time.
+const SRC_WORKER = join(root, "lib/database/sqlite-worker.source.js")
+const DST_WORKER = join(root, "public/sqlite-wasm/open-bible.worker.js")
+
 const SRC_ARA = join(root, "resources/bibles/ARA.sqlite")
 const DST_ARA = join(root, "public/bibles/ara.db")
 
@@ -30,6 +34,9 @@ async function main() {
   await mkdir(dirname(DST_JSWASM), { recursive: true })
   await cp(SRC_JSWASM, DST_JSWASM, { recursive: true })
   console.log(`Copied sqlite-wasm → ${DST_JSWASM}`)
+
+  await cp(SRC_WORKER, DST_WORKER)
+  console.log(`Copied SQLite worker → ${DST_WORKER}`)
 
   if (await exists(SRC_ARA)) {
     await mkdir(dirname(DST_ARA), { recursive: true })
