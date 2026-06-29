@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi"
 import { apiReference } from "@scalar/hono-api-reference"
 import { gzipSync } from "zlib"
+import { turso } from "../turso"
 import {
   VersionSchema,
   VersionDetailSchema,
@@ -351,16 +352,31 @@ app.get("/api/bibles/download/:version", async (c) => {
     vfl: "VFL.sqlite",
   }
 
-  const filename = mapping[version]
-  if (!filename) {
-    return c.text("Versão não encontrada", 404)
-  }
-
-  const targetUrl = `https://github.com/damarals/biblias/releases/download/v1.0.0/${filename}`
   try {
+    // Query TursoDB for the download URL of this version
+    const result = await turso.execute(
+      "SELECT download_url FROM bible_versions WHERE id = ?",
+      [version]
+    )
+
+    let targetUrl = ""
+    const row = result.rows[0]
+    if (row && row.download_url) {
+      targetUrl = row.download_url as string
+    } else {
+      const filename = mapping[version]
+      if (!filename) {
+        return c.text("Versão não encontrada", 404)
+      }
+      const bucketUrl = process.env.CLOUDFLARE_BUCKET_PUBLIC_URL || "https://pub-2e657f1c9c644712ad9474513a7ad79b.r2.dev"
+      targetUrl = `${bucketUrl}/${filename}`
+    }
+
+    const filename = targetUrl.split("/").pop() || `${version}.sqlite`
+
     const upstream = await fetch(targetUrl)
     if (!upstream.ok) {
-      return c.text(`Erro ao obter arquivo do GitHub: ${upstream.statusText}`, upstream.status as any)
+      return c.text(`Erro ao obter arquivo da origem: ${upstream.statusText}`, upstream.status as any)
     }
 
     const arrayBuffer = await upstream.arrayBuffer()

@@ -2,7 +2,9 @@ export const SCHEMA_SQL = `
   CREATE TABLE IF NOT EXISTS bible_versions (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    total_books INTEGER NOT NULL
+    total_books INTEGER NOT NULL,
+    download_url TEXT,
+    version INTEGER DEFAULT 1
   );
 
   CREATE TABLE IF NOT EXISTS bible_books (
