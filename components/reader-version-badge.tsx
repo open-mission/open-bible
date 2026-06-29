@@ -104,7 +104,7 @@ export function ReaderVersionBadge({ className, variant = "outline" }: { classNa
                 versionId === v.id ? "opacity-100" : "opacity-0"
               }`}
             />
-            <span className="flex-1 font-medium truncate">{v.name}</span>
+            <span className="flex-1 font-semibold uppercase">{v.id}</span>
             <span className="text-[10px] text-muted-foreground/60 shrink-0">
               {v.books.length} livros
             </span>
@@ -154,7 +154,7 @@ export function ReaderVersionBadge({ className, variant = "outline" }: { classNa
           <span className="text-sm font-semibold mx-1">{currentAbbr}</span>
         </PopoverTrigger>
 
-        <PopoverContent className="w-56 p-0 gap-0" align="end" sideOffset={4}>
+        <PopoverContent className="w-44 p-0 gap-0" align="end" sideOffset={4}>
           {optionsPanel}
         </PopoverContent>
       </Popover>
