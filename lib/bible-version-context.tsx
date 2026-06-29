@@ -253,14 +253,19 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     setDownloadProgress({ current: 0, total: 100 })
     try {
       const url = `/api/bibles/download/${id}`
+      console.log(`[install:${id}] iniciando fetch`)
       const response = await fetch(url)
+      console.log(`[install:${id}] resposta recebida — status=${response.status} ok=${response.ok}`)
       if (!response.ok) throw new Error(`Falha ao baixar versão ${id}: ${response.statusText}`)
 
       const originalLength = response.headers.get("x-original-content-length")
       const contentLength = response.headers.get("content-length")
-      const totalBytes = originalLength 
-        ? parseInt(originalLength, 10) 
+      const contentEncoding = response.headers.get("content-encoding")
+      const totalBytes = originalLength
+        ? parseInt(originalLength, 10)
         : (contentLength ? parseInt(contentLength, 10) : 0)
+
+      console.log(`[install:${id}] headers — content-encoding=${contentEncoding} x-original-content-length=${originalLength} content-length=${contentLength} totalBytes=${totalBytes}`)
 
       const reader = response.body?.getReader()
       if (!reader) throw new Error("Não foi possível ler o corpo da resposta")
@@ -288,6 +293,8 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      console.log(`[install:${id}] stream concluído — receivedBytes=${receivedBytes} totalBytes=${totalBytes}`)
+
       const buffer = new Uint8Array(receivedBytes)
       let offset = 0
       for (const chunk of chunks) {
@@ -295,8 +302,14 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
         offset += chunk.length
       }
 
+      console.log(`[install:${id}] buffer montado — byteLength=${buffer.byteLength}. Chamando installBible...`)
       await database.installBible(id, buffer.buffer)
+      console.log(`[install:${id}] installBible concluído. Chamando refreshInstalled...`)
       await refreshInstalled()
+      console.log(`[install:${id}] concluído com sucesso!`)
+    } catch (err) {
+      console.error(`[install:${id}] ERRO:`, err)
+      throw err
     } finally {
       setIsInstalling(false)
       setDownloadProgress(null)
