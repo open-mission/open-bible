@@ -327,6 +327,56 @@ app.openapi(booksListRoute, h(async (c) => {
   return c.json(result)
 }))
 
+app.get("/api/bibles/download/:version", async (c) => {
+  const version = c.req.param("version").toLowerCase()
+  const mapping: Record<string, string> = {
+    acf: "ACF.sqlite",
+    alm1911: "ALM1911.sqlite",
+    ara: "ARA.sqlite",
+    arc: "ARC.sqlite",
+    as21: "AS21.sqlite",
+    blivre: "BLIVRE.sqlite",
+    jfaa: "JFAA.sqlite",
+    kja: "KJA.sqlite",
+    kjf: "KJF.sqlite",
+    mens: "MENS.sqlite",
+    naa: "NAA.sqlite",
+    nbv: "NBV.sqlite",
+    ntlh: "NTLH.sqlite",
+    nvi: "NVI.sqlite",
+    nvt: "NVT.sqlite",
+    ol: "OL.sqlite",
+    tb: "TB.sqlite",
+    vfl: "VFL.sqlite",
+  }
+
+  const filename = mapping[version]
+  if (!filename) {
+    return c.text("Versão não encontrada", 404)
+  }
+
+  const targetUrl = `https://github.com/damarals/biblias/releases/download/v1.0.0/${filename}`
+  try {
+    const upstream = await fetch(targetUrl)
+    if (!upstream.ok) {
+      return c.text(`Erro ao obter arquivo do GitHub: ${upstream.statusText}`, upstream.status as any)
+    }
+
+    c.header("Content-Type", "application/octet-stream")
+    c.header("Content-Disposition", `attachment; filename="${filename}"`)
+    
+    const contentLength = upstream.headers.get("content-length")
+    if (contentLength) {
+      c.header("Content-Length", contentLength)
+    }
+
+    return c.body(upstream.body as any)
+  } catch (e) {
+    console.error(`Falha no proxy de download para ${version}:`, e)
+    return c.text("Erro interno no servidor de proxy de download", 500)
+  }
+})
+
 // ─── OpenAPI spec ─────────────────────────────────────────────────
 
 app.doc("/api/openapi.json", {

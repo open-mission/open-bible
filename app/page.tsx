@@ -8,6 +8,7 @@ import { InspectorPanel } from "@/components/inspector-panel"
 import { BookChapterDialog } from "@/components/book-chapter-dialog"
 import { getBook } from "@/lib/bible-data"
 import { useBibleVersion } from "@/lib/bible-version-context"
+import { useToast } from "@/lib/use-toast"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { useReaderPosition } from "@/lib/use-reader-position"
 import { usePanelState } from "@/lib/use-panel-state"
@@ -33,7 +34,63 @@ export default function Home() {
     handleNavClick,
   } = usePanelState()
 
-  const { versionId, installedVersions } = useBibleVersion()
+  const {
+    versionId,
+    installedVersions,
+    installVersion,
+    isInstalling,
+    downloadProgress,
+    setVersionId,
+    isVersionsLoaded,
+  } = useBibleVersion()
+  const { addToast, updateToast, removeToast } = useToast()
+  const [activeToastId, setActiveToastId] = useState<string | null>(null)
+
+  // Auto-download ARA on first visit if no version is installed
+  useEffect(() => {
+    if (isVersionsLoaded && installedVersions !== undefined && installedVersions.length === 0 && !isInstalling && !activeToastId) {
+      const id = addToast({
+        message: "Primeiro acesso: baixando Bíblia Almeida Revista e Atualizada (ARA)...",
+        type: "loading",
+      })
+      setActiveToastId(id)
+
+      installVersion("ara")
+        .then(() => {
+          updateToast(id, {
+            message: "Bíblia ARA configurada com sucesso!",
+            type: "success",
+            progress: undefined,
+          })
+          setVersionId("ara")
+          setTimeout(() => {
+            removeToast(id)
+            setActiveToastId(null)
+          }, 4000)
+        })
+        .catch((e) => {
+          console.error("Auto download failed:", e)
+          updateToast(id, {
+            message: "Falha ao baixar Bíblia ARA.",
+            type: "error",
+            progress: undefined,
+          })
+          setTimeout(() => {
+            removeToast(id)
+            setActiveToastId(null)
+          }, 4000)
+        })
+    }
+  }, [isVersionsLoaded, installedVersions, isInstalling, installVersion, addToast, updateToast, removeToast, setVersionId, activeToastId])
+
+  // Sync progress bar to the auto-download toast
+  useEffect(() => {
+    if (activeToastId && isInstalling && downloadProgress) {
+      updateToast(activeToastId, {
+        progress: downloadProgress,
+      })
+    }
+  }, [activeToastId, isInstalling, downloadProgress, updateToast])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
