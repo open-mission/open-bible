@@ -1,5 +1,6 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi"
 import { apiReference } from "@scalar/hono-api-reference"
+import { gzipSync } from "zlib"
 import {
   VersionSchema,
   VersionDetailSchema,
@@ -362,21 +363,17 @@ app.get("/api/bibles/download/:version", async (c) => {
       return c.text(`Erro ao obter arquivo do GitHub: ${upstream.statusText}`, upstream.status as any)
     }
 
+    const arrayBuffer = await upstream.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const compressed = gzipSync(buffer)
+
     c.header("Content-Type", "application/octet-stream")
     c.header("Content-Disposition", `attachment; filename="${filename}"`)
-    
-    const contentLength = upstream.headers.get("content-length")
-    if (contentLength) {
-      c.header("X-Original-Content-Length", contentLength)
-    }
+    c.header("Content-Encoding", "gzip")
+    c.header("X-Original-Content-Length", String(arrayBuffer.byteLength))
+    c.header("Content-Length", String(compressed.length))
 
-    if (upstream.body) {
-      c.header("Content-Encoding", "gzip")
-      const gzipStream = upstream.body.pipeThrough(new CompressionStream("gzip"))
-      return c.body(gzipStream as any)
-    }
-
-    return c.body(null)
+    return c.body(compressed as any)
   } catch (e) {
     console.error(`Falha no proxy de download para ${version}:`, e)
     return c.text("Erro interno no servidor de proxy de download", 500)
