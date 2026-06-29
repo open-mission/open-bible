@@ -14,6 +14,17 @@ const withPWA = withPWAInit({
   fallbacks: {
     document: "/~offline",
   },
+  extendDefaultRuntimeCaching: true,
+  workboxOptions: {
+    runtimeCaching: [
+      {
+        // Never cache the SQLite download proxy — Workbox caching a 4MB+ binary
+        // simultaneously with the OPFS write causes the importDb to hang in production.
+        urlPattern: /\/api\/bibles\/download\//i,
+        handler: "NetworkOnly",
+      },
+    ],
+  },
 })
 
 /** @type {import('next').NextConfig} */

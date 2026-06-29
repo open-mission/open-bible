@@ -388,6 +388,7 @@ app.get("/api/bibles/download/:version", async (c) => {
     c.header("Content-Encoding", "gzip")
     c.header("X-Original-Content-Length", String(arrayBuffer.byteLength))
     c.header("Content-Length", String(compressed.length))
+    c.header("Cache-Control", "no-store")
 
     return c.body(compressed as any)
   } catch (e) {
