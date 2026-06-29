@@ -101,7 +101,7 @@ export function BookChapterDialog({
   }
 
   const content = (
-    <div className="relative flex flex-col h-full max-h-[90vh] md:max-h-[75vh] overflow-hidden">
+    <div className="relative flex flex-col h-full max-h-[90vh] bg-background md:max-h-[75vh] overflow-hidden">
       {/* Search & Action Header */}
       <header className="flex items-center px-4 h-14 shrink-0 gap-3 z-10">
         <InputGroup className="flex-1 h-10 shadow-none border-border bg-background">

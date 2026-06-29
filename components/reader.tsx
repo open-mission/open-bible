@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/lib/bible-data"
 import { useBibleVerses } from "@/lib/use-bible"
 import { VerseRow } from "./verse-row"
@@ -19,6 +19,8 @@ interface ReaderProps {
   onChangeFontSize: (size: number) => void
   verseSpacing: "small" | "medium" | "large"
   onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void
+  readerFont: "sans" | "serif" | "mono"
+  onChangeReaderFont: (font: "sans" | "serif" | "mono") => void
 }
 
 export function Reader({
@@ -32,6 +34,8 @@ export function Reader({
   onChangeFontSize,
   verseSpacing,
   onChangeVerseSpacing,
+  readerFont,
+  onChangeReaderFont,
 }: ReaderProps) {
   const book = getBook(bookId)
   const { verses, loading } = useBibleVerses(bookId, chapter)
@@ -91,6 +95,14 @@ export function Reader({
     if (book && chapter < book.chapters) onChapterChange(chapter + 1)
   }
 
+  const spacingClasses = {
+    small: "py-1.5 mb-1",
+    medium: "py-2.5 mb-2",
+    large: "py-4 mb-4",
+  }
+
+  const fontClass = readerFont === "sans" ? "font-sans" : readerFont === "mono" ? "font-mono" : "font-serif"
+
   return (
     <div className="flex flex-col min-w-0 h-full">
       <ReaderHeader
@@ -104,6 +116,8 @@ export function Reader({
         onChangeFontSize={onChangeFontSize}
         verseSpacing={verseSpacing}
         onChangeVerseSpacing={onChangeVerseSpacing}
+        readerFont={readerFont}
+        onChangeReaderFont={onChangeReaderFont}
       />
 
       <div className={`flex-1 w-full mx-auto ${
@@ -114,7 +128,7 @@ export function Reader({
             : "max-w-2xl px-4 md:px-16 py-8"
       }`}>
         <header ref={headerRef} className="mb-12 text-center">
-          <h2 className="font-serif text-4xl font-semibold text-foreground mb-3">
+          <h2 className={`${fontClass} text-4xl font-semibold text-foreground mb-3`}>
             {book.name}
           </h2>
           <div className="flex items-center justify-center gap-3">
@@ -144,12 +158,33 @@ export function Reader({
 
         <article
           ref={containerRef}
-          className="font-serif text-foreground selection:bg-highlight"
+          className={`${fontClass} text-foreground selection:bg-highlight`}
           style={{ fontSize: `${fontSize}px` }}
         >
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <div className="space-y-1">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`flex gap-4 px-4 sm:px-6 ${spacingClasses[verseSpacing]} rounded-md`}
+                >
+                  <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0 mt-1">
+                    {i + 1}
+                  </sup>
+                  <div className="flex-1 space-y-2 mt-1">
+                    <Skeleton
+                      className="h-4 bg-muted/60"
+                      style={{ width: `${85 + (i % 4) * 4}%` }}
+                    />
+                    {i % 3 !== 0 && (
+                      <Skeleton
+                        className="h-4 bg-muted/40"
+                        style={{ width: `${40 + (i % 3) * 15}%` }}
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             verses.map((verse, index) => (

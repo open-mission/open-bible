@@ -7,6 +7,7 @@ const CHAPTER_KEY = "openbible:chapter"
 const READER_MODE_KEY = "openbible:reader-mode"
 const FONT_SIZE_KEY = "openbible:font-size"
 const VERSE_SPACING_KEY = "openbible:verse-spacing"
+const READER_FONT_KEY = "openbible:reader-font"
 
 export function useReaderPosition() {
   const [selectedBookId, setSelectedBookId] = useState<string | null>("gen")
@@ -14,6 +15,7 @@ export function useReaderPosition() {
   const [readerMode, setReaderMode] = useState<"narrow" | "medium" | "wide">("medium")
   const [fontSize, setFontSize] = useState<number>(20)
   const [verseSpacing, setVerseSpacing] = useState<"small" | "medium" | "large">("medium")
+  const [readerFont, setReaderFont] = useState<"sans" | "serif" | "mono">("serif")
 
   useEffect(() => {
     try {
@@ -22,6 +24,7 @@ export function useReaderPosition() {
       const mode = localStorage.getItem(READER_MODE_KEY)
       const storedFontSize = localStorage.getItem(FONT_SIZE_KEY)
       const storedSpacing = localStorage.getItem(VERSE_SPACING_KEY)
+      const storedFont = localStorage.getItem(READER_FONT_KEY)
       if (book) setSelectedBookId(book)
       if (chapter) setSelectedChapter(Number(chapter))
       if (mode === "narrow" || mode === "medium" || mode === "wide") {
@@ -32,6 +35,9 @@ export function useReaderPosition() {
       if (storedFontSize) setFontSize(Number(storedFontSize))
       if (storedSpacing === "small" || storedSpacing === "medium" || storedSpacing === "large") {
         setVerseSpacing(storedSpacing)
+      }
+      if (storedFont === "sans" || storedFont === "serif" || storedFont === "mono") {
+        setReaderFont(storedFont)
       }
     } catch { /* ignore */ }
   }, [])
@@ -60,12 +66,18 @@ export function useReaderPosition() {
     try { localStorage.setItem(VERSE_SPACING_KEY, verseSpacing) } catch { /* ignore */ }
   }, [verseSpacing])
 
+  useEffect(() => {
+    try { localStorage.setItem(READER_FONT_KEY, readerFont) } catch { /* ignore */ }
+  }, [readerFont])
+
   return {
     selectedBookId, setSelectedBookId,
     selectedChapter, setSelectedChapter,
     readerMode, setReaderMode,
     fontSize, setFontSize,
     verseSpacing, setVerseSpacing,
+    readerFont, setReaderFont,
   }
 }
+
 

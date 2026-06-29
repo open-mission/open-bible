@@ -22,6 +22,7 @@ export default function Home() {
     readerMode, setReaderMode,
     fontSize, setFontSize,
     verseSpacing, setVerseSpacing,
+    readerFont, setReaderFont,
   } = useReaderPosition()
 
   const {
@@ -88,6 +89,8 @@ export default function Home() {
                       onChangeFontSize={setFontSize}
                       verseSpacing={verseSpacing}
                       onChangeVerseSpacing={setVerseSpacing}
+                      readerFont={readerFont}
+                      onChangeReaderFont={setReaderFont}
                     />
                   ) : (
                     <ReaderEmpty

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { Settings2, Palette, Check, Sun, Moon, Monitor } from "lucide-react"
 import { IconTextSize } from "@tabler/icons-react"
-import { ButtonGroup } from "./ui/button-group"
 import { Button } from "./ui/button"
 import { ReaderVersionBadge } from "./reader-version-badge"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
@@ -30,6 +29,8 @@ interface ReaderHeaderProps {
   onChangeFontSize: (size: number) => void
   verseSpacing: "small" | "medium" | "large"
   onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void
+  readerFont: "sans" | "serif" | "mono"
+  onChangeReaderFont: (font: "sans" | "serif" | "mono") => void
 }
 
 export function ReaderHeader({
@@ -43,6 +44,8 @@ export function ReaderHeader({
   onChangeFontSize,
   verseSpacing,
   onChangeVerseSpacing,
+  readerFont,
+  onChangeReaderFont,
 }: ReaderHeaderProps) {
   const { mode, color, palette, setTheme, setColor, setPalette } = useAppTheme()
   const [themeDialogOpen, setThemeDialogOpen] = useState(false)
@@ -178,6 +181,35 @@ export function ReaderHeader({
             className="flex-1"
           />
           <span className="text-lg text-muted-foreground font-semibold leading-none">A</span>
+        </div>
+      </div>
+
+      {/* Font Style Selector */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-medium">Estilo da Fonte</span>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { value: "sans" as const, label: "Sans", fontClass: "font-sans" },
+            { value: "serif" as const, label: "Serif", fontClass: "font-serif" },
+            { value: "mono" as const, label: "Mono", fontClass: "font-mono" },
+          ].map((item) => {
+            const active = readerFont === item.value
+            return (
+              <button
+                key={item.value}
+                onClick={() => onChangeReaderFont(item.value)}
+                className={cn(
+                  "flex items-center justify-center rounded-lg border-2 py-2 text-xs transition-all cursor-pointer h-9",
+                  item.fontClass,
+                  active
+                    ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                )}
+              >
+                {item.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -324,16 +356,16 @@ export function ReaderHeader({
           }`}
       >
         {/* Desktop Book/Chapter Selector (Left-aligned) */}
-        <div className="hidden md:flex items-center">
-          <ButtonGroup>
-            <Button onClick={onBookChapterClick} variant="outline" size="lg" className="h-9">
+        <div className="hidden md:flex items-center border-0">
+          <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-full border border-border/60">
+            <Button onClick={onBookChapterClick} variant="ghost" className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs">
               <span className="text-sm font-semibold mx-1">{book.name}</span>
             </Button>
-            <Button onClick={onBookChapterClick} variant="outline" size="lg" className="h-9">
+            <Button onClick={onBookChapterClick} variant="ghost" className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs">
               <span className="text-sm font-semibold mx-1">{chapter}</span>
             </Button>
-            <ReaderVersionBadge className="h-9" />
-          </ButtonGroup>
+            <ReaderVersionBadge variant="ghost" className="h-8 rounded-full px-3" />
+          </div>
         </div>
 
         {/* Mobile Mini Reference (Centered when visible) */}
@@ -346,12 +378,6 @@ export function ReaderHeader({
 
         {/* Desktop Mini Reference and Tools (Right-aligned) */}
         <div className="hidden md:flex items-center gap-2">
-          <div
-            className={`transition-all duration-300 font-serif text-sm font-semibold mr-4 text-foreground ${showMiniReference ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2 pointer-events-none"
-              }`}
-          >
-            {book.name} {chapter}
-          </div>
 
           <Popover>
             <PopoverTrigger render={
@@ -378,18 +404,18 @@ export function ReaderHeader({
 
       {/* Mobile Selector Group - Always visible and fixed at the bottom */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex justify-center pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-8 bg-linear-to-t from-background via-background/95 to-transparent text-sm font-medium w-full px-4 pointer-events-none">
-        <ButtonGroup className="shadow-xl border border-border/80 bg-background pointer-events-auto">
-          <Button onClick={onBookChapterClick} variant="outline" size="lg" className="h-10">
+        <div className="flex items-center gap-0.5 bg-background/95 backdrop-blur-md p-1 rounded-full shadow-lg border border-border/80 pointer-events-auto">
+          <Button onClick={onBookChapterClick} variant="ghost" className="h-9 rounded-full px-3 text-sm font-semibold hover:bg-muted">
             <span className="text-sm font-semibold mx-1">{book.name}</span>
           </Button>
-          <Button onClick={onBookChapterClick} variant="outline" size="lg" className="h-10">
+          <Button onClick={onBookChapterClick} variant="ghost" className="h-9 rounded-full px-3 text-sm font-semibold hover:bg-muted">
             <span className="text-sm font-semibold mx-1">{chapter}</span>
           </Button>
-          <ReaderVersionBadge className="h-10" />
-          <Button onClick={() => setSettingsOpen(true)} variant="outline" size="lg" className="h-10 rounded-[inherit] border-l-0" title="Ajustes de visualização">
+          <ReaderVersionBadge variant="ghost" className="h-9 rounded-full px-3" />
+          <Button onClick={() => setSettingsOpen(true)} variant="ghost" className="h-9 rounded-full px-3" title="Ajustes de visualização">
             <IconTextSize className="h-4.5 w-4.5 text-muted-foreground" />
           </Button>
-        </ButtonGroup>
+        </div>
       </nav>
 
       {/* Mobile Display Settings Drawer/Bottom Sheet */}

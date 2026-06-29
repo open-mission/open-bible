@@ -10,7 +10,7 @@ import { Button } from "./ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { cn } from "@/lib/utils"
 
-export function ReaderVersionBadge({ className }: { className?: string }) {
+export function ReaderVersionBadge({ className, variant = "outline" }: { className?: string; variant?: "default" | "outline" | "ghost" | "secondary" }) {
   const {
     versionId,
     setVersionId,
@@ -193,9 +193,9 @@ export function ReaderVersionBadge({ className }: { className?: string }) {
         <PopoverTrigger render={
           <Button
             onClick={() => isMobile && setOpen(true)}
-            variant="outline"
+            variant={variant}
             size="lg"
-            className={cn("rounded-[inherit] border-l-0 h-9", className)}
+            className={cn(variant === "outline" && "border-l-0", "rounded-[inherit] h-9", className)}
             aria-label="Selecionar versão da Bíblia"
             title={currentFullName}
           />

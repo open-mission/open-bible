@@ -40,7 +40,7 @@ export function VerseRow({ verse, isActive, isSelected, onClick, verseSpacing = 
       </sup>
 
       {/* Verse text */}
-      <p className="flex-1 font-serif leading-[1.8] text-foreground">
+      <p className="flex-1 leading-[1.8] text-foreground">
         {verse.text}
       </p>
     </div>
