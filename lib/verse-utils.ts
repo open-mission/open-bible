@@ -1,17 +1,5 @@
 import { getBook, getVerses } from "./bible-data"
 
-export const HIGHLIGHT_HEX: Record<string, string> = {
-  amber: "#f5c842",
-  green: "#6aba7a",
-  blue: "#6aabd2",
-  rose: "#e87b8c",
-}
-
-export function resolveHighlightHex(h: { color: string; customHex?: string }): string {
-  if (h.color === "custom") return h.customHex ?? "#a78bfa"
-  return HIGHLIGHT_HEX[h.color] ?? "#f5c842"
-}
-
 export function parseVerseId(verseId: string) {
   const match = verseId.match(/^(.+)-(\d+)-(\d+)$/)
   if (!match) return null

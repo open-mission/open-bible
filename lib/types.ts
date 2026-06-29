@@ -15,29 +15,6 @@ export interface Verse {
   verse: number
   text: string
 }
-
-export type HighlightColor = "amber" | "green" | "blue" | "rose" | "custom"
-
-export interface Highlight {
-  id: string
-  verseId: string
-  /** The Bible version this highlight belongs to */
-  versionId?: string
-  color: HighlightColor
-  /** Only set when color === "custom" */
-  customHex?: string
-  createdAt: string
-}
-
-export interface Note {
-  id: string
-  /** All verse IDs this note is linked to */
-  verseIds: string[]
-  content: string
-  createdAt: string
-  updatedAt: string
-}
-
 export interface BibleState {
   selectedBookId: string | null
   selectedChapter: number | null

@@ -101,7 +101,7 @@ export function BookChapterDialog({
   }
 
   const content = (
-    <div className="relative flex flex-col h-full max-h-[85vh] md:max-h-[75vh] overflow-hidden">
+    <div className="relative flex flex-col h-full max-h-[90vh] md:max-h-[75vh] overflow-hidden">
       {/* Search & Action Header */}
       <header className="flex items-center px-4 h-14 shrink-0 gap-3 z-10">
         <InputGroup className="flex-1 h-10 shadow-none border-border bg-background">
@@ -225,7 +225,7 @@ export function BookChapterDialog({
                 </h3>
 
                 {/* Bingo Card/Keyboard Style Grid */}
-                <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-[1px] bg-border border border-border rounded-xl overflow-hidden shadow-xs">
+                <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-px bg-border border border-border rounded-xl overflow-hidden shadow-xs">
                   {Array.from({ length: activeBook.chapters }, (_, i) => i + 1).map((ch) => {
                     const isSelected = ch === selectedChapter && activeBookId === selectedBookId
                     return (
@@ -257,7 +257,7 @@ export function BookChapterDialog({
 
   if (isMobile) {
     return (
-      <BottomSheet open={open} onClose={handleClose}>
+      <BottomSheet open={open} onClose={handleClose} size="95">
         <div className="flex flex-col">
           {content}
         </div>

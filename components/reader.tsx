@@ -2,23 +2,23 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { getBook } from "@/lib/bible-data";
-import { useHighlights, useNotes } from "@/lib/store";
-import { useBibleVerses } from "@/lib/use-bible";
-import { VerseRow } from "./verse-row";
-import { ReaderHeader } from "./reader-header";
-import { ReaderChapterNav } from "./reader-chapter-nav";
+import { getBook } from "@/lib/bible-data"
+import { useBibleVerses } from "@/lib/use-bible"
+import { VerseRow } from "./verse-row"
+import { ReaderHeader } from "./reader-header"
+import { ReaderChapterNav } from "./reader-chapter-nav"
 
 interface ReaderProps {
-  bookId: string;
-  chapter: number;
-  onChapterChange: (chapter: number) => void;
-  onBookChapterClick: () => void;
-  onInspectorToggle: () => void;
-  isInspectorOpen: boolean;
-  readerMode: "wide" | "readable";
-  onToggleReaderMode: () => void;
-  onOpenNoteEditor?: (verseIds: string[], noteId: string | null) => void;
+  bookId: string
+  chapter: number
+  onChapterChange: (chapter: number) => void
+  onBookChapterClick: () => void
+  readerMode: "narrow" | "medium" | "wide"
+  onChangeReaderMode: (mode: "narrow" | "medium" | "wide") => void
+  fontSize: number
+  onChangeFontSize: (size: number) => void
+  verseSpacing: "small" | "medium" | "large"
+  onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void
 }
 
 export function Reader({
@@ -26,70 +26,69 @@ export function Reader({
   chapter,
   onChapterChange,
   onBookChapterClick,
-  onInspectorToggle,
-  isInspectorOpen,
   readerMode,
-  onToggleReaderMode,
-  onOpenNoteEditor,
+  onChangeReaderMode,
+  fontSize,
+  onChangeFontSize,
+  verseSpacing,
+  onChangeVerseSpacing,
 }: ReaderProps) {
-  const book = getBook(bookId);
-  const { verses, loading } = useBibleVerses(bookId, chapter);
-  const { getHighlight } = useHighlights();
-  const { getNote } = useNotes();
+  const book = getBook(bookId)
+  const { verses, loading } = useBibleVerses(bookId, chapter)
 
-  const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
+  const [activeVerseId, setActiveVerseId] = useState<string | null>(null)
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const [multiSelectMode, setMultiSelectMode] = useState(false);
+    new Set()
+  )
+  const [multiSelectMode, setMultiSelectMode] = useState(false)
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [headerVisible, setHeaderVisible] = useState(true);
-
-  useEffect(() => {
-    setActiveVerseId(null);
-    setSelectedVerseIds(new Set());
-  }, [bookId, chapter]);
+  const containerRef = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLDivElement>(null)
+  const [headerVisible, setHeaderVisible] = useState(true)
 
   useEffect(() => {
-    const target = headerRef.current;
-    if (!target) return;
+    setActiveVerseId(null)
+    setSelectedVerseIds(new Set())
+  }, [bookId, chapter])
+
+  useEffect(() => {
+    const target = headerRef.current
+    if (!target) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setHeaderVisible(entry.isIntersecting);
+        setHeaderVisible(entry.isIntersecting)
       },
       { threshold: 0 }
-    );
-    observer.observe(target);
+    )
+    observer.observe(target)
 
     return () => {
-      observer.unobserve(target);
-    };
-  }, [bookId, chapter]);
+      observer.unobserve(target)
+    }
+  }, [bookId, chapter])
 
-  if (!book) return null;
+  if (!book) return null
 
   function handleVerseClick(verseId: string) {
     if (multiSelectMode) {
       setSelectedVerseIds((prev) => {
-        const next = new Set(prev);
-        if (next.has(verseId)) next.delete(verseId);
-        else next.add(verseId);
-        return next;
-      });
-      return;
+        const next = new Set(prev)
+        if (next.has(verseId)) next.delete(verseId)
+        else next.add(verseId)
+        return next
+      })
+      return
     }
-    setActiveVerseId((prev) => (prev === verseId ? null : verseId));
+    setActiveVerseId((prev) => (prev === verseId ? null : verseId))
   }
 
   function prevChapter() {
-    if (chapter > 1) onChapterChange(chapter - 1);
+    if (chapter > 1) onChapterChange(chapter - 1)
   }
 
   function nextChapter() {
-    if (book && chapter < book.chapters) onChapterChange(chapter + 1);
+    if (book && chapter < book.chapters) onChapterChange(chapter + 1)
   }
 
   return (
@@ -98,14 +97,22 @@ export function Reader({
         book={book}
         chapter={chapter}
         readerMode={readerMode}
-        isInspectorOpen={isInspectorOpen}
         onBookChapterClick={onBookChapterClick}
-        onToggleReaderMode={onToggleReaderMode}
-        onInspectorToggle={onInspectorToggle}
+        onChangeReaderMode={onChangeReaderMode}
         showMiniReference={!headerVisible}
+        fontSize={fontSize}
+        onChangeFontSize={onChangeFontSize}
+        verseSpacing={verseSpacing}
+        onChangeVerseSpacing={onChangeVerseSpacing}
       />
 
-      <div className={`flex-1 w-full mx-auto ${readerMode === "wide" ? "max-w-none px-4 md:px-8 py-8" : "max-w-3xl px-4 md:px-12 py-8"}`}>
+      <div className={`flex-1 w-full mx-auto ${
+        readerMode === "wide"
+          ? "max-w-none px-4 md:px-8 py-8"
+          : readerMode === "medium"
+            ? "max-w-4xl px-4 md:px-12 py-8"
+            : "max-w-2xl px-4 md:px-16 py-8"
+      }`}>
         <header ref={headerRef} className="mb-12 text-center">
           <h2 className="font-serif text-4xl font-semibold text-foreground mb-3">
             {book.name}
@@ -137,7 +144,8 @@ export function Reader({
 
         <article
           ref={containerRef}
-          className="font-serif text-[20px] leading-[1.8] text-foreground selection:bg-highlight"
+          className="font-serif text-foreground selection:bg-highlight"
+          style={{ fontSize: `${fontSize}px` }}
         >
           {loading ? (
             <div className="flex items-center justify-center py-16">
@@ -148,11 +156,10 @@ export function Reader({
               <VerseRow
                 key={verse.id}
                 verse={verse}
-                highlight={getHighlight(verse.id)}
-                note={getNote(verse.id)}
                 isActive={verse.id === activeVerseId}
                 isSelected={selectedVerseIds.has(verse.id)}
                 onClick={() => handleVerseClick(verse.id)}
+                verseSpacing={verseSpacing}
               />
             ))
           )}

@@ -1,16 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Menu } from "lucide-react"
-import { AppSidebar } from "@/components/sidebar"
 import { Reader } from "@/components/reader"
 import { ReaderEmpty } from "@/components/reader-empty"
 import { PanelLayout } from "@/components/panel-layout"
-import { SecondarySidebar } from "@/components/secondary-sidebar"
 import { InspectorPanel } from "@/components/inspector-panel"
 import { BookChapterDialog } from "@/components/book-chapter-dialog"
-import { NoteEditorDialog } from "@/components/note-editor-dialog"
-import { useNotes } from "@/lib/store"
 import { getBook } from "@/lib/bible-data"
 import { useBibleVersion } from "@/lib/bible-version-context"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
@@ -18,7 +13,6 @@ import { useReaderPosition } from "@/lib/use-reader-position"
 import { usePanelState } from "@/lib/use-panel-state"
 import { MobileNav } from "@/components/mobile-nav"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { BottomSheet } from "@/components/ui/bottom-sheet"
 
 export default function Home() {
   const isMobile = useIsMobile()
@@ -26,20 +20,18 @@ export default function Home() {
     selectedBookId, setSelectedBookId,
     selectedChapter, setSelectedChapter,
     readerMode, setReaderMode,
+    fontSize, setFontSize,
+    verseSpacing, setVerseSpacing,
   } = useReaderPosition()
 
   const {
     sidebarOpen, setSidebarOpen,
     sidebarCollapsed, setSidebarCollapsed,
     inspectorOpen, setInspectorOpen,
-    secondarySidebarOpen,
-    secondarySidebarTab,
     activeNav,
     handleNavClick,
-    handleSecondaryClose,
   } = usePanelState()
 
-  const { notes, upsertNote, deleteNote } = useNotes()
   const { versionId, installedVersions } = useBibleVersion()
 
   useEffect(() => {
@@ -54,10 +46,6 @@ export default function Home() {
   }, [handleNavClick])
 
   const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(false)
-  const [noteDialog, setNoteDialog] = useState<{
-    verseIds: string[]
-    noteId: string | null
-  } | null>(null)
 
   function handleSelectBook(bookId: string) {
     setSelectedBookId(bookId)
@@ -68,15 +56,6 @@ export default function Home() {
     setSelectedChapter(chapter)
   }
 
-  function handleJumpTo(bookId: string, chapter: number) {
-    setSelectedBookId(bookId)
-    setSelectedChapter(chapter)
-  }
-
-  function toggleReaderMode() {
-    setReaderMode((v) => (v === "wide" ? "readable" : "wide"))
-  }
-
   const currentBook = selectedBookId ? getBook(selectedBookId) : null
   const currentVersion = installedVersions.find((v) => v.id === versionId)
   const verseReference =
@@ -85,30 +64,10 @@ export default function Home() {
       : "Select a verse"
 
   return (
-    <SidebarProvider defaultOpen={!sidebarCollapsed} className="h-dvh">
-      <AppSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onNavClick={handleNavClick}
-        activeNav={activeNav}
-        sidebarCollapsed={sidebarCollapsed}
-        onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
-      />
-
+    <SidebarProvider open={false} className="h-dvh">
       <SidebarInset className="w-auto overflow-hidden h-full">
 
         <PanelLayout
-          left={!isMobile && secondarySidebarOpen ? (
-            <SecondarySidebar
-              isOpen={secondarySidebarOpen}
-              onClose={handleSecondaryClose}
-              activeTab={secondarySidebarTab}
-              onJumpTo={handleJumpTo}
-              onOpenNoteEditor={(verseIds, noteId) =>
-                setNoteDialog({ verseIds, noteId })
-              }
-            />
-          ) : undefined}
           main={
             <main className="overflow-hidden reading-area flex flex-col h-full">
               <div
@@ -123,13 +82,12 @@ export default function Home() {
                       chapter={selectedChapter}
                       onChapterChange={setSelectedChapter}
                       onBookChapterClick={() => setBookChapterDialogOpen(true)}
-                      onInspectorToggle={() => setInspectorOpen((v) => !v)}
-                      isInspectorOpen={inspectorOpen}
                       readerMode={readerMode}
-                      onToggleReaderMode={toggleReaderMode}
-                      onOpenNoteEditor={(verseIds, noteId) =>
-                        setNoteDialog({ verseIds, noteId })
-                      }
+                      onChangeReaderMode={setReaderMode}
+                      fontSize={fontSize}
+                      onChangeFontSize={setFontSize}
+                      verseSpacing={verseSpacing}
+                      onChangeVerseSpacing={setVerseSpacing}
                     />
                   ) : (
                     <ReaderEmpty
@@ -143,9 +101,6 @@ export default function Home() {
           right={inspectorOpen ? (
             <InspectorPanel
               verseReference={verseReference}
-              onVerseClick={(verseId) =>
-                console.log("Verse clicked:", verseId)
-              }
               isOpen={inspectorOpen}
               onClose={() => setInspectorOpen(false)}
             />
@@ -161,43 +116,6 @@ export default function Home() {
           selectedChapter={selectedChapter}
           versionAbbreviation={currentVersion?.name || versionId.toUpperCase()}
         />
-
-        {noteDialog && (
-          <NoteEditorDialog
-            verseIds={noteDialog.verseIds}
-            noteId={noteDialog.noteId}
-            existingNote={
-              noteDialog.noteId
-                ? notes.find((n) => n.id === noteDialog.noteId)
-                : undefined
-            }
-            onSave={(noteId, content, verseIds) => {
-              upsertNote(noteId, content, verseIds)
-              setNoteDialog(null)
-            }}
-            onDelete={(noteId) => {
-              deleteNote(noteId)
-              setNoteDialog(null)
-            }}
-            onClose={() => setNoteDialog(null)}
-          />
-        )}
-
-        {isMobile && secondarySidebarOpen && (
-          <BottomSheet open={secondarySidebarOpen} onClose={handleSecondaryClose}>
-            <SecondarySidebar
-              isOpen={secondarySidebarOpen}
-              onClose={handleSecondaryClose}
-              activeTab={secondarySidebarTab}
-              onJumpTo={handleJumpTo}
-              onOpenNoteEditor={(verseIds, noteId) =>
-                setNoteDialog({ verseIds, noteId })
-              }
-            />
-          </BottomSheet>
-        )}
-
-        <MobileNav activeNav={activeNav} onNavClick={handleNavClick} />
       </SidebarInset>
     </SidebarProvider>
   )

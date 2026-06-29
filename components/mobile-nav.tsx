@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import { IconBook, IconNote, IconSettings } from "@tabler/icons-react"
+import { IconBook, IconSettings } from "@tabler/icons-react"
 
 interface MobileNavProps {
   activeNav: string | null
@@ -25,19 +25,6 @@ export function MobileNav({ activeNav, onNavClick }: MobileNavProps) {
         }
       },
       isActive: pathname === "/" && activeNav === "library",
-    },
-    {
-      id: "notes",
-      label: "Notas",
-      icon: IconNote,
-      onClick: () => {
-        if (pathname !== "/") {
-          router.push("/?nav=notes")
-        } else {
-          onNavClick("notes")
-        }
-      },
-      isActive: pathname === "/" && activeNav === "notes",
     },
     {
       id: "config",

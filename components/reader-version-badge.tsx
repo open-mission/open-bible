@@ -8,8 +8,9 @@ import { useToast } from "@/lib/use-toast"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { Button } from "./ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
+import { cn } from "@/lib/utils"
 
-export function ReaderVersionBadge() {
+export function ReaderVersionBadge({ className }: { className?: string }) {
   const {
     versionId,
     setVersionId,
@@ -194,7 +195,7 @@ export function ReaderVersionBadge() {
             onClick={() => isMobile && setOpen(true)}
             variant="outline"
             size="lg"
-            className="rounded-[inherit] border-l-0 h-9"
+            className={cn("rounded-[inherit] border-l-0 h-9", className)}
             aria-label="Selecionar versão da Bíblia"
             title={currentFullName}
           />

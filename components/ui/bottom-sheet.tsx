@@ -8,14 +8,15 @@ interface BottomSheetProps {
   open: boolean
   onClose: () => void
   fullScreen?: boolean
+  size?: "default" | "95" | "full"
   children: React.ReactNode
 }
 
-export function BottomSheet({ open, onClose, fullScreen: defaultFullScreen, children }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, fullScreen: defaultFullScreen, size = "default", children }: BottomSheetProps) {
   const isMobile = useIsMobile()
   const prevOpenRef = useRef(open)
   const [expanded, setExpanded] = useState(false)
-  const fullScreen = defaultFullScreen || expanded
+  const fullScreen = defaultFullScreen || expanded || size === "full"
   const dragStartY = useRef(0)
   const dragDelta = useRef(0)
 
@@ -69,7 +70,11 @@ export function BottomSheet({ open, onClose, fullScreen: defaultFullScreen, chil
         />
         <div
           className={`relative z-10 flex flex-col bg-card rounded-t-xl shadow-xl animate-in slide-in-from-bottom duration-300 ${
-            fullScreen ? "h-dvh rounded-t-none" : "h-[50dvh]"
+            fullScreen 
+              ? "h-dvh rounded-t-none" 
+              : size === "95"
+                ? "h-[95dvh]"
+                : "h-[50dvh]"
           }`}
         >
           <div

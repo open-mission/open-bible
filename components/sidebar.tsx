@@ -6,7 +6,6 @@ import {
   IconMoon,
   IconSettings,
   IconBook,
-  IconNote,
 } from "@tabler/icons-react";
 import { useAppTheme } from "@/components/theme-provider";
 import {
@@ -33,7 +32,6 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: "library", icon: IconBook, label: "Bible" },
-  { id: "notes", icon: IconNote, label: "Notas" },
 ];
 
 interface SidebarProps {
