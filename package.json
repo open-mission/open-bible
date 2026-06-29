@@ -12,7 +12,8 @@
     "predev": "node scripts/copy-sqlite-wasm.mjs",
     "prebuild": "node scripts/copy-sqlite-wasm.mjs",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "release": "node scripts/release.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
