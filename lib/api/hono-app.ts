@@ -367,10 +367,16 @@ app.get("/api/bibles/download/:version", async (c) => {
     
     const contentLength = upstream.headers.get("content-length")
     if (contentLength) {
-      c.header("Content-Length", contentLength)
+      c.header("X-Original-Content-Length", contentLength)
     }
 
-    return c.body(upstream.body as any)
+    if (upstream.body) {
+      c.header("Content-Encoding", "gzip")
+      const gzipStream = upstream.body.pipeThrough(new CompressionStream("gzip"))
+      return c.body(gzipStream as any)
+    }
+
+    return c.body(null)
   } catch (e) {
     console.error(`Falha no proxy de download para ${version}:`, e)
     return c.text("Erro interno no servidor de proxy de download", 500)

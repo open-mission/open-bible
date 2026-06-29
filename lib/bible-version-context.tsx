@@ -256,8 +256,11 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
       const response = await fetch(url)
       if (!response.ok) throw new Error(`Falha ao baixar versão ${id}: ${response.statusText}`)
 
+      const originalLength = response.headers.get("x-original-content-length")
       const contentLength = response.headers.get("content-length")
-      const totalBytes = contentLength ? parseInt(contentLength, 10) : 0
+      const totalBytes = originalLength 
+        ? parseInt(originalLength, 10) 
+        : (contentLength ? parseInt(contentLength, 10) : 0)
 
       const reader = response.body?.getReader()
       if (!reader) throw new Error("Não foi possível ler o corpo da resposta")
