@@ -34,7 +34,7 @@ export function BookList({ selectedBookId, onSelectBook }: BookListProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar livro..."
-            className="w-full rounded-md border border-border bg-background pl-8 pr-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full rounded-md border border-border bg-background pl-8 pr-3 py-1.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
       </div>
