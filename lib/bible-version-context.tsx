@@ -14,10 +14,11 @@ import {
   getVersionMeta,
   removeVersion as doRemove,
 } from "./bible-db"
+import { database } from "./database/database"
 
 const VERSION_STORAGE_KEY = "openbible:version"
 const DEFAULT_VERSION_KEY = "openbible:default-version"
-const FALLBACK_VERSION = "acf"
+const FALLBACK_VERSION = "ara"
 
 interface BibleVersionContextValue {
   versionId: string
@@ -87,22 +88,48 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
   const [versionMetaCache, setVersionMetaCache] = useState<Record<string, VersionMeta>>({})
 
   const refreshInstalled = useCallback(async () => {
-    const installed = await getInstalledVersions()
-    setInstalledVersions(installed)
-    const cache: Record<string, VersionMeta> = {}
-    for (const v of installed) {
-      cache[v.id] = v
+    try {
+      await database.initialize()
+      const sqliteBibles = await database.listInstalledBibles()
+      const installed: VersionMeta[] = []
+      for (const id of sqliteBibles) {
+        const bible = await database.openBible(id)
+        const name = await bible.name()
+        const books = await bible.getBooks()
+        installed.push({
+          id,
+          name,
+          downloadedAt: new Date().toISOString(),
+          books: books.map((b) => ({
+            id: b.id,
+            name: b.name,
+            abbreviation: b.abbreviation,
+            testament: b.testament,
+            chapters: b.chapters,
+            chapterVerseCounts: [],
+          }))
+        })
+      }
+      setInstalledVersions(installed)
+      const cache: Record<string, VersionMeta> = {}
+      for (const v of installed) {
+        cache[v.id] = v
+      }
+      setVersionMetaCache((prev) => ({ ...prev, ...cache }))
+    } catch (e) {
+      console.error("Failed to load installed SQLite bibles:", e)
     }
-    setVersionMetaCache((prev) => ({ ...prev, ...cache }))
   }, [])
 
   // Load available versions and refresh installed on mount
   useEffect(() => {
-    fetchAvailableVersions()
-      .then(setAvailableVersions)
-      .catch(() => { /* ignore — offline */ })
     refreshInstalled()
   }, [refreshInstalled])
+
+  // Boot the local SQLite layer once on mount (client-only).
+  useEffect(() => {
+    database.initialize().catch(() => { /* ignore — feature-detect failures */ })
+  }, [])
 
   // Init versionId after we know the default
   useEffect(() => {
@@ -133,40 +160,17 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
 
   const getVerses = useCallback(
     async (bookId: string, chapter: number): Promise<Verse[]> => {
-      const toVerses = (raw: { chapter: number; verse: number; text: string }[]) =>
-        raw.map((v) => ({
-          id: `${bookId}-${chapter}-${v.verse}`,
-          bookId,
-          chapter: v.chapter,
-          verse: v.verse,
-          text: v.text,
-        }))
-
-      // 1. Try API (online)
-      if (typeof navigator !== "undefined" && navigator.onLine) {
-        try {
-          const result = await apiFetchChapterVerses(versionId, bookId, chapter)
-          if (result.verses.length > 0) {
-            return toVerses(result.verses)
-          }
-        } catch { /* fall through */ }
+      try {
+        await database.initialize()
+        const currentVersion = versionId || defaultVersionId || "ara"
+        const bible = await database.openBible(currentVersion)
+        return await bible.getChapterVerses(bookId, chapter)
+      } catch (e) {
+        console.error("Error reading from SQLite WASM:", e)
+        return []
       }
-
-      // 2. Try IndexedDB (offline / installed)
-      const installed = versionMetaCache[versionId]
-      if (installed) {
-        try {
-          const verses = await dbGetChapterVerses(versionId, bookId, chapter)
-          if (verses && verses.length > 0) {
-            return toVerses(verses)
-          }
-        } catch { /* fall through */ }
-      }
-
-      // 3. Fallback to mock data
-      return getMockVerses(bookId, chapter)
     },
-    [versionId, versionMetaCache]
+    [versionId, defaultVersionId]
   )
 
   const installVersion = useCallback(async (id: string) => {

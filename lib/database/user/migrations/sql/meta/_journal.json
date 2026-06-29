@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1782709585947,
+      "tag": "0000_aromatic_polaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1782711742650,
+      "tag": "0001_melodic_supreme_intelligence",
+      "breakpoints": true
+    }
+  ]
+}
