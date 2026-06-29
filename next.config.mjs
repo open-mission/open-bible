@@ -1,3 +1,32 @@
+import { readFileSync } from "fs"
+import withPWAInit from "@ducanh2912/next-pwa"
+
+const pkg = JSON.parse(readFileSync("./package.json", "utf-8"))
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  fallbacks: {
+    document: "/~offline",
+  },
+  extendDefaultRuntimeCaching: true,
+  workboxOptions: {
+    runtimeCaching: [
+      {
+        // Never cache the SQLite download proxy — Workbox caching a 4MB+ binary
+        // simultaneously with the OPFS write causes the importDb to hang in production.
+        urlPattern: /\/api\/bibles\/download\//i,
+        handler: "NetworkOnly",
+      },
+    ],
+  },
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -6,6 +35,17 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  env: {
+    NEXT_PUBLIC_APP_VERSION: pkg.version,
+  },
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.cache = false
+    }
+    return config
+  },
+  transpilePackages: ["@open-bible/ui"],
+  turbopack: {},
   async headers() {
     return [
       {
@@ -38,4 +78,4 @@ const nextConfig = {
   },
 }
 
-export default nextConfig
+export default withPWA(nextConfig)

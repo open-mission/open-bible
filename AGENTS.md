@@ -1,191 +1,76 @@
-# Open Bible — Project Overview
+# Open Bible
 
-## What It Is
-A **Portuguese-language Bible reading web app** built with Next.js. Users can browse books/chapters, read verses, apply highlights (4 preset colors + custom), write notes linked to verses, switch light/dark/system theme, and customize accent colors. Built with v0.dev and deployed on Vercel.
+Portuguese Bible PWA — Next.js 16, TursoDB (Server), SQLite WASM + OPFS + Drizzle ORM (Local), Tailwind v4, shadcn/ui (base-nova).
 
----
+## Commands
 
-## Tech Stack
+| Command | Purpose |
+|---------|---------|
+| `pnpm dev` | Dev server (port 3000) — runs `predev` to copy sqlite-wasm assets |
+| `pnpm build` | Production build — ignores TS errors, runs `prebuild` to copy sqlite-wasm assets |
+| `pnpm copy:wasm` | Copies sqlite-wasm assets and seed Bibles to `public/` |
+| `pnpm build:data` | SQLite → JSON export (fallback only) |
+| `pnpm db:init` | Create TursoDB tables |
+| `pnpm db:import` | Import 18 SQLite files into TursoDB |
+| `pnpm start` | Production server |
+| `pnpm lint` | `eslint .` (no config file in repo) |
+| `pnpm release` | Guides version bump, commits, tags, pushes, and creates a GitHub Release |
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | **Next.js 16** (App Router) |
-| Language | **TypeScript 5.7** (strict mode) |
-| UI Library | **React 19** |
-| Styling | **Tailwind CSS v4** + `tw-animate-css` + `shadcn/tailwind.css` (nova style) |
-| PostCSS | `@tailwindcss/postcss` |
-| Component Library | Base UI React (`@base-ui/react`) via shadcn/ui (base-nova style) |
-| Icons | Lucide React |
-| Theme | `next-themes` (dark/light/system) + custom accent color system |
-| Package Manager | **pnpm** (with pnpm overrides for hono) |
-| Fonts | Google Fonts: Inter (sans), Lora (serif), Geist Mono |
-| Analytics | `@vercel/analytics` (production only) |
-| Deployment | Vercel |
+No tests, no CI, no typecheck pass.
 
----
+## Architecture
 
-## Directory Structure
+**Provider chain** (`app/layout.tsx`): `ThemeProvider` → `BibleVersionProvider` → `ToastProvider` → children. Layout is a server component; all other components are `"use client"` (except `components/ui/button.tsx`).
+
+**Client Database (Offline-First)**:
+- Single dedicated **Web Worker** (`public/sqlite-wasm/open-bible.worker.js`) running official `@sqlite.org/sqlite-wasm` module with **OPFS SAHPool VFS** (sidestepping COOP/COEP header requirements).
+- `DatabaseManager` wraps worker RPC with a promise API.
+- User Database (`app.db`) runs **Drizzle ORM** client-side via `sqlite-proxy` driver.
+- User schemas (`lib/database/user/schema.ts`) contain `notes`, `note_references`, and `installed_bibles`.
+- Bible Databases (`ara.db`, ...) are opened read-only and queried via `BibleDatabase`.
+
+**Data flow**: `useBibleVerses()` → `BibleVersionContext.getVerses()` → `database.openBible(versionId)` (local SQLite WASM OPFS query) → returns verses. If not installed, falls back to empty.
+
+**API**: Hono + Zod OpenAPI at `app/api/[[...route]]/route.ts` (GET/POST/OPTIONS).
+- Routes: `/api/bibles`, `/api/bibles/{version}`, `/api/bibles/{version}/books/{bookId}/chapters/{chapter}`, `/api/bibles/{version}/search`, `/api/bibles/{version}/books`.
+- Download endpoint: `/api/bibles/download/{version}` proxies gzipped SQLite database files from TursoDB URL or Cloudflare R2 bucket.
+- Docs at `/api/docs` (Scalar). CORS open for iOS app.
+
+**Auth**: Better Auth at `app/api/auth/[...all]/route.ts`. Server (`lib/auth.ts`) uses TursoDB via Kysely dialect (`LibsqlDialect`), email/password only, 7-day sessions. Client at `lib/auth-client.ts`.
+
+**Notes/Highlights**:
+- Notes & Note References: Stored client-side in SQLite WASM (`app.db`) via `database.notes` and `database.noteReferences` (Drizzle repositories).
+- Support multi-verse linking with ranges (`verseStart`, `verseEnd`, `book`, `chapter`, `bible`).
+- Highlights: Schema/migration-ready, but not currently active in UI or stored locally.
+
+## Storage Keys (localStorage)
+
+`openbible:book`, `openbible:chapter`, `openbible:version`, `openbible:default-version`
+
+## Env (.env.local)
 
 ```
-open-bible/
-├── app/                        # Next.js App Router pages
-│   ├── globals.css             # Tailwind CSS v4 + shadcn theme variables
-│   ├── layout.tsx              # Root layout (fonts, ThemeProvider, Analytics)
-│   ├── page.tsx                # Home page — main app shell (sidebar + reader)
-│   └── config/
-│       └── page.tsx            # Preferences page (theme mode + accent color)
-├── components/
-│   ├── ui/
-│   │   └── button.tsx          # shadcn/ui Button (Base UI + CVA)
-│   ├── book-list.tsx           # Searchable book list with OT/NT tabs
-│   ├── chapter-grid.tsx        # Grid of chapter buttons for a book
-│   ├── highlight-toolbar.tsx   # Floating toolbar (color swatches, note, close)
-│   ├── notes-panel.tsx         # Slide-in panel for creating/editing notes
-│   ├── reader.tsx              # Main reading pane (chapter nav, verse list)
-│   ├── sidebar.tsx             # Tabbed sidebar (Bible nav, Highlights, Notes)
-│   ├── theme-provider.tsx      # Theme + accent color context provider
-│   └── verse-row.tsx           # Single verse display (highlight, note indicator)
-├── lib/
-│   ├── bible-data.ts           # Book definitions, mock verses, getVerses()
-│   ├── store.ts                # localStorage hooks: useHighlights(), useNotes()
-│   ├── theme.ts                # Accent color presets, CSS vars, storage
-│   ├── types.ts                # TypeScript interfaces (Book, Verse, Highlight, Note, etc.)
-│   └── utils.ts                # cn() helper (clsx + tailwind-merge)
-├── public/                     # Static assets (icons)
-├── components.json             # shadcn/ui config (base-nova style)
-├── next.config.mjs             # TypeScript build errors ignored, images unoptimized
-├── package.json
-├── pnpm-lock.yaml
-├── postcss.config.mjs
-├── tsconfig.json               # @/* path alias → root, strict, ES6 target
-├── next-env.d.ts
-├── .gitignore                  # .env*, .next/, node_modules, .vercel
-└── README.md
+TURSO_DATABASE_URL=libsql://...
+TURSO_AUTH_TOKEN=...
+BETTER_AUTH_SECRET=... (min 32 chars)
+BETTER_AUTH_URL=http://localhost:3000
+CLOUDFLARE_BUCKET_PUBLIC_URL=...
 ```
 
----
+## Key Gotchas
 
-## Routing (App Router)
-
-| Route | File | Description |
-|-------|------|-------------|
-| `/` | `app/page.tsx` | Main SPA — sidebar + reader. No server rendering for content. |
-| `/config` | `app/config/page.tsx` | Preferences — theme mode + accent color picker. |
-
-Both are `"use client"` components.
-
----
-
-## Data Model (`lib/types.ts`)
-
-```typescript
-Book        { id, name, abbreviation, testament: "old"|"new", chapters }
-Verse       { id, bookId, chapter, verse, text }
-Highlight   { id, verseId, color: "amber"|"green"|"blue"|"rose"|"custom", customHex?, createdAt }
-Note        { id, verseIds: string[], content, createdAt, updatedAt }
-```
-
-- **66 books** defined in `lib/bible-data.ts` (39 OT + 27 NT), all in Portuguese.
-- **Verse data**: Only 3 mocked chapters (Gênesis 1, Salmos 23, João 1) have real text. All others generate placeholder text (`[Versículo N] ...`).
-- `getVerses(bookId, chapter)` returns real or placeholder verses.
-
----
-
-## State & Persistence
-
-- **Highlights** and **Notes** persisted to `localStorage` via custom hooks in `lib/store.ts`.
-- Keys: `openbible:highlights`, `openbible:notes`.
-- Theme mode stored in `openbible:mode` (via `next-themes`).
-- Accent color stored in `openbible:theme`.
-- Notes support multi-verse linking (via `verseIds: string[]`). Migration from legacy `verseId` field included.
-
----
-
-## Theme System
-
-- **Mode**: light / dark / system — via `next-themes` (class strategy).
-- **Accent colors**: 15 presets (neutral, amber, blue, cyan, emerald, fuchsia, green, indigo, lime, orange, pink, rose, violet, yellow, zinc).
-- Accent colors override CSS custom properties `--primary`, `--primary-foreground`, `--ring` via `data-color` attribute on `<html>`.
-- **Bible highlight colors**: amber, green, blue, rose (each with light + dark mode OKLCH values).
-
----
-
-## Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| next | 16.2.6 | Framework |
-| react / react-dom | 19.2.4 | UI |
-| @base-ui/react | ^1.5.0 | Accessible UI primitives (Button) |
-| @vercel/analytics | 1.6.1 | Production analytics |
-| class-variance-authority | ^0.7.1 | Button variant/size classes |
-| clsx | ^2.1.1 | Class name utility |
-| lucide-react | ^1.16.0 | Icons |
-| next-themes | ^0.4.6 | Theme toggle |
-| tailwind-merge | ^3.3.1 | Merge Tailwind classes |
-| tw-animate-css | ^1.4.0 | CSS animations |
-| tailwindcss | ^4.2.0 | CSS framework |
-| typescript | 5.7.3 | Type checking |
-
----
-
-## Config Files
-
-- **`components.json`**: shadcn/ui — base-nova style, RSC enabled, Tailwind v4, lucide icons, CSS variables.
-- **`tsconfig.json`**: strict, `@/*` → root, ES6 target, bundler module resolution.
-- **`next.config.mjs`**: `ignoreBuildErrors: true`, `images.unoptimized: true`.
-- **`postcss.config.mjs`**: Only `@tailwindcss/postcss` plugin.
-- **`.gitignore`**: Ignores `.env*`, `.next/`, `node_modules`, `.vercel`.
-
----
-
-## Testing
-
-**No test framework or test files found.** No test scripts in `package.json`. No ESLint or Prettier config files.
-
----
-
-## Style & Conventions
-
-- All components use `"use client"` except `app/layout.tsx` (RSC) and `components/ui/button.tsx`.
-- Imports use `@/` path alias.
-- Tailwind utility classes throughout (no CSS modules).
-- Semantic HTML with `aria-*` attributes for accessibility.
+- `pnpm build` silently passes despite any TS errors (`ignoreBuildErrors: true` in both `tsconfig.json` and `next.config.mjs`)
+- SQLite Web Worker source lives in `lib/database/sqlite-worker.source.js` (tracked in git) and is deployed/copied to `public/sqlite-wasm/open-bible.worker.js` via the copy script.
+- Workbox cache overrides in `next.config.mjs` MUST set `/api/bibles/download/` as `NetworkOnly` to avoid concurrent read/write locks that hang OPFS database imports in production.
+- `drizzle-kit` is dev-only (`drizzle.config.ts`) and is used to generate migrations that are hand-embedded or run as client-side migrations via a browser-safe runtime migrator.
+- Search uses `LIKE %q% COLLATE NOCASE` (no FTS) — 31k verses × 18 versions on server; local SQLite uses case-insensitive substring search for parity.
+- `bible_books` uses composite PK `(id, version_id)` — book IDs repeat across versions on server.
+- `better-sqlite3` is native, dev-only, for import scripts only (`scripts/import-bibles.mjs`).
+- pnpm overrides `hono` to `4.12.25` (pinned in package.json.pnpm.overrides).
+- Tailwind v4 (`@tailwindcss/postcss`) — no `tailwind.config.js`, CSS via `@import "tailwindcss"`.
+- 15 accent colors defined in `lib/theme.ts` as CSS custom property overrides, controlled by `next-themes`.
+- `@base-ui/react` components via shadcn/ui base-nova style.
+- Service worker generated at `public/sw.js` by `@ducanh2912/next-pwa` at build time; MIME type + `Service-Worker-Allowed` headers set in `next.config.mjs`.
+- `@vercel/analytics` renders only in production (`process.env.NODE_ENV === 'production'`).
 - Portuguese UI strings throughout.
-- `"type": "module"` not set — uses Next.js built-in ESM.
-- Font variables passed via CSS custom properties (`--font-inter`, `--font-lora`, `--font-geist-mono`).
 
----
-
-## Environment Variables
-
-No `.env` files present. No environment variables defined. `@vercel/analytics` conditionally loaded via `process.env.NODE_ENV === 'production'`.
-
----
-
-## Git History (main branch, 12 commits)
-
-- Initial commit from v0.dev scaffold
-- Several feature PRs (sidebar, theme, highlights, notes)
-- Only branch with commits: `main`, one stale remote `v0/cafgdev-5954-a927621f`
-
----
-
-## Known Gaps / TODOs
-
-- No real Bible verse data (only 3 chapters mocked with real text).
-- No search functionality across verses.
-- No backend or API layer.
-- No tests.
-- No CI/CD configuration (beyond Vercel auto-deploy).
-
----
-
-## Scripts
-
-| Command | Action |
-|---------|--------|
-| `pnpm dev` | Start Next.js dev server |
-| `pnpm build` | Production build |
-| `pnpm start` | Start production server |
-| `pnpm lint` | Run ESLint (no config found — likely uses Next.js defaults) |

@@ -9,3 +9,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   return app.fetch(request)
 }
+
+export async function OPTIONS(request: Request) {
+  return app.fetch(request)
+}

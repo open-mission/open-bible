@@ -21,8 +21,10 @@ export type ThemeColor =
   | "zinc"
 
 export type ThemeMode = "light" | "dark" | "system"
+export type ThemePalette = "default" | "dracula" | "gruvbox"
 
 export interface ThemeConfig {
+  palette: ThemePalette
   color: ThemeColor
   mode: ThemeMode
 }
@@ -253,12 +255,19 @@ export const COLOR_VARS: Record<ThemeColor, { light: Record<string, string>; dar
 export const THEME_STORAGE_KEY = "openbible:theme"
 
 export function loadThemeConfig(): ThemeConfig {
-  if (typeof window === "undefined") return { color: "neutral", mode: "system" }
+  if (typeof window === "undefined") return { palette: "default", color: "neutral", mode: "system" }
   try {
     const raw = localStorage.getItem(THEME_STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as ThemeConfig
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      return {
+        palette: parsed.palette || "default",
+        color: parsed.color || "neutral",
+        mode: parsed.mode || "system"
+      }
+    }
   } catch { /* ignore */ }
-  return { color: "neutral", mode: "system" }
+  return { palette: "default", color: "neutral", mode: "system" }
 }
 
 export function saveThemeConfig(config: ThemeConfig): void {

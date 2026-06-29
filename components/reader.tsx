@@ -1,65 +1,85 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { ChevronLeft, ChevronRight, CheckSquare, Loader2 } from "lucide-react"
+import { useState, useRef, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/lib/bible-data"
-import { useHighlights, useNotes } from "@/lib/store"
 import { useBibleVerses } from "@/lib/use-bible"
-import { useBibleVersion } from "@/lib/bible-version-context"
-import type { HighlightColor } from "@/lib/types"
 import { VerseRow } from "./verse-row"
-import { HighlightToolbar } from "./highlight-toolbar"
-import { ReaderVersionBadge } from "./reader-version-badge"
+import { ReaderHeader } from "./reader-header"
+import { ReaderChapterNav } from "./reader-chapter-nav"
 
 interface ReaderProps {
   bookId: string
   chapter: number
   onChapterChange: (chapter: number) => void
-  onBack: () => void
-  onOpenNoteEditor?: (verseIds: string[], noteId: string | null) => void
+  onBookChapterClick: () => void
+  readerMode: "narrow" | "medium" | "wide"
+  onChangeReaderMode: (mode: "narrow" | "medium" | "wide") => void
+  fontSize: number
+  onChangeFontSize: (size: number) => void
+  verseSpacing: "small" | "medium" | "large"
+  onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void
+  readerFont: "sans" | "serif" | "mono"
+  onChangeReaderFont: (font: "sans" | "serif" | "mono") => void
 }
 
-export function Reader({ bookId, chapter, onChapterChange, onBack, onOpenNoteEditor }: ReaderProps) {
+export function Reader({
+  bookId,
+  chapter,
+  onChapterChange,
+  onBookChapterClick,
+  readerMode,
+  onChangeReaderMode,
+  fontSize,
+  onChangeFontSize,
+  verseSpacing,
+  onChangeVerseSpacing,
+  readerFont,
+  onChangeReaderFont,
+}: ReaderProps) {
   const book = getBook(bookId)
   const { verses, loading } = useBibleVerses(bookId, chapter)
-  const { addHighlight, removeHighlight, getHighlight } = useHighlights()
-  const { getNote } = useNotes()
-  const { versionId } = useBibleVersion()
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null)
-  const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(new Set())
+  const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
+    new Set()
+  )
   const [multiSelectMode, setMultiSelectMode] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLDivElement>(null)
+  const [headerVisible, setHeaderVisible] = useState(true)
 
   useEffect(() => {
     setActiveVerseId(null)
     setSelectedVerseIds(new Set())
   }, [bookId, chapter])
 
+  useEffect(() => {
+    const target = headerRef.current
+    if (!target) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeaderVisible(entry.isIntersecting)
+      },
+      { threshold: 0 }
+    )
+    observer.observe(target)
+
+    return () => {
+      observer.unobserve(target)
+    }
+  }, [bookId, chapter])
+
   if (!book) return null
-
-  const activeVerse = verses.find((v) => v.id === activeVerseId) ?? null
-
-  const showToolbar = multiSelectMode
-    ? selectedVerseIds.size > 0
-    : activeVerse !== null
-
-  const toolbarVerseRef = activeVerse
-    ? `${book.abbreviation} ${chapter}:${activeVerse.verse}`
-    : ""
-
-  const activeHighlight = activeVerse ? getHighlight(activeVerse.id) : undefined
 
   function handleVerseClick(verseId: string) {
     if (multiSelectMode) {
       setSelectedVerseIds((prev) => {
         const next = new Set(prev)
-        if (next.has(verseId)) {
-          next.delete(verseId)
-        } else {
-          next.add(verseId)
-        }
+        if (next.has(verseId)) next.delete(verseId)
+        else next.add(verseId)
         return next
       })
       return
@@ -67,120 +87,61 @@ export function Reader({ bookId, chapter, onChapterChange, onBack, onOpenNoteEdi
     setActiveVerseId((prev) => (prev === verseId ? null : verseId))
   }
 
-  function toggleMultiSelect() {
-    setMultiSelectMode((v) => !v)
-    setSelectedVerseIds(new Set())
-    setActiveVerseId(null)
-  }
-
-  function handleHighlight(color: HighlightColor, customHex?: string) {
-    const ids = multiSelectMode ? Array.from(selectedVerseIds) : activeVerseId ? [activeVerseId] : []
-    ids.forEach((id) => addHighlight(id, color, versionId, customHex))
-  }
-
-  function handleRemoveHighlight() {
-    const ids = multiSelectMode ? Array.from(selectedVerseIds) : activeVerseId ? [activeVerseId] : []
-    ids.forEach((id) => removeHighlight(id))
-  }
-
-  function handleOpenNote() {
-    const ids = multiSelectMode
-      ? Array.from(selectedVerseIds)
-      : activeVerseId
-      ? [activeVerseId]
-      : []
-    if (ids.length === 0) return
-    onOpenNoteEditor?.(ids, null)
-    setActiveVerseId(null)
-  }
-
-  function handleCloseToolbar() {
-    setActiveVerseId(null)
-    if (multiSelectMode) {
-      setSelectedVerseIds(new Set())
-    }
-  }
-
   function prevChapter() {
-    if (chapter > 1) {
-      onChapterChange(chapter - 1)
-    }
+    if (chapter > 1) onChapterChange(chapter - 1)
   }
 
   function nextChapter() {
-    if (chapter < book!.chapters) {
-      onChapterChange(chapter + 1)
-    }
+    if (book && chapter < book.chapters) onChapterChange(chapter + 1)
   }
 
+  const spacingClasses = {
+    small: "py-1.5 mb-1",
+    medium: "py-2.5 mb-2",
+    large: "py-4 mb-4",
+  }
+
+  const fontClass = readerFont === "sans" ? "font-sans" : readerFont === "mono" ? "font-mono" : "font-serif"
+
   return (
-    <div className="flex h-full">
-      {/* Main reading pane */}
-      <div className="flex flex-1 flex-col min-w-0 h-full">
-        {/* Chapter header */}
-        <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onBack}
-              className="flex md:hidden items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-              aria-label="Abrir menu"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <div>
-              <h2 className="font-serif text-base font-semibold text-foreground leading-tight">
-                {book.name}
-              </h2>
-              <p className="text-xs text-muted-foreground leading-tight">
-                Capítulo {chapter}
-              </p>
-            </div>
+    <div className="flex flex-col min-w-0 h-full">
+      <ReaderHeader
+        book={book}
+        chapter={chapter}
+        readerMode={readerMode}
+        onBookChapterClick={onBookChapterClick}
+        onChangeReaderMode={onChangeReaderMode}
+        showMiniReference={!headerVisible}
+        fontSize={fontSize}
+        onChangeFontSize={onChangeFontSize}
+        verseSpacing={verseSpacing}
+        onChangeVerseSpacing={onChangeVerseSpacing}
+        readerFont={readerFont}
+        onChangeReaderFont={onChangeReaderFont}
+      />
+
+      <div className={`flex-1 w-full mx-auto ${
+        readerMode === "wide"
+          ? "max-w-none px-4 md:px-8 py-8"
+          : readerMode === "medium"
+            ? "max-w-4xl px-4 md:px-12 py-8"
+            : "max-w-2xl px-4 md:px-16 py-8"
+      }`}>
+        <header ref={headerRef} className="mb-12 text-center">
+          <h2 className={`${fontClass} text-4xl font-semibold text-foreground mb-3`}>
+            {book.name}
+          </h2>
+          <div className="flex items-center justify-center gap-3">
+            <div className="h-px w-8 bg-border" />
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+              Chapter {chapter}
+            </p>
+            <div className="h-px w-8 bg-border" />
           </div>
+        </header>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleMultiSelect}
-              aria-label={multiSelectMode ? "Sair da seleção múltipla" : "Selecionar múltiplos versículos"}
-              aria-pressed={multiSelectMode}
-              title={multiSelectMode ? "Sair da seleção múltipla" : "Selecionar múltiplos versículos"}
-              className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-                multiSelectMode
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-              }`}
-            >
-              <CheckSquare className="h-4 w-4" />
-            </button>
-
-            <ReaderVersionBadge />
-
-            <div className="flex items-center gap-1">
-              <button
-                onClick={prevChapter}
-                disabled={chapter <= 1}
-                aria-label="Capítulo anterior"
-                className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <span className="w-12 text-center text-sm font-mono text-muted-foreground">
-                {chapter}/{book.chapters}
-              </span>
-              <button
-                onClick={nextChapter}
-                disabled={chapter >= book.chapters}
-                aria-label="Próximo capítulo"
-                className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Multi-select hint bar */}
         {multiSelectMode && (
-          <div className="flex items-center justify-between bg-primary/10 border-b border-primary/20 px-4 py-1.5 shrink-0">
+          <div className="flex items-center justify-between bg-primary/10 border-b border-primary/20 px-4 py-1.5 mb-4 shrink-0">
             <span className="text-xs text-primary font-medium">
               {selectedVerseIds.size === 0
                 ? "Clique nos versículos para selecionar"
@@ -195,63 +156,57 @@ export function Reader({ bookId, chapter, onChapterChange, onBack, onOpenNoteEdi
           </div>
         )}
 
-        {/* Verses */}
-        <div ref={containerRef} className="flex-1 overflow-y-auto py-4">
+        <article
+          ref={containerRef}
+          className={`${fontClass} text-foreground selection:bg-highlight`}
+          style={{ fontSize: `${fontSize}px` }}
+        >
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <div className="space-y-1">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`flex gap-4 px-4 sm:px-6 ${spacingClasses[verseSpacing]} rounded-md`}
+                >
+                  <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0 mt-1">
+                    {i + 1}
+                  </sup>
+                  <div className="flex-1 space-y-2 mt-1">
+                    <Skeleton
+                      className="h-4 bg-muted/60"
+                      style={{ width: `${85 + (i % 4) * 4}%` }}
+                    />
+                    {i % 3 !== 0 && (
+                      <Skeleton
+                        className="h-4 bg-muted/40"
+                        style={{ width: `${40 + (i % 3) * 15}%` }}
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
-            verses.map((verse) => (
+            verses.map((verse, index) => (
               <VerseRow
                 key={verse.id}
                 verse={verse}
-                highlight={getHighlight(verse.id)}
-                note={getNote(verse.id)}
                 isActive={verse.id === activeVerseId}
                 isSelected={selectedVerseIds.has(verse.id)}
                 onClick={() => handleVerseClick(verse.id)}
+                verseSpacing={verseSpacing}
               />
             ))
           )}
+        </article>
 
-          {/* Chapter navigation footer */}
-          <div className="flex items-center justify-between mt-8 px-4">
-            <button
-              onClick={prevChapter}
-              disabled={chapter <= 1}
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Capítulo {chapter - 1}
-            </button>
-            <button
-              onClick={nextChapter}
-              disabled={chapter >= book.chapters}
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              Capítulo {chapter + 1}
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Floating toolbar at bottom */}
-        {showToolbar && (
-          <div className="flex justify-center px-4 pb-3 shrink-0 border-t border-border pt-2 bg-card/95 backdrop-blur-sm">
-            <HighlightToolbar
-              verseRef={toolbarVerseRef}
-              selectionCount={multiSelectMode ? selectedVerseIds.size : 1}
-              activeHighlight={multiSelectMode ? undefined : activeHighlight}
-              onHighlight={handleHighlight}
-              onRemoveHighlight={handleRemoveHighlight}
-              onOpenNote={handleOpenNote}
-              onClose={handleCloseToolbar}
-            />
-          </div>
-        )}
+        <ReaderChapterNav
+          book={book}
+          chapter={chapter}
+          onPrevChapter={prevChapter}
+          onNextChapter={nextChapter}
+        />
       </div>
-
     </div>
-  )
+  );
 }

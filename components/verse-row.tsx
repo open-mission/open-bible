@@ -1,31 +1,19 @@
-"use client"
-
-import { StickyNote } from "lucide-react"
-import type { Verse, Highlight, Note } from "@/lib/types"
-
-const HIGHLIGHT_HEX: Record<string, string> = {
-  amber: "#f5c842",
-  green: "#6aba7a",
-  blue:  "#6aabd2",
-  rose:  "#e87b8c",
-}
-
-function resolveHex(h: Highlight): string {
-  if (h.color === "custom") return h.customHex ?? "#a78bfa"
-  return HIGHLIGHT_HEX[h.color] ?? "#f5c842"
-}
+import type { Verse } from "@/lib/types"
 
 interface VerseRowProps {
   verse: Verse
-  highlight?: Highlight
-  note?: Note
   isActive: boolean
   isSelected?: boolean
   onClick: () => void
+  verseSpacing?: "small" | "medium" | "large"
 }
 
-export function VerseRow({ verse, highlight, note, isActive, isSelected, onClick }: VerseRowProps) {
-  const highlightHex = highlight ? resolveHex(highlight) : undefined
+export function VerseRow({ verse, isActive, isSelected, onClick, verseSpacing = "medium" }: VerseRowProps) {
+  const spacingClasses = {
+    small: "py-1.5 mb-1",
+    medium: "py-2.5 mb-2",
+    large: "py-4 mb-4",
+  }
 
   return (
     <div
@@ -34,40 +22,28 @@ export function VerseRow({ verse, highlight, note, isActive, isSelected, onClick
       onClick={onClick}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick()}
       style={
-        highlightHex
-          ? { backgroundColor: `${highlightHex}55` }
-          : isSelected
+        isSelected
           ? { backgroundColor: "color-mix(in srgb, var(--color-primary) 12%, transparent)" }
           : undefined
       }
-      className={`group relative flex gap-4 px-4 sm:px-6 py-2.5 cursor-pointer rounded-md transition-colors select-text ${
-        isActive
+      className={`group relative flex gap-4 px-4 sm:px-6 ${spacingClasses[verseSpacing]} cursor-pointer rounded-md transition-colors select-text ${isActive
           ? "bg-accent/60"
           : isSelected
-          ? "ring-1 ring-inset ring-primary/30"
-          : "hover:bg-secondary/60"
-      }`}
+            ? "ring-1 ring-inset ring-primary/30"
+            : "hover:bg-secondary/60"
+        }`}
       aria-pressed={isActive}
     >
       {/* Verse number */}
-      <span className="mt-0.5 w-6 shrink-0 text-right text-xs font-mono text-muted-foreground leading-relaxed select-none">
+      <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
         {verse.verse}
-      </span>
+      </sup>
 
       {/* Verse text */}
-      <p className="flex-1 font-serif text-base leading-relaxed text-foreground">
+      <p className="flex-1 leading-[1.8] text-foreground">
         {verse.text}
       </p>
-
-      {/* Note indicator */}
-      {note && (
-        <span
-          className="mt-1 shrink-0 text-muted-foreground/60"
-          aria-label="Tem nota"
-        >
-          <StickyNote className="h-3.5 w-3.5" />
-        </span>
-      )}
     </div>
   )
 }
+

@@ -27,4 +27,14 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+next-env.d.ts.env.local
+
+# next-pwa auto-generated files
+/public/fallback-*.js
+/public/swe-worker-*.js
+/public/workbox-*.js
+
+
+# generated SQLite WASM assets + seed bibles (copied from node_modules/resources)
+/public/sqlite-wasm/
+/public/bibles/

@@ -1,8 +1,6 @@
-import { readFile } from "fs/promises"
-import { join } from "path"
+import { turso } from "@/lib/turso"
 import type { Version, VersionDetail, Verse } from "./schemas"
 
-const DATA_DIR = join(process.cwd(), "public", "data", "bibles")
 const CACHE_TTL = 5 * 60 * 1000
 
 interface CacheEntry<T> {
@@ -26,67 +24,53 @@ function setCache<T>(key: string, data: T) {
   cache.set(key, { data, timestamp: Date.now() })
 }
 
-async function readJSON<T>(relativePath: string): Promise<T> {
-  const cached = getCached<T>(relativePath)
+async function queryCached<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const cached = getCached<T>(key)
   if (cached) return cached
-
-  const filePath = join(DATA_DIR, relativePath)
-  const content = await readFile(filePath, "utf-8")
-  const data = JSON.parse(content) as T
-  setCache(relativePath, data)
+  const data = await fn()
+  setCache(key, data)
   return data
 }
 
-interface IndexEntry {
-  id: string
-  name: string
-  totalBooks: number
-}
-
-interface RawBookMeta {
-  id: string
-  name: string
-  abbreviation: string
-  testament: "old" | "new"
-  chapters: number
-  chapterVerseCounts: number[]
-}
-
-interface RawChapterVerse {
-  bookId: string
-  chapter: number
-  verse: number
-  text: string
-}
-
 export async function listVersions(): Promise<Version[]> {
-  return readJSON<IndexEntry[]>("index.json")
+  return queryCached("versions", async () => {
+    const result = await turso.execute(
+      "SELECT id, name, total_books FROM bible_versions ORDER BY id"
+    )
+    return result.rows.map((row) => ({
+      id: row[0] as string,
+      name: row[1] as string,
+      totalBooks: row[2] as number,
+    }))
+  })
 }
 
 export async function getVersionDetail(versionId: string): Promise<VersionDetail | null> {
-  try {
-    const meta = await readJSON<{
-      id: string
-      name: string
-      totalBooks: number
-      books: RawBookMeta[]
-    }>(`${versionId}/meta.json`)
+  return queryCached(`version:${versionId}`, async () => {
+    const verResult = await turso.execute(
+      "SELECT id, name, total_books FROM bible_versions WHERE id = ?",
+      [versionId]
+    )
+    if (verResult.rows.length === 0) return null
+
+    const booksResult = await turso.execute(
+      "SELECT id, name, abbreviation, testament, chapters FROM bible_books WHERE version_id = ? ORDER BY rowid",
+      [versionId]
+    )
 
     return {
-      id: meta.id,
-      name: meta.name,
-      totalBooks: meta.totalBooks,
-      books: meta.books.map((b) => ({
-        id: b.id,
-        name: b.name,
-        abbreviation: b.abbreviation,
-        testament: b.testament,
-        chapters: b.chapters,
+      id: verResult.rows[0][0] as string,
+      name: verResult.rows[0][1] as string,
+      totalBooks: verResult.rows[0][2] as number,
+      books: booksResult.rows.map((row) => ({
+        id: row[0] as string,
+        name: row[1] as string,
+        abbreviation: row[2] as string,
+        testament: row[3] as "old" | "new",
+        chapters: row[4] as number,
       })),
     }
-  } catch {
-    return null
-  }
+  })
 }
 
 export async function getChapterVerses(
@@ -94,28 +78,49 @@ export async function getChapterVerses(
   bookId: string,
   chapter: number
 ): Promise<{ bookName: string; verses: Verse[] } | null> {
-  try {
-    const meta = await getVersionDetail(versionId)
-    if (!meta) return null
+  const cacheKey = `chapter:${versionId}:${bookId}:${chapter}`
+  return queryCached(cacheKey, async () => {
+    const bookResult = await turso.execute(
+      "SELECT id, name, chapters FROM bible_books WHERE version_id = ? AND id = ?",
+      [versionId, bookId]
+    )
+    if (bookResult.rows.length === 0) return null
 
-    const book = meta.books.find((b) => b.id === bookId)
-    if (!book) return null
-    if (chapter < 1 || chapter > book.chapters) return null
+    const bookName = bookResult.rows[0][1] as string
+    const maxChapters = bookResult.rows[0][2] as number
+    if (chapter < 1 || chapter > maxChapters) return null
 
-    const chapterFile = `${versionId}/${bookId}-${chapter}.json`
-    const rawVerses = await readJSON<RawChapterVerse[]>(chapterFile)
+    const versesResult = await turso.execute(
+      "SELECT book_id, chapter, verse, text FROM bible_verses WHERE version_id = ? AND book_id = ? AND chapter = ? ORDER BY verse",
+      [versionId, bookId, chapter]
+    )
 
     return {
-      bookName: book.name,
-      verses: rawVerses.map((v) => ({
-        bookId: v.bookId,
-        chapter: v.chapter,
-        verse: v.verse,
-        text: v.text,
+      bookName,
+      verses: versesResult.rows.map((row) => ({
+        bookId: row[0] as string,
+        chapter: row[1] as number,
+        verse: row[2] as number,
+        text: row[3] as string,
       })),
     }
-  } catch {
-    return null
+  })
+}
+
+export async function listBooksForVersion(
+  versionId: string
+): Promise<{ version: string; books: { id: string; name: string; abbreviation: string; testament: "old" | "new"; chapters: number }[] } | null> {
+  const detail = await getVersionDetail(versionId)
+  if (!detail) return null
+  return {
+    version: versionId,
+    books: detail.books.map((b) => ({
+      id: b.id,
+      name: b.name,
+      abbreviation: b.abbreviation,
+      testament: b.testament,
+      chapters: b.chapters,
+    })),
   }
 }
 
@@ -135,68 +140,28 @@ export async function searchVerses(
     }[]
   | null
 > {
-  try {
-    const meta = await getVersionDetail(versionId)
-    if (!meta) return null
+  const ver = await getVersionDetail(versionId)
+  if (!ver) return null
 
-    const lowerQuery = query.toLowerCase()
-    const results: {
-      bookName: string
-      bookAbbreviation: string
-      bookId: string
-      chapter: number
-      verse: number
-      text: string
-      reference: string
-    }[] = []
+  const searchKey = `search:${versionId}:${query}:${limit}`
+  return queryCached(searchKey, async () => {
+    const result = await turso.execute(
+      `SELECT v.book_id, v.chapter, v.verse, v.text, b.name, b.abbreviation
+       FROM bible_verses v
+       JOIN bible_books b ON v.book_id = b.id AND v.version_id = b.version_id
+       WHERE v.version_id = ? AND v.text LIKE ? COLLATE NOCASE
+       LIMIT ?`,
+      [versionId, `%${query}%`, limit]
+    )
 
-    const fileQueue: { book: (typeof meta.books)[0]; chapter: number }[] = []
-    for (const book of meta.books) {
-      for (let ch = 1; ch <= book.chapters; ch++) {
-        fileQueue.push({ book, chapter: ch })
-      }
-    }
-
-    const BATCH_SIZE = 20
-    for (let i = 0; i < fileQueue.length && results.length < limit; i += BATCH_SIZE) {
-      const batch = fileQueue.slice(i, i + BATCH_SIZE)
-      const batchResults = await Promise.allSettled(
-        batch.map(async ({ book, chapter }) => {
-          const chapterFile = `${versionId}/${book.id}-${chapter}.json`
-          const verses = await readJSON<RawChapterVerse[]>(chapterFile)
-          const bookName = book.name
-          const bookAbbreviation = book.abbreviation
-
-          return verses
-            .filter((v) => v.text.toLowerCase().includes(lowerQuery))
-            .map((v) => ({
-              bookName,
-              bookAbbreviation,
-              bookId: v.bookId,
-              chapter: v.chapter,
-              verse: v.verse,
-              text: v.text,
-              reference: `${bookAbbreviation} ${chapter}:${v.verse}`,
-            }))
-        })
-      )
-
-      for (const result of batchResults) {
-        if (result.status === "fulfilled") {
-          for (const item of result.value) {
-            if (results.length < limit) {
-              results.push(item)
-            } else {
-              break
-            }
-          }
-        }
-        if (results.length >= limit) break
-      }
-    }
-
-    return results
-  } catch {
-    return null
-  }
+    return result.rows.map((row) => ({
+      bookId: row[0] as string,
+      chapter: row[1] as number,
+      verse: row[2] as number,
+      text: row[3] as string,
+      bookName: row[4] as string,
+      bookAbbreviation: row[5] as string,
+      reference: `${row[5]} ${row[1]}:${row[2]}`,
+    }))
+  })
 }
