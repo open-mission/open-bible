@@ -9,6 +9,21 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const changelogPath = path.resolve(__dirname, '../CHANGELOG.md');
+
+function getChangelogSection(bumpType) {
+  const sections = {
+    'patch': 'Fixed',
+    'minor': 'Added',
+    'major': 'Changed'
+  };
+  return sections[bumpType] || 'Changed';
+}
+
+function getDefaultChangelogEntry(nextVersion, currentVersion) {
+  return `Release version ${nextVersion} from ${currentVersion}`;
+}
+
 // Helper to ask questions in console
 const askQuestion = (query) => {
   const rl = readline.createInterface({
@@ -139,7 +154,43 @@ async function main() {
   runCmd(`git commit -m "chore(release): ${tag}"`, dryRun);
   runCmd(`git tag -a ${tag} -m "${tag}"`, dryRun);
 
-  // 6. Push code & tags
+  // 6. Update CHANGELOG.md
+  const currentDate = new Date().toISOString().split('T')[0];
+  let changelogContent = '';
+  if (!dryRun) {
+    if (fs.existsSync(changelogPath)) {
+      changelogContent = fs.readFileSync(changelogPath, 'utf8');
+    }
+
+    const sectionName = `## [${nextVersion}] - ${currentDate}`;
+    const newEntry = `
+${sectionName}
+
+### ${getChangelogSection(bumpType)}
+- ${getDefaultChangelogEntry(nextVersion, currentVersion)}
+
+[${nextVersion}]: https://github.com/open-mission/open-bible/compare/${tag.replace('v', '')}...${tag.replace('v', '')}
+`;
+
+    const lines = changelogContent.split('\n');
+    const insertIndex = lines.findIndex(line => line.startsWith('## ['));
+    if (insertIndex !== -1) {
+      lines.splice(insertIndex, 0, newEntry);
+      fs.writeFileSync(changelogPath, lines.join('\n'), 'utf8');
+      console.log('Updated CHANGELOG.md');
+    } else {
+      fs.appendFileSync(changelogPath, newEntry, 'utf8');
+      console.log('Appended to CHANGELOG.md');
+    }
+  } else {
+    const sectionName = `## [${nextVersion}] - ${currentDate}`;
+    const changeLogSection = getChangelogSection(bumpType);
+    const defaultChangeLogEntry = getDefaultChangelogEntry(nextVersion, currentVersion);
+    console.log(`[Dry Run] Would update CHANGELOG.md with:`);
+    console.log(`${sectionName}\n\n### ${changeLogSection}\n- ${defaultChangeLogEntry}\n`);
+  }
+
+  // 7. Push code & tags
   // Determine current branch name
   let currentBranch = 'develop';
   try {
@@ -147,10 +198,12 @@ async function main() {
   } catch (e) {
     // Fallback if git command fails or is detached
   }
+  runCmd(`git add package.json CHANGELOG.md`, dryRun);
+  runCmd(`git commit -m "docs(changelog): ${tag}"`, dryRun);
   runCmd(`git push origin ${currentBranch}`, dryRun);
   runCmd(`git push origin ${tag}`, dryRun);
 
-  // 7. Create GitHub Release
+  // 8. Create GitHub Release
   runCmd(`gh release create ${tag} --generate-notes`, dryRun);
 
   console.log(`\n\x1b[32mSuccessfully released ${tag}!\x1b[0m`);
