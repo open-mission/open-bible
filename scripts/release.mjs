@@ -54,7 +54,8 @@ function runCmd(cmd, dryRun = false) {
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
-  const bumpArg = args.find(arg => ['patch', 'minor', 'major'].includes(arg));
+  const bumpArgFull = args.find(arg => ['--patch', '--minor', '--major'].includes(arg));
+  const bumpArg = bumpArgFull ? bumpArgFull.replace(/^--/, '') : null;
 
   console.log('\x1b[35mStarting Release Process...\x1b[0m');
   if (dryRun) {
