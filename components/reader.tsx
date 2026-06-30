@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/lib/bible-data"
 import { useBibleVerses } from "@/lib/use-bible"
@@ -206,6 +207,47 @@ export function Reader({
           onPrevChapter={prevChapter}
           onNextChapter={nextChapter}
         />
+      </div>
+
+      {/* Floating navigation: bottom on mobile, sides on desktop */}
+      <div className="fixed inset-x-0 bottom-36 z-40 flex justify-center pointer-events-none md:hidden">
+        <div className="flex gap-5 pointer-events-auto">
+          <button
+            onClick={prevChapter}
+            disabled={chapter <= 1}
+            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+            aria-label="Capítulo anterior"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <button
+            onClick={nextChapter}
+            disabled={book && chapter >= book.chapters}
+            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+            aria-label="Próximo capítulo"
+          >
+            <ChevronRight className="size-5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="hidden md:flex fixed inset-0 z-40 pointer-events-none">
+        <button
+          onClick={prevChapter}
+          disabled={chapter <= 1}
+          className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full size-12 bg-background/80 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+          aria-label="Capítulo anterior"
+        >
+          <ChevronLeft className="size-5" />
+        </button>
+        <button
+          onClick={nextChapter}
+          disabled={book && chapter >= book.chapters}
+          className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full size-12 bg-background/80 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+          aria-label="Próximo capítulo"
+        >
+          <ChevronRight className="size-5" />
+        </button>
       </div>
     </div>
   );

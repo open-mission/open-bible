@@ -13,6 +13,7 @@ const config = {
         'style',    // Formatação, sem mudança de lógica
         'refactor', // Refatoração sem fix/feat
         'perf',     // Melhoria de performance
+        'improve',  // Melhoria em funcionalidade existente
         'test',     // Testes
         'chore',    // Tarefas de manutenção (CI, deps, build)
         'ci',       // Mudanças de CI/CD

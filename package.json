@@ -2,6 +2,7 @@
   "name": "open-bible",
   "version": "0.2.1",
   "private": true,
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
@@ -21,6 +22,9 @@
     "commitizen": {
       "path": "cz-conventional-changelog"
     }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs}": "eslint --fix"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -69,7 +73,10 @@
     "commitizen": "^4.3.2",
     "cz-conventional-changelog": "^3.3.0",
     "drizzle-kit": "^0.31.10",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "16.2.6",
     "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
     "postcss": "^8.5",
     "shadcn": "^4.12.0",
     "tailwindcss": "^4.2.0",

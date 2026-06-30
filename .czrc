@@ -25,6 +25,10 @@
       "description": "Melhoria de performance",
       "title": "Performance Improvements"
     },
+    "improve": {
+      "description": "Melhoria em funcionalidade existente",
+      "title": "Improvements"
+    },
     "test": {
       "description": "Adição ou correção de testes",
       "title": "Tests"

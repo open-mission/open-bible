@@ -3,6 +3,12 @@
 # dependencies
 /node_modules
 
+# git worktrees (used by feature-dev workflow)
+/.worktrees/
+
+# Cline kanban (local board state + ephemeral worktrees per task)
+/.cline/
+
 # next.js
 /.next/
 /out/
@@ -18,6 +24,7 @@ yarn-error.log*
 
 # env files
 .env*
+!.env.example
 
 # vercel
 .vercel

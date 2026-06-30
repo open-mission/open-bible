@@ -9,6 +9,8 @@ import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@
 import { MobileNav } from "@/components/mobile-nav"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { APP_VERSION } from "@/lib/app-env"
+import { EnvBadge } from "@/components/env-badge"
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
 
@@ -255,6 +257,15 @@ export default function ConfigPage() {
                 </TabsContent>
               </div>
             </Tabs>
+
+            <div className="px-1 pt-6 mt-6 border-t border-border/50">
+              <h2 className="text-lg font-serif font-medium text-foreground mb-2">Sobre</h2>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Open Bible</span>
+                <span className="font-mono text-foreground">v{APP_VERSION}</span>
+                <EnvBadge />
+              </div>
+            </div>
           </div>
         </div>
 
