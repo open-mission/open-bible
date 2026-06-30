@@ -6,6 +6,13 @@ Orientações para Claude Code (e demais agentes) neste repositório.
 > [`AGENTS.md`](AGENTS.md). O guia humano completo está em [`CONTRIBUTING.md`](CONTRIBUTING.md).
 > Leia `AGENTS.md` antes de qualquer mudança. Este arquivo é só um resumo de bolso.
 
+## Skills do projeto (`.agents/skills/`)
+
+- **`feature-dev`** — ponto de entrada para qualquer feature/fix/melhoria: orquestra spec →
+  plano → branch isolada (worktree de `develop`) → implementação. Usa as skills do superpowers
+  (`brainstorming`, `writing-plans`, `using-git-worktrees`) quando disponíveis.
+- **`dev-workflow`** — a mecânica de git (issue → branch de `develop` → commits → PR → merge).
+
 ## Fluxo obrigatório (features, fixes, melhorias)
 
 1. Criar/identificar a issue.

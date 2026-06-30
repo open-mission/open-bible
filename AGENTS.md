@@ -22,6 +22,10 @@ No tests, no typecheck pass. CI valida commits + lint + build em cada PR (`.gith
 
 **Regras para agentes**: Toda nova feature, melhoria ou fix DEVE seguir este fluxo:
 
+> **Skills (`.agents/skills/`)**: ao iniciar qualquer feature/fix/melhoria, use a skill
+> **`feature-dev`** — ela orquestra spec → plano → branch isolada (worktree de `develop`) →
+> implementação, usando o superpowers quando disponível. A mecânica de git está em **`dev-workflow`**.
+
 ### Criando Issues
 - **Bug**: Usar template "Bug Report" → `gh issue create --template bug_report.md`
 - **Feature**: Usar template "Feature Request" → `gh issue create --template feature_request.md`

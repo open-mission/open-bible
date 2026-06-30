@@ -3,6 +3,9 @@
 # dependencies
 /node_modules
 
+# git worktrees (used by feature-dev workflow)
+/.worktrees/
+
 # next.js
 /.next/
 /out/
