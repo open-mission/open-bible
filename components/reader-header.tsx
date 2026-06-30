@@ -5,6 +5,7 @@ import { Settings2, Palette, Check, Sun, Moon, Monitor } from "lucide-react"
 import { IconTextSize } from "@tabler/icons-react"
 import { Button } from "./ui/button"
 import { ReaderVersionBadge } from "./reader-version-badge"
+import { EnvBadge } from "./env-badge"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { Slider } from "./ui/slider"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
@@ -378,6 +379,7 @@ export function ReaderHeader({
 
         {/* Desktop Mini Reference and Tools (Right-aligned) */}
         <div className="hidden md:flex items-center gap-2">
+          <EnvBadge />
 
           <Popover>
             <PopoverTrigger render={
@@ -415,6 +417,7 @@ export function ReaderHeader({
           <Button onClick={() => setSettingsOpen(true)} variant="ghost" className="h-9 rounded-full px-3" title="Ajustes de visualização">
             <IconTextSize className="h-4.5 w-4.5 text-muted-foreground" />
           </Button>
+          <EnvBadge className="mr-1" />
         </div>
       </nav>
 
