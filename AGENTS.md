@@ -18,6 +18,46 @@ Portuguese Bible PWA — Next.js 16, TursoDB (Server), SQLite WASM + OPFS + Driz
 
 No tests, no CI, no typecheck pass.
 
+## Workflow de Desenvolvimento
+
+**Regras para agentes**: Toda nova feature, melhoria ou fix DEVE seguir este fluxo:
+
+### Criando Issues
+- **Bug**: Usar template "Bug Report" → `gh issue create --template bug_report.md`
+- **Feature**: Usar template "Feature Request" → `gh issue create --template feature_request.md`
+- **Melhoria**: Usar template "Improvement" → `gh issue create --template improvement.md`
+
+### Fluxo de Trabalho
+1. **Criar issue** com template adequado e labels (`bug`, `enhancement`, `improvement`, `priority:*`)
+2. **Criar branch** a partir de `main`:
+   - `fix/{issue-nr}-desc` para bugs
+   - `feat/{issue-nr}-desc` para features
+   - `improve/{issue-nr}-desc` para melhorias
+3. **Desenvolver** com commits semânticos (`fix:`, `feat:`, `improve:`)
+4. **Abrir PR** referenciando a issue: `Closes #nr`
+5. **Merge** após review (squash merge preferencial)
+6. **Issue é automaticamente fechada** e movida para "Done" no projeto
+
+### Branch Naming
+```
+feat/42-highlight-verses
+fix/15-crash-on-search
+improve/38-dark-mode-toggle
+```
+
+### Commit Messages
+```
+feat: add verse highlighting
+fix: crash when searching special characters
+improve: better dark mode toggle UX
+```
+
+### GitHub Project
+- Projeto: **Open Bible** (nº 2) na organização `open-mission`
+- URL: `https://github.com/orgs/open-mission/projects/2`
+- Colunas: Backlog → To Do → In Progress → In Review → Done
+- Issues são adicionadas automaticamente ao projeto via `gh project item-add`
+
 ## Architecture
 
 **Provider chain** (`app/layout.tsx`): `ThemeProvider` → `BibleVersionProvider` → `ToastProvider` → children. Layout is a server component; all other components are `"use client"` (except `components/ui/button.tsx`).
