@@ -4,6 +4,16 @@ const WORKER_URL = "/sqlite-wasm/open-bible.worker.js"
 const USER_DB = "app.db"
 
 /**
+ * Asks the browser not to evict OPFS under storage pressure. Without this,
+ * downloaded Bibles can silently disappear after a long absence, forcing a
+ * re-download. Best-effort: ignores unsupported browsers and denied requests.
+ */
+function requestPersistentStorage(): void {
+  if (typeof navigator === "undefined" || !navigator.storage?.persist) return
+  navigator.storage.persist().catch(() => { /* ignore — best effort */ })
+}
+
+/**
  * Owns the single SQLite worker and exposes a typed, promise-based API.
  * All SQL execution funnels through here — React/repositories never touch
  * the worker directly. Client-only (requires Worker + OPFS).
@@ -54,6 +64,7 @@ export class DatabaseManager {
       await this.rpc({ type: "init" })
       await this.rpc({ type: "open", path: USER_DB })
       this.initialized = true
+      requestPersistentStorage()
     })()
     return this.initPromise
   }
