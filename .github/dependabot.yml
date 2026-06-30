@@ -4,6 +4,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    target-branch: develop
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
@@ -15,6 +16,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    target-branch: develop
     commit-message:
       prefix: "ci"
     labels:
