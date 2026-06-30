@@ -61,7 +61,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.1.0",
+    "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.1.0",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@tailwindcss/postcss": "^4.2.0",
