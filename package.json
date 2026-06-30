@@ -29,7 +29,7 @@
   "dependencies": {
     "@base-ui/react": "^1.5.0",
     "@hono/zod-openapi": "^1.4.0",
-    "@libsql/client": "^0.8.1",
+    "@libsql/client": "^0.17.4",
     "@libsql/kysely-libsql": "^0.4.1",
     "@scalar/hono-api-reference": "^0.11.5",
     "@shadcn/react": "^0.1.0",
