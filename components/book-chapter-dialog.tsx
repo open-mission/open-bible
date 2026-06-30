@@ -114,7 +114,7 @@ export function BookChapterDialog({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Pesquisar livro ou capítulo..."
-            className="text-sm placeholder:text-muted-foreground h-full"
+            className="text-base md:text-sm placeholder:text-muted-foreground h-full"
           />
 
           <InputGroupAddon align="inline-end">
