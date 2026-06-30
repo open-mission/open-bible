@@ -1,17 +1,31 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { Book, Check, Download, Trash2, Loader2, ChevronDown, X } from "lucide-react"
-import { useBibleVersion } from "@/lib/bible-version-context"
-import { useIsMobile } from "@/lib/use-media-query"
-import { useToast } from "@/lib/use-toast"
-import { BottomSheet } from "@/components/ui/bottom-sheet"
-import { Button } from "./ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { cn } from "@/lib/utils"
-import { DownloadVersionsDialog } from "./download-versions-dialog"
+import { useState, useRef, useEffect } from "react";
+import {
+  Book,
+  Check,
+  Download,
+  Trash2,
+  Loader2,
+  ChevronDown,
+  X,
+} from "lucide-react";
+import { useBibleVersion } from "@/lib/bible-version-context";
+import { useIsMobile } from "@/lib/use-media-query";
+import { useToast } from "@/lib/use-toast";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Button } from "./ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import { DownloadVersionsDialog } from "./download-versions-dialog";
 
-export function ReaderVersionBadge({ className, variant = "outline" }: { className?: string; variant?: "default" | "outline" | "ghost" | "secondary" }) {
+export function ReaderVersionBadge({
+  className,
+  variant = "outline",
+}: {
+  className?: string;
+  variant?: "default" | "outline" | "ghost" | "secondary";
+}) {
   const {
     versionId,
     setVersionId,
@@ -19,27 +33,27 @@ export function ReaderVersionBadge({ className, variant = "outline" }: { classNa
     availableVersions,
     isInstalling,
     downloadProgress,
-    installVersion,
     uninstallVersion,
-  } = useBibleVersion()
+  } = useBibleVersion();
 
-  const [open, setOpen] = useState(false)
-  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
-  const [installingName, setInstallingName] = useState("")
-  const ref = useRef<HTMLDivElement>(null)
-  const isMobile = useIsMobile()
-  const { addToast, updateToast, removeToast } = useToast()
-  const toastIdRef = useRef<string | null>(null)
+  const [open, setOpen] = useState(false);
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
+  const [installingName, setInstallingName] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  const { addToast, updateToast, removeToast } = useToast();
+  const toastIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false)
+        setOpen(false);
       }
     }
-    if (open && !isMobile) document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [open, isMobile])
+    if (open && !isMobile)
+      document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open, isMobile]);
 
   useEffect(() => {
     if (isInstalling && downloadProgress) {
@@ -48,50 +62,61 @@ export function ReaderVersionBadge({ className, variant = "outline" }: { classNa
           message: `Baixando ${installingName}...`,
           type: "loading",
           progress: downloadProgress,
-        })
+        });
       } else if (toastIdRef.current) {
-        updateToast(toastIdRef.current, { progress: downloadProgress })
+        updateToast(toastIdRef.current, { progress: downloadProgress });
         if (downloadProgress.current === downloadProgress.total) {
           updateToast(toastIdRef.current, {
             message: `${installingName} disponível offline`,
             type: "success",
             progress: undefined,
-          })
+          });
           setTimeout(() => {
             if (toastIdRef.current) {
-              removeToast(toastIdRef.current)
-              toastIdRef.current = null
+              removeToast(toastIdRef.current);
+              toastIdRef.current = null;
             }
-          }, 4000)
+          }, 4000);
         }
       }
     }
-    if (!isInstalling && toastIdRef.current && (!downloadProgress || downloadProgress.current === downloadProgress.total)) {
-      toastIdRef.current = null
+    if (
+      !isInstalling &&
+      toastIdRef.current &&
+      (!downloadProgress || downloadProgress.current === downloadProgress.total)
+    ) {
+      toastIdRef.current = null;
     }
-  }, [isInstalling, downloadProgress, installingName, addToast, updateToast, removeToast])
+  }, [
+    isInstalling,
+    downloadProgress,
+    installingName,
+    addToast,
+    updateToast,
+    removeToast,
+  ]);
 
-  const currentAbbr = versionId.toUpperCase()
+  const currentAbbr = versionId.toUpperCase();
 
   const currentFullName =
     installedVersions.find((v) => v.id === versionId)?.name ??
     availableVersions.find((v) => v.id === versionId)?.name ??
-    versionId.toUpperCase()
+    versionId.toUpperCase();
 
-  const allInstalled = installedVersions
-  const notInstalled = availableVersions.filter(
-    (av) => !installedVersions.find((iv) => iv.id === av.id)
-  )
+  const allInstalled = installedVersions;
 
   const optionsPanel = (
     <div className="p-1.5 space-y-0.5">
       {/* Installed versions */}
       {allInstalled.map((v) => (
-        <div key={v.id} className="group flex items-center justify-between gap-1 rounded-md hover:bg-secondary transition-colors p-0.5">
+        <div
+          key={v.id}
+          className="group flex items-center justify-between gap-1 rounded-md hover:bg-secondary transition-colors p-0.5"
+        >
           <button
             onClick={() => {
-              setVersionId(v.id)
-              setOpen(false)
+              setVersionId(v.id);
+              setOpen(false);
             }}
             className={`flex-1 flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors min-w-0 ${
               versionId === v.id
@@ -111,9 +136,9 @@ export function ReaderVersionBadge({ className, variant = "outline" }: { classNa
           </button>
           <button
             onClick={(e) => {
-              e.stopPropagation()
+              e.stopPropagation();
               if (confirm(`Remover "${v.name}" do dispositivo?`)) {
-                uninstallVersion(v.id)
+                uninstallVersion(v.id);
               }
             }}
             className="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all shrink-0 p-1.5 hover:bg-accent rounded-md"
@@ -127,8 +152,8 @@ export function ReaderVersionBadge({ className, variant = "outline" }: { classNa
       <div className="border-t border-border my-1" />
       <button
         onClick={() => {
-          setOpen(false)
-          setDownloadDialogOpen(true)
+          setOpen(false);
+          setDownloadDialogOpen(true);
         }}
         className="w-full flex items-center justify-center gap-2 rounded-md px-2.5 py-2 text-xs font-medium text-primary hover:bg-secondary transition-colors"
       >
@@ -136,21 +161,30 @@ export function ReaderVersionBadge({ className, variant = "outline" }: { classNa
         <span>Baixar mais versões</span>
       </button>
     </div>
-  )
+  );
 
   return (
     <div className="relative" data-slot="button">
-      <Popover open={!isMobile && open} onOpenChange={(val) => !isMobile && setOpen(val)}>
-        <PopoverTrigger render={
-          <Button
-            onClick={() => isMobile && setOpen(true)}
-            variant={variant}
-            size="lg"
-            className={cn(variant === "outline" && "border-l-0", "rounded-[inherit] h-9", className)}
-            aria-label="Selecionar versão da Bíblia"
-            title={currentFullName}
-          />
-        }>
+      <Popover
+        open={!isMobile && open}
+        onOpenChange={(val) => !isMobile && setOpen(val)}
+      >
+        <PopoverTrigger
+          render={
+            <Button
+              onClick={() => isMobile && setOpen(true)}
+              variant={variant}
+              size="lg"
+              className={cn(
+                variant === "outline" && "border-l-0",
+                "rounded-[inherit] h-9",
+                className,
+              )}
+              aria-label="Selecionar versão da Bíblia"
+              title={currentFullName}
+            />
+          }
+        >
           <span className="text-sm font-semibold mx-1">{currentAbbr}</span>
         </PopoverTrigger>
 
@@ -162,7 +196,9 @@ export function ReaderVersionBadge({ className, variant = "outline" }: { classNa
       {open && isMobile && (
         <BottomSheet open={open} onClose={() => setOpen(false)}>
           <div className="px-4 py-3 border-b border-border">
-            <p className="text-sm font-medium text-foreground">Selecionar versão</p>
+            <p className="text-sm font-medium text-foreground">
+              Selecionar versão
+            </p>
           </div>
           {optionsPanel}
         </BottomSheet>
@@ -173,5 +209,5 @@ export function ReaderVersionBadge({ className, variant = "outline" }: { classNa
         onClose={() => setDownloadDialogOpen(false)}
       />
     </div>
-  )
+  );
 }
