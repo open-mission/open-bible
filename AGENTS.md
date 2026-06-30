@@ -16,7 +16,7 @@ Portuguese Bible PWA — Next.js 16, TursoDB (Server), SQLite WASM + OPFS + Driz
 | `pnpm lint` | `eslint .` (no config file in repo) |
 | `pnpm release` | Guides version bump, commits, tags, pushes, and creates a GitHub Release |
 
-No tests, no CI, no typecheck pass.
+No tests, no typecheck pass. CI valida commits + lint + build em cada PR (`.github/workflows/pr-validation.yml`).
 
 ## Workflow de Desenvolvimento
 
@@ -29,14 +29,25 @@ No tests, no CI, no typecheck pass.
 
 ### Fluxo de Trabalho
 1. **Criar issue** com template adequado e labels (`bug`, `enhancement`, `improvement`, `priority:*`)
-2. **Criar branch** a partir de `main`:
+2. **Criar branch** a partir de `develop`:
    - `fix/{issue-nr}-desc` para bugs
    - `feat/{issue-nr}-desc` para features
    - `improve/{issue-nr}-desc` para melhorias
 3. **Desenvolver** com commits semânticos (`fix:`, `feat:`, `improve:`)
-4. **Abrir PR** referenciando a issue: `Closes #nr`
-5. **Merge** após review (squash merge preferencial)
+4. **Abrir PR para `develop`** referenciando a issue: `Closes #nr`
+5. **Merge** após review (squash merge preferencial) — CI de PR deve passar
 6. **Issue é automaticamente fechada** e movida para "Done" no projeto
+
+> O merge de `develop` → `main` gera um release (deploy automático via Vercel).
+
+### Estrutura de Branches
+```
+main          ← produção (protegida, deploy automático)
+ └── develop  ← integração (base para todos os PRs)
+       └── feat/42-highlight-verses
+       └── fix/15-crash-on-search
+       └── improve/38-dark-mode-toggle
+```
 
 ### Branch Naming
 ```
@@ -46,11 +57,15 @@ improve/38-dark-mode-toggle
 ```
 
 ### Commit Messages
+Tipos válidos (validados por `commitlint`): `feat`, `fix`, `docs`, `style`, `refactor`,
+`perf`, `improve`, `test`, `chore`, `ci`, `revert`, `wip`.
 ```
 feat: add verse highlighting
 fix: crash when searching special characters
 improve: better dark mode toggle UX
 ```
+> Nunca use `--no-verify`. Os hooks (`commit-msg` valida o commitlint, `pre-commit` roda lint)
+> e o CI de PR aplicam essas regras tanto para pessoas quanto para agentes.
 
 ### GitHub Project
 - Projeto: **Open Bible** (nº 2) na organização `open-mission`

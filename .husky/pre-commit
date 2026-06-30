@@ -1,1 +1,1 @@
-# Pre-commit hook placeholder — add linting/type-checks here as needed
+pnpm exec lint-staged
