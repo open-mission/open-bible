@@ -1,17 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Palette, Check, Sun, Moon, Monitor } from "lucide-react";
 import { IconTextSize } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { ReaderVersionBadge } from "./reader-version-badge";
 import { EnvBadge } from "@/features/layout/components/env-badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
 import { Toggle } from "@/components/ui/toggle";
-
-import { useAppTheme } from "@/features/theme/components/theme-provider";
-import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor } from "@/features/theme/utils/theme";
+import { ReaderDisplaySettings } from "./reader-display-settings";
+import { ReaderThemeConfig } from "./reader-theme-config";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +23,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { cn } from "@/lib/utils";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 
 interface ReaderHeaderProps {
@@ -58,8 +54,6 @@ export function ReaderHeader({
   readerFont,
   onChangeReaderFont,
 }: ReaderHeaderProps) {
-  const { mode, color, palette, setTheme, setColor, setPalette } =
-    useAppTheme();
   const [themeDialogOpen, setThemeDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -72,353 +66,23 @@ export function ReaderHeader({
     return () => media.removeEventListener("change", listener);
   }, []);
 
-  const colorList = Object.keys(COLOR_LABELS) as ThemeColor[];
+  const handleConfigureTheme = () => {
+    setSettingsOpen(false);
+    setThemeDialogOpen(true);
+  };
 
-  const themeConfigContent = (
-    <div className="space-y-6 py-4">
-      {/* Estilo do Tema */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold leading-none">Estilo do Tema</h3>
-        <p className="text-xs text-muted-foreground">
-          Escolha a paleta de cores base para o leitor.
-        </p>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { value: "default" as const, label: "Padrão" },
-            { value: "dracula" as const, label: "Dracula" },
-            { value: "gruvbox" as const, label: "Gruvbox" },
-          ].map((p) => {
-            const active = palette === p.value;
-            return (
-              <button
-                key={p.value}
-                onClick={() => setPalette(p.value)}
-                className={cn(
-                  "flex items-center justify-center rounded-lg border-2 px-3 py-3 text-xs font-semibold transition-all cursor-pointer h-10",
-                  active
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                )}
-              >
-                {p.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Aparência */}
-      <div className="space-y-3 pt-4 border-t border-border">
-        <h3 className="text-sm font-semibold leading-none">Aparência</h3>
-        <p className="text-xs text-muted-foreground">
-          Escolha o tema visual do leitor.
-        </p>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            {
-              value: "light" as const,
-              label: "Claro",
-              icon: <Sun className="h-4 w-4" />,
-            },
-            {
-              value: "system" as const,
-              label: "Sistema",
-              icon: <Monitor className="h-4 w-4" />,
-            },
-            {
-              value: "dark" as const,
-              label: "Escuro",
-              icon: <Moon className="h-4 w-4" />,
-            },
-          ].map((m) => {
-            const active = mode === m.value;
-            const disabled = palette === "dracula";
-            return (
-              <button
-                key={m.value}
-                disabled={disabled}
-                onClick={() => setTheme(m.value)}
-                className={cn(
-                  "flex flex-col items-center gap-2.5 rounded-lg border-2 px-3 py-4 text-xs font-semibold transition-all cursor-pointer",
-                  active && !disabled
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                  disabled && "opacity-50 cursor-not-allowed",
-                )}
-              >
-                <div className="p-1.5 rounded-full bg-secondary/50">
-                  {m.icon}
-                </div>
-                {disabled && m.value === "dark" ? "Escuro (Fixo)" : m.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Cor de Destaque */}
-      {palette === "default" && (
-        <div className="space-y-3 pt-4 border-t border-border animate-in fade-in-50 duration-200">
-          <h3 className="text-sm font-semibold leading-none">
-            Cor de destaque
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Escolha a cor principal dos destaques e botões.
-          </p>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[240px] overflow-y-auto pr-1 custom-scrollbar">
-            {colorList.map((c) => {
-              const active = color === c;
-              return (
-                <button
-                  key={c}
-                  onClick={() => setColor(c)}
-                  className={cn(
-                    "flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-all cursor-pointer",
-                    active
-                      ? "border-primary bg-primary/5 text-foreground font-semibold"
-                      : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                  )}
-                >
-                  <span
-                    className="h-3.5 w-3.5 rounded-full shrink-0 ring-1 ring-black/10"
-                    style={{ backgroundColor: COLOR_SWATCHES[c] }}
-                  />
-                  <span className="truncate">{COLOR_LABELS[c]}</span>
-                  {active && (
-                    <Check className="h-3.5 w-3.5 text-primary shrink-0 ml-auto" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const displaySettingsContent = (
-    <div className="flex flex-col gap-5">
-      {/* Font Size Selector */}
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center text-xs font-medium">
-          <span>Tamanho da Fonte</span>
-          <span className="text-muted-foreground">{fontSize}px</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground font-semibold">A</span>
-          <Slider
-            min={16}
-            max={24}
-            step={2}
-            value={[fontSize]}
-            onValueChange={(val) =>
-              onChangeFontSize(Array.isArray(val) ? val[0] : val)
-            }
-            className="flex-1"
-          />
-          <span className="text-lg text-muted-foreground font-semibold leading-none">
-            A
-          </span>
-        </div>
-      </div>
-
-      {/* Font Style Selector */}
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-medium">Estilo da Fonte</span>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { value: "sans" as const, label: "Sans", fontClass: "font-sans" },
-            {
-              value: "serif" as const,
-              label: "Serif",
-              fontClass: "font-serif",
-            },
-            { value: "mono" as const, label: "Mono", fontClass: "font-mono" },
-          ].map((item) => {
-            const active = readerFont === item.value;
-            return (
-              <button
-                key={item.value}
-                onClick={() => onChangeReaderFont(item.value)}
-                className={cn(
-                  "flex items-center justify-center rounded-lg border-2 py-2 text-xs transition-all cursor-pointer h-9",
-                  item.fontClass,
-                  active
-                    ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                )}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Verse Spacing Selector */}
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center text-xs font-medium">
-          <span>Espaçamento entre Versículos</span>
-          <span className="text-muted-foreground">
-            {verseSpacing === "small"
-              ? "Compacto"
-              : verseSpacing === "medium"
-                ? "Padrão"
-                : "Espaçoso"}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-muted-foreground font-medium">
-            Compacto
-          </span>
-          <Slider
-            min={1}
-            max={3}
-            step={1}
-            value={[
-              verseSpacing === "small" ? 1 : verseSpacing === "medium" ? 2 : 3,
-            ]}
-            onValueChange={(val) => {
-              const numericVal = Array.isArray(val) ? val[0] : val;
-              if (numericVal === 1) onChangeVerseSpacing("small");
-              else if (numericVal === 2) onChangeVerseSpacing("medium");
-              else if (numericVal === 3) onChangeVerseSpacing("large");
-            }}
-            className="flex-1"
-          />
-          <span className="text-[10px] text-muted-foreground font-medium">
-            Espaçoso
-          </span>
-        </div>
-      </div>
-
-      {/* Readable Mode (Slider for Margins) */}
-      <div className="flex flex-col gap-2 border-t border-border pt-4 mt-1">
-        <div className="flex justify-between items-center text-xs font-medium">
-          <span>Margens do Texto</span>
-          <span className="text-muted-foreground">
-            {readerMode === "narrow"
-              ? "Estreito"
-              : readerMode === "medium"
-                ? "Padrão"
-                : "Largo"}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-muted-foreground font-medium">
-            Estreito
-          </span>
-          <Slider
-            min={1}
-            max={3}
-            step={1}
-            value={[
-              readerMode === "narrow" ? 1 : readerMode === "medium" ? 2 : 3,
-            ]}
-            onValueChange={(val) => {
-              const numericVal = Array.isArray(val) ? val[0] : val;
-              if (numericVal === 1) onChangeReaderMode("narrow");
-              else if (numericVal === 2) onChangeReaderMode("medium");
-              else if (numericVal === 3) onChangeReaderMode("wide");
-            }}
-            className="flex-1"
-          />
-          <span className="text-[10px] text-muted-foreground font-medium">
-            Largo
-          </span>
-        </div>
-        <span className="text-[10px] text-muted-foreground leading-normal mt-1">
-          Limita a largura máxima das margens do texto para tornar os parágrafos
-          mais legíveis.
-        </span>
-      </div>
-
-      {/* Tema / Aparência com Miniaturas */}
-      <div className="flex flex-col gap-2 border-t border-border pt-4">
-        <span className="text-xs font-semibold">Tema</span>
-        <div className="grid grid-cols-3 gap-2">
-          {/* Claro */}
-          <button
-            onClick={() => setTheme("light")}
-            className={cn(
-              "relative flex flex-col items-start gap-1 p-2 rounded-lg border-2 text-left transition-all overflow-hidden h-14 cursor-pointer",
-              mode === "light"
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-foreground/30 bg-card",
-            )}
-          >
-            <div className="absolute inset-0 bg-white" />
-            <div className="relative z-10 w-full flex flex-col gap-1">
-              <div className="h-1.5 w-8 rounded-sm bg-neutral-200" />
-              <div className="h-1 w-12 rounded-sm bg-neutral-300" />
-              <div className="h-1 w-10 rounded-sm bg-neutral-300" />
-            </div>
-            <span className="absolute bottom-1 right-2 z-10 text-[9px] font-bold text-neutral-800">
-              Claro
-            </span>
-          </button>
-
-          {/* Escuro */}
-          <button
-            onClick={() => setTheme("dark")}
-            className={cn(
-              "relative flex flex-col items-start gap-1 p-2 rounded-lg border-2 text-left transition-all overflow-hidden h-14 cursor-pointer",
-              mode === "dark"
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-foreground/30 bg-card",
-            )}
-          >
-            <div className="absolute inset-0 bg-zinc-950" />
-            <div className="relative z-10 w-full flex flex-col gap-1">
-              <div className="h-1.5 w-8 rounded-sm bg-zinc-700" />
-              <div className="h-1 w-12 rounded-sm bg-zinc-800" />
-              <div className="h-1 w-10 rounded-sm bg-zinc-800" />
-            </div>
-            <span className="absolute bottom-1 right-2 z-10 text-[9px] font-bold text-white">
-              Escuro
-            </span>
-          </button>
-
-          {/* Automático */}
-          <button
-            onClick={() => setTheme("system")}
-            className={cn(
-              "relative flex flex-col items-start gap-1 p-2 rounded-lg border-2 text-left transition-all overflow-hidden h-14 cursor-pointer",
-              mode === "system"
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-foreground/30 bg-card",
-            )}
-          >
-            <div className="absolute inset-y-0 left-0 right-1/2 bg-white" />
-            <div className="absolute inset-y-0 left-1/2 right-0 bg-zinc-950" />
-            <div className="relative z-10 w-full flex flex-col gap-1">
-              <div className="h-1.5 w-8 rounded-sm bg-neutral-400" />
-              <div className="h-1 w-12 rounded-sm bg-neutral-500" />
-              <div className="h-1 w-10 rounded-sm bg-neutral-500" />
-            </div>
-            <span className="absolute bottom-1 right-2 z-10 text-[9px] font-bold mix-blend-difference text-white">
-              Auto
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* Botão Configurar Tema */}
-      <div className="border-t border-border pt-3 mt-1">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full justify-center gap-2 h-8 text-xs cursor-pointer"
-          onClick={() => {
-            setSettingsOpen(false);
-            setThemeDialogOpen(true);
-          }}
-        >
-          <Palette className="h-3.5 w-3.5 text-primary" />
-          Configurar tema...
-        </Button>
-      </div>
-    </div>
+  const displaySettings = (
+    <ReaderDisplaySettings
+      fontSize={fontSize}
+      onChangeFontSize={onChangeFontSize}
+      verseSpacing={verseSpacing}
+      onChangeVerseSpacing={onChangeVerseSpacing}
+      readerMode={readerMode}
+      onChangeReaderMode={onChangeReaderMode}
+      readerFont={readerFont}
+      onChangeReaderFont={onChangeReaderFont}
+      onConfigureTheme={handleConfigureTheme}
+    />
   );
 
   return (
@@ -494,7 +158,7 @@ export function ReaderHeader({
                   Personalize sua experiência de leitura.
                 </p>
               </div>
-              {displaySettingsContent}
+              {displaySettings}
             </PopoverContent>
           </Popover>
         </div>
@@ -541,7 +205,7 @@ export function ReaderHeader({
               Ajustes de exibição
             </p>
           </div>
-          <div className="p-5">{displaySettingsContent}</div>
+          <div className="p-5">{displaySettings}</div>
         </BottomSheet>
       )}
 
@@ -555,7 +219,7 @@ export function ReaderHeader({
                 Ajuste o estilo visual e a cor de destaque do aplicativo.
               </DialogDescription>
             </DialogHeader>
-            {themeConfigContent}
+            <ReaderThemeConfig />
           </DialogContent>
         </Dialog>
       ) : (
@@ -567,7 +231,7 @@ export function ReaderHeader({
                 Ajuste o estilo visual e a cor de destaque do aplicativo.
               </DrawerDescription>
             </DrawerHeader>
-            {themeConfigContent}
+            <ReaderThemeConfig />
           </DrawerContent>
         </Drawer>
       )}
