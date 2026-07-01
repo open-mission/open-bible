@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { OLD_TESTAMENT, NEW_TESTAMENT } from "@/lib/bible-data";
+import { OLD_TESTAMENT, NEW_TESTAMENT } from "@/features/bible-reader/utils/bible-data";
 import type { Book } from "@/lib/types";
 
 interface BookListProps {

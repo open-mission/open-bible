@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import type { Verse } from "./types"
-import { useBibleVersion } from "./bible-version-context"
+import type { Verse } from "@/lib/types"
+import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 
 export function useBibleVerses(bookId: string | null, chapter: number | null) {
   const { getVerses, versionId } = useBibleVersion()

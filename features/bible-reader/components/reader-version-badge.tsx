@@ -10,12 +10,12 @@ import {
   ChevronDown,
   X,
 } from "lucide-react";
-import { useBibleVersion } from "@/lib/bible-version-context";
+import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context";
 import { useIsMobile } from "@/lib/use-media-query";
-import { useToast } from "@/lib/use-toast";
+import { useToast } from "@/features/layout/hooks/use-toast";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { Button } from "./ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { DownloadVersionsDialog } from "./download-versions-dialog";
 

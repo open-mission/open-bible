@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { Download, Loader2, X, Check } from "lucide-react"
-import { useBibleVersion } from "@/lib/bible-version-context"
+import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { useIsMobile } from "@/lib/use-media-query"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 

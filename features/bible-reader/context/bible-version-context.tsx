@@ -1,10 +1,10 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
-import type { Verse } from "./types"
-import { getVerses as getMockVerses } from "./bible-data"
-import { fetchChapterVerses as apiFetchChapterVerses } from "./api-client"
-import { database } from "./database/database"
+import type { Verse } from "@/lib/types"
+import { getVerses as getMockVerses } from "@/features/bible-reader/utils/bible-data"
+import { fetchChapterVerses as apiFetchChapterVerses } from "@/lib/api-client"
+import { database } from "@/lib/database/database"
 
 export interface VersionMeta {
   id: string

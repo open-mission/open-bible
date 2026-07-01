@@ -3,13 +3,13 @@
 import { useState, useMemo, useEffect } from "react"
 import { Search, X, ChevronLeft, BookOpen, Check, ArrowRight } from "lucide-react"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
-import { getBook, OLD_TESTAMENT, NEW_TESTAMENT } from "@/lib/bible-data"
+import { getBook, OLD_TESTAMENT, NEW_TESTAMENT } from "@/features/bible-reader/utils/bible-data"
 import { useIsMobile } from "@/lib/use-media-query"
 import type { Book } from "@/lib/types"
-import { useBibleVersion } from "@/lib/bible-version-context"
+import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "./ui/button"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group"
+import { Button } from "@/components/ui/button"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 
 interface BookChapterDialogProps {
   open: boolean
