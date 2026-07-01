@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-01T01:47:20.980Z",
+  "source": "manual",
+  "stack": {
+    "primaryLanguage": "typescript",
+    "languages": [
+      "javascript",
+      "typescript"
+    ],
+    "frameworks": [
+      "nextjs"
+    ],
+    "buildTools": [],
+    "testFrameworks": [],
+    "packageManager": "pnpm"
+  },
+  "sensors": [
+    {
+      "id": "lint",
+      "name": "Lint",
+      "description": "ESLint over the whole repo (eslint .). Warning-only: lint debt is downgraded so it never blocks a PR.",
+      "severity": "warning",
+      "command": "pnpm lint",
+      "script": "lint"
+    },
+    {
+      "id": "build",
+      "name": "Build",
+      "description": "Next.js production build (next build --webpack). Runs prebuild to copy sqlite-wasm assets. Note: ignoreBuildErrors is on, so TS errors do NOT fail the build.",
+      "severity": "critical",
+      "command": "pnpm build",
+      "script": "build"
+    }
+  ]
+}

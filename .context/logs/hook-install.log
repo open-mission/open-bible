@@ -1,0 +1,8 @@
+{"timestamp":"2026-07-01T00:03:37.687Z","operation":"install","host":"claude-code","action":"created","configPath":"/Users/claudio/Projects/open-bible/.claude/settings.json","dryRun":false,"global":false}
+{"timestamp":"2026-07-01T00:03:37.689Z","operation":"install","host":"codex","action":"created","configPath":"/Users/claudio/Projects/open-bible/.codex/hooks.json","dryRun":false,"global":false}
+{"timestamp":"2026-07-01T00:06:09.556Z","operation":"install","host":"claude-code","action":"skipped","configPath":"/Users/claudio/Projects/open-bible/.claude/settings.json","dryRun":false,"global":false}
+{"timestamp":"2026-07-01T00:06:09.558Z","operation":"install","host":"codex","action":"skipped","configPath":"/Users/claudio/Projects/open-bible/.codex/hooks.json","dryRun":false,"global":false}
+{"timestamp":"2026-07-01T00:06:19.558Z","operation":"install","host":"claude-code","action":"skipped","configPath":"/Users/claudio/Projects/open-bible/.claude/settings.json","dryRun":false,"global":false}
+{"timestamp":"2026-07-01T00:06:19.559Z","operation":"install","host":"codex","action":"skipped","configPath":"/Users/claudio/Projects/open-bible/.codex/hooks.json","dryRun":false,"global":false}
+{"timestamp":"2026-07-01T01:33:13.086Z","operation":"install","host":"claude-code","action":"skipped","configPath":"/Users/claudio/Projects/open-bible/.claude/settings.json","dryRun":false,"global":false}
+{"timestamp":"2026-07-01T01:33:13.089Z","operation":"install","host":"codex","action":"skipped","configPath":"/Users/claudio/Projects/open-bible/.codex/hooks.json","dryRun":false,"global":false}
