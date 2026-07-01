@@ -8,10 +8,30 @@ Orientações para Claude Code (e demais agentes) neste repositório.
 
 ## Skills do projeto (`.agents/skills/`)
 
+### Fluxo de trabalho
 - **`feature-dev`** — ponto de entrada para qualquer feature/fix/melhoria: orquestra spec →
-  plano → branch isolada (worktree de `develop`) → implementação. Usa as skills do superpowers
-  (`brainstorming`, `writing-plans`, `using-git-worktrees`) quando disponíveis.
+  plano → branch isolada (worktree de `develop`) → implementação.
 - **`dev-workflow`** — a mecânica de git (issue → branch de `develop` → commits → PR → merge).
+
+### Agentes especializados
+- **`bug-fixer`** — diagnóstico e resolução de bugs com foco na causa raiz.
+- **`architect`** — design de arquitetura e padrões, decisões cross-layer.
+
+### Qualidade de código
+- **`code-review`** — revisão de código, padrões e boas práticas do Open Bible.
+- **`bug-investigation`** — investigação sistemática de bugs e análise de causa raiz.
+- **`security-audit`** — auditoria de segurança (OWASP top 10, auth, secrets).
+
+### Ciclo de desenvolvimento
+- **`commit-message`** — geração de mensagens Conventional Commits.
+- **`pr-review`** — revisão de PRs contra os padrões do time.
+- **`feature-breakdown`** — quebra de features em tarefas implementáveis.
+- **`refactoring`** — refatoração segura com passo a passo.
+- **`test-generation`** — geração de casos de teste abrangentes.
+- **`documentation`** — geração e atualização de docs técnicos.
+
+### UI
+- **`shadcn`** — componentes shadcn/ui, presets e composição.
 
 ## Fluxo obrigatório (features, fixes, melhorias)
 

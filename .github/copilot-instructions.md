@@ -1,3 +1,8 @@
+---
+source: .github/copilot-instructions.md
+type: github-copilot
+---
+
 # GitHub Copilot — instruções do Open Bible
 
 **Fonte de verdade**: o fluxo completo e a arquitetura estão em [`AGENTS.md`](../AGENTS.md) e

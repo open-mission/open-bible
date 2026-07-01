@@ -1,4 +1,9 @@
 ---
+source: .cursor/rules/project.mdc
+type: cursorrules
+---
+
+---
 description: Convenções de commit, branch e fluxo do Open Bible
 alwaysApply: true
 ---
