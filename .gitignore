@@ -9,6 +9,9 @@
 # Cline kanban (local board state + ephemeral worktrees per task)
 /.cline/
 
+# Cline MCP servers (local editor config)
+/.mcp.json
+
 # next.js
 /.next/
 /out/
@@ -45,3 +48,10 @@ next-env.d.ts.env.local
 # generated SQLite WASM assets + seed bibles (copied from node_modules/resources)
 /public/sqlite-wasm/
 /public/bibles/
+
+# dotcontext runtime state
+.context/plans/
+.context/cache/semantic/
+.context/runtime/
+.context/**/archive/
+

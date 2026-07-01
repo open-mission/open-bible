@@ -132,4 +132,7 @@ CLOUDFLARE_BUCKET_PUBLIC_URL=...
 - Service worker generated at `public/sw.js` by `@ducanh2912/next-pwa` at build time; MIME type + `Service-Worker-Allowed` headers set in `next.config.mjs`.
 - `@vercel/analytics` renders only in production (`process.env.NODE_ENV === 'production'`).
 - Portuguese UI strings throughout.
+## AI Context References
+- Documentation index: `.context/docs/README.md`
+- Agent playbooks: `.context/agents/README.md`
 

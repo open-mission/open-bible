@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Monitor, Moon, Sun, Check, BookOpen, Palette } from "lucide-react"
-import { useAppTheme } from "@/components/theme-provider"
-import { useBibleVersion } from "@/lib/bible-version-context"
-import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/lib/theme"
-import { MobileNav } from "@/components/mobile-nav"
+import { useAppTheme } from "@/features/theme/components/theme-provider"
+import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
+import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/features/theme/utils/theme"
+import { MobileNav } from "@/features/layout/components/mobile-nav"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { APP_VERSION } from "@/lib/app-env"
-import { EnvBadge } from "@/components/env-badge"
+import { EnvBadge } from "@/features/layout/components/env-badge"
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
 

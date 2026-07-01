@@ -65,4 +65,10 @@ jobs:
         run: pnpm lint
 
       - name: Build
+        env:
+          # Placeholder values so Next.js can evaluate route modules at build
+          # time without a real database. No actual connection is made during
+          # compilation — these satisfy libsql/better-auth URL format checks only.
+          TURSO_DATABASE_URL: libsql://ci-placeholder.turso.io
+          TURSO_AUTH_TOKEN: ci-placeholder-token
         run: pnpm build

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "defaultEffect": "allow",
+  "rules": [
+    {
+      "id": "protect-repository-core",
+      "effect": "require_approval",
+      "when": {
+        "paths": [
+          "app/**",
+          "lib/**"
+        ],
+        "risk": "high"
+      },
+      "reason": "High-risk changes to core typescript nextjs paths require approval."
+    },
+    {
+      "id": "protect-repository-config",
+      "effect": "require_approval",
+      "when": {
+        "paths": [
+          ".github/workflows/**",
+          "package.json",
+          "pnpm-lock.yaml",
+          "tsconfig.json"
+        ],
+        "risk": "high"
+      },
+      "reason": "High-risk changes to repository automation and build configuration require approval."
+    },
+    {
+      "id": "block-secrets",
+      "effect": "deny",
+      "when": {
+        "paths": [
+          "**/.env*",
+          "**/*.pem",
+          "**/*.key",
+          "**/*secret*"
+        ]
+      },
+      "reason": "Secret-like files are blocked by policy."
+    }
+  ]
+}
