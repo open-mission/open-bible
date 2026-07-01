@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { IconTextSize } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { ReaderVersionBadge } from "./reader-version-badge";
-import { EnvBadge } from "@/features/layout/components/env-badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Toggle } from "@/components/ui/toggle";
 import { ReaderDisplaySettings } from "./reader-display-settings";
@@ -129,7 +128,6 @@ export function ReaderHeader({
         >
           {book.name} {chapter}
         </div>
-        <EnvBadge />
         {/* Desktop Mini Reference and Tools (Right-aligned) */}
         <div className="hidden md:flex items-center gap-2">
           <Popover>
@@ -193,7 +191,6 @@ export function ReaderHeader({
           >
             <IconTextSize className="h-4.5 w-4.5 text-muted-foreground" />
           </Button>
-          <EnvBadge className="mr-1" />
         </div>
       </nav>
 
