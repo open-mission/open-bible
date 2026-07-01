@@ -136,6 +136,7 @@ export default function Home() {
                 >
                   {selectedBookId && selectedChapter ? (
                     <Reader
+                      key={`${selectedBookId}-${selectedChapter}`}
                       bookId={selectedBookId}
                       chapter={selectedChapter}
                       onChapterChange={setSelectedChapter}
