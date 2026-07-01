@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { IconTextSize } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { ReaderVersionBadge } from "./reader-version-badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Toggle } from "@/components/ui/toggle";
 import { ReaderDisplaySettings } from "./reader-display-settings";
 import { ReaderThemeConfig } from "./reader-theme-config";
@@ -55,11 +59,13 @@ export function ReaderHeader({
 }: ReaderHeaderProps) {
   const [themeDialogOpen, setThemeDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(min-width: 768px)").matches;
+  });
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(media.matches);
     const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
     media.addEventListener("change", listener);
     return () => media.removeEventListener("change", listener);
@@ -88,7 +94,7 @@ export function ReaderHeader({
     <>
       {/* Top Header - Sticky on desktop, sliding down on scroll on mobile */}
       <div
-        className={`sticky top-0 z-20 bg-background/95 backdrop-blur flex items-center justify-between pb-3 pt-3 px-4 border-b border-border min-h-[57px] transition-all duration-300 ease-in-out md:translate-y-0 md:opacity-100 ${
+        className={`sticky top-0 z-20 bg-background/95 backdrop-blur flex items-center justify-between pb-3 pt-3 px-4 border-b border-border min-h-14.25 transition-all duration-300 ease-in-out md:translate-y-0 md:opacity-100 ${
           showMiniReference
             ? "translate-y-0 opacity-100"
             : "max-md:-translate-y-full max-md:opacity-0 max-md:pointer-events-none"

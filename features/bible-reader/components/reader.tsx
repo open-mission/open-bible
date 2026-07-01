@@ -3,25 +3,25 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getBook } from "@/features/bible-reader/utils/bible-data"
-import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible"
-import { VerseRow } from "./verse-row"
-import { ReaderHeader } from "./reader-header"
-import { ReaderChapterNav } from "./reader-chapter-nav"
+import { getBook } from "@/features/bible-reader/utils/bible-data";
+import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
+import { VerseRow } from "./verse-row";
+import { ReaderHeader } from "./reader-header";
+import { ReaderChapterNav } from "./reader-chapter-nav";
 
 interface ReaderProps {
-  bookId: string
-  chapter: number
-  onChapterChange: (chapter: number) => void
-  onBookChapterClick: () => void
-  readerMode: "narrow" | "medium" | "wide"
-  onChangeReaderMode: (mode: "narrow" | "medium" | "wide") => void
-  fontSize: number
-  onChangeFontSize: (size: number) => void
-  verseSpacing: "small" | "medium" | "large"
-  onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void
-  readerFont: "sans" | "serif" | "mono"
-  onChangeReaderFont: (font: "sans" | "serif" | "mono") => void
+  bookId: string;
+  chapter: number;
+  onChapterChange: (chapter: number) => void;
+  onBookChapterClick: () => void;
+  readerMode: "narrow" | "medium" | "wide";
+  onChangeReaderMode: (mode: "narrow" | "medium" | "wide") => void;
+  fontSize: number;
+  onChangeFontSize: (size: number) => void;
+  verseSpacing: "small" | "medium" | "large";
+  onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void;
+  readerFont: "sans" | "serif" | "mono";
+  onChangeReaderFont: (font: "sans" | "serif" | "mono") => void;
 }
 
 export function Reader({
@@ -38,71 +38,71 @@ export function Reader({
   readerFont,
   onChangeReaderFont,
 }: ReaderProps) {
-  const book = getBook(bookId)
-  const { verses, loading } = useBibleVerses(bookId, chapter)
+  const book = getBook(bookId);
+  const { verses, loading } = useBibleVerses(bookId, chapter);
 
-  const [activeVerseId, setActiveVerseId] = useState<string | null>(null)
+  const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
-    new Set()
-  )
-  const [multiSelectMode, setMultiSelectMode] = useState(false)
+    new Set(),
+  );
+  const [multiSelectMode] = useState(false);
 
-  const containerRef = useRef<HTMLDivElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const [headerVisible, setHeaderVisible] = useState(true)
-
-  useEffect(() => {
-    setActiveVerseId(null)
-    setSelectedVerseIds(new Set())
-  }, [bookId, chapter])
+  const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerVisible, setHeaderVisible] = useState(true);
 
   useEffect(() => {
-    const target = headerRef.current
-    if (!target) return
+    const target = headerRef.current;
+    if (!target) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setHeaderVisible(entry.isIntersecting)
+        setHeaderVisible(entry.isIntersecting);
       },
-      { threshold: 0 }
-    )
-    observer.observe(target)
+      { threshold: 0 },
+    );
+    observer.observe(target);
 
     return () => {
-      observer.unobserve(target)
-    }
-  }, [bookId, chapter])
+      observer.unobserve(target);
+    };
+  }, [bookId, chapter]);
 
-  if (!book) return null
+  if (!book) return null;
 
   function handleVerseClick(verseId: string) {
     if (multiSelectMode) {
       setSelectedVerseIds((prev) => {
-        const next = new Set(prev)
-        if (next.has(verseId)) next.delete(verseId)
-        else next.add(verseId)
-        return next
-      })
-      return
+        const next = new Set(prev);
+        if (next.has(verseId)) next.delete(verseId);
+        else next.add(verseId);
+        return next;
+      });
+      return;
     }
-    setActiveVerseId((prev) => (prev === verseId ? null : verseId))
+    setActiveVerseId((prev) => (prev === verseId ? null : verseId));
   }
 
   function prevChapter() {
-    if (chapter > 1) onChapterChange(chapter - 1)
+    if (chapter > 1) onChapterChange(chapter - 1);
   }
 
   function nextChapter() {
-    if (book && chapter < book.chapters) onChapterChange(chapter + 1)
+    if (book && chapter < book.chapters) onChapterChange(chapter + 1);
   }
 
   const spacingClasses = {
     small: "py-1.5 mb-1",
     medium: "py-2.5 mb-2",
     large: "py-4 mb-4",
-  }
+  };
 
-  const fontClass = readerFont === "sans" ? "font-sans" : readerFont === "mono" ? "font-mono" : "font-serif"
+  const fontClass =
+    readerFont === "sans"
+      ? "font-sans"
+      : readerFont === "mono"
+        ? "font-mono"
+        : "font-serif";
 
   return (
     <div className="flex flex-col min-w-0 h-full">
@@ -121,15 +121,19 @@ export function Reader({
         onChangeReaderFont={onChangeReaderFont}
       />
 
-      <div className={`flex-1 w-full mx-auto ${
-        readerMode === "wide"
-          ? "max-w-none px-4 md:px-8 py-8"
-          : readerMode === "medium"
-            ? "max-w-4xl px-4 md:px-12 py-8"
-            : "max-w-2xl px-4 md:px-16 py-8"
-      }`}>
+      <div
+        className={`flex-1 w-full mx-auto ${
+          readerMode === "wide"
+            ? "max-w-none px-4 md:px-8 py-8"
+            : readerMode === "medium"
+              ? "max-w-4xl px-4 md:px-12 py-8"
+              : "max-w-2xl px-4 md:px-16 py-8"
+        }`}
+      >
         <header ref={headerRef} className="mb-12 text-center">
-          <h2 className={`${fontClass} text-4xl font-semibold text-foreground mb-3`}>
+          <h2
+            className={`${fontClass} text-4xl font-semibold text-foreground mb-3`}
+          >
             {book.name}
           </h2>
           <div className="flex items-center justify-center gap-3">
@@ -188,7 +192,7 @@ export function Reader({
               ))}
             </div>
           ) : (
-            verses.map((verse, index) => (
+            verses.map((verse) => (
               <VerseRow
                 key={verse.id}
                 verse={verse}
