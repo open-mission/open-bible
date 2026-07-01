@@ -1,4 +1,4 @@
-import { getBook, getVerses } from "./bible-data"
+import { getBook, getVerses } from "@/features/bible-reader/utils/bible-data"
 
 export function parseVerseId(verseId: string) {
   const match = verseId.match(/^(.+)-(\d+)-(\d+)$/)

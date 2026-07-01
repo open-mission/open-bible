@@ -1,4 +1,4 @@
-import type { Book, Verse } from "./types"
+import type { Book, Verse } from "@/lib/types"
 
 export const BOOKS: Book[] = [
   // Old Testament
