@@ -6,6 +6,8 @@ import { BibleVersionProvider } from "@/features/bible-reader/context/bible-vers
 import { ToastProvider } from "@/features/layout/hooks/use-toast";
 import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
 import { UpdateBanner } from "@/features/service-worker/components/update-banner";
+import { DevBanner } from "@/features/layout/components/dev-banner";
+import { VersionLabel } from "@/features/layout/components/version-label";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -68,6 +70,8 @@ export default function RootLayout({
       className={`bg-background ${inter.variable} ${lora.variable} ${geistMono.variable}`}
     >
       <body className="font-sans antialiased">
+        <DevBanner />
+        <VersionLabel />
         <ThemeProvider>
           <BibleVersionProvider>
             <TooltipProvider>
