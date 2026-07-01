@@ -8,7 +8,7 @@ import {
   COLOR_VARS,
   loadThemeConfig,
   saveThemeConfig,
-} from "@/lib/theme"
+} from "@/features/theme/utils/theme"
 
 // ─── Theme mode context (replaces next-themes) ────────────────────────────────
 

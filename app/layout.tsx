@@ -1,11 +1,11 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter, Lora, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import { BibleVersionProvider } from "@/lib/bible-version-context";
-import { ToastProvider } from "@/lib/use-toast";
-import { ServiceWorkerRegister } from "@/components/service-worker-register";
-import { UpdateBanner } from "@/components/update-banner";
+import { ThemeProvider } from "@/features/theme/components/theme-provider";
+import { BibleVersionProvider } from "@/features/bible-reader/context/bible-version-context";
+import { ToastProvider } from "@/features/layout/hooks/use-toast";
+import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
+import { UpdateBanner } from "@/features/service-worker/components/update-banner";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 

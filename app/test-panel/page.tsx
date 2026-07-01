@@ -1,6 +1,6 @@
 "use client"
 
-import { PanelLayout } from "@/components/panel-layout"
+import { PanelLayout } from "@/features/layout/components/panel-layout"
 
 export default function TestPanelPage() {
   return (

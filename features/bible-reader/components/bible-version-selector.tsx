@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Book, Check, Download, Trash2, Loader2, ChevronDown, X } from "lucide-react"
-import { useBibleVersion } from "@/lib/bible-version-context"
+import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { useIsMobile } from "@/lib/use-media-query"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
-import { useToast } from "@/lib/use-toast"
+import { useToast } from "@/features/layout/hooks/use-toast"
 import { DownloadVersionsDialog } from "./download-versions-dialog"
 
 export function BibleVersionSelector() {

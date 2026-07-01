@@ -7,7 +7,7 @@ import {
   IconSettings,
   IconBook,
 } from "@tabler/icons-react";
-import { useAppTheme } from "@/components/theme-provider";
+import { useAppTheme } from "@/features/theme/components/theme-provider";
 import {
   Sidebar,
   SidebarContent,

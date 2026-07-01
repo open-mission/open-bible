@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronLeft } from "lucide-react"
-import { getBook } from "@/lib/bible-data"
+import { getBook } from "@/features/bible-reader/utils/bible-data"
 
 interface ChapterGridProps {
   bookId: string

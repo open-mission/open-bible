@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getBook } from "@/lib/bible-data"
-import { useBibleVerses } from "@/lib/use-bible"
+import { getBook } from "@/features/bible-reader/utils/bible-data"
+import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible"
 import { VerseRow } from "./verse-row"
 import { ReaderHeader } from "./reader-header"
 import { ReaderChapterNav } from "./reader-chapter-nav"

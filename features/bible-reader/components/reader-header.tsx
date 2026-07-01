@@ -3,29 +3,29 @@
 import { useState, useEffect } from "react";
 import { Palette, Check, Sun, Moon, Monitor } from "lucide-react";
 import { IconTextSize } from "@tabler/icons-react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { ReaderVersionBadge } from "./reader-version-badge";
-import { EnvBadge } from "./env-badge";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Slider } from "./ui/slider";
-import { Toggle } from "./ui/toggle";
+import { EnvBadge } from "@/features/layout/components/env-badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
+import { Toggle } from "@/components/ui/toggle";
 
-import { useAppTheme } from "./theme-provider";
-import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor } from "@/lib/theme";
+import { useAppTheme } from "@/features/theme/components/theme-provider";
+import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor } from "@/features/theme/utils/theme";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
+} from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-} from "./ui/drawer";
+} from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 

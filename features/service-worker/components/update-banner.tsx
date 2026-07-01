@@ -1,6 +1,6 @@
 "use client";
 
-import { useServiceWorkerUpdate } from "@/lib/use-sw-update";
+import { useServiceWorkerUpdate } from "@/features/service-worker/hooks/use-sw-update";
 import { Button } from "@/components/ui/button";
 
 export function UpdateBanner() {
