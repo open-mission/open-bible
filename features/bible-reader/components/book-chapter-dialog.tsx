@@ -9,7 +9,7 @@ import type { Book } from "@/lib/types"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
 
 interface BookChapterDialogProps {
   open: boolean
@@ -102,7 +102,8 @@ export function BookChapterDialog({
 
   const content = (
     <div className="relative flex flex-col h-full max-h-[90vh] bg-background md:max-h-[75vh] overflow-hidden">
-      {/* Search & Action Header */}
+      {/* Search & Action Header — só na etapa de seleção de livro */}
+      {shouldShowBooks && (
       <header className="flex items-center px-4 h-14 shrink-0 gap-3 z-10">
         <InputGroup className="flex-1 h-10 shadow-none border-border bg-background">
           <InputGroupAddon align="inline-start">
@@ -153,18 +154,28 @@ export function BookChapterDialog({
               </PopoverContent>
             </Popover>
           </InputGroupAddon>
+
+          {/* Botão fechar dentro do input — só no desktop.
+              No mobile o BottomSheet (vaul) fecha por swipe/overlay. */}
+          <InputGroupAddon align="inline-end" className="hidden md:flex pr-1">
+            <InputGroupButton
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleClose}
+              aria-label="Fechar"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </InputGroupButton>
+          </InputGroupAddon>
         </InputGroup>
-
-        <button
-          onClick={handleClose}
-          className="p-1.5 hover:bg-accent rounded-md text-muted-foreground transition-colors cursor-pointer shrink-0"
-        >
-          <X className="h-5 w-5" />
-        </button>
       </header>
+      )}
 
-      {/* Elegant Fade Gradient Overlay below InputGroup */}
-      <div className="absolute top-14 left-0 right-0 h-6 bg-linear-to-b from-background to-transparent pointer-events-none z-10" />
+      {/* Elegant Fade Gradient Overlay below InputGroup — só na etapa de livro */}
+      {shouldShowBooks && (
+        <div className="absolute top-14 left-0 right-0 h-6 bg-linear-to-b from-background to-transparent pointer-events-none z-10" />
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-background custom-scrollbar">
