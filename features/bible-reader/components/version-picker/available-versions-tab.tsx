@@ -1,13 +1,17 @@
-"use client"
+"use client";
 
-import { Download, Loader2 } from "lucide-react"
-import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
-import { getNotInstalledAvailable, filterVersions, getVersionSize } from "./version-meta"
-import { VersionRow } from "./version-row"
-import { useVersionInstall } from "./use-version-install"
+import { Download, Loader2 } from "lucide-react";
+import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context";
+import {
+  getNotInstalledAvailable,
+  filterVersions,
+  getVersionSize,
+} from "./version-meta";
+import { VersionRow } from "./version-row";
+import { useVersionInstall } from "./use-version-install";
 
 interface AvailableVersionsTabProps {
-  query: string
+  query: string;
 }
 
 /**
@@ -16,10 +20,18 @@ interface AvailableVersionsTabProps {
  * O ciclo de vida do toast de download é gerenciado por `useVersionInstall`.
  */
 export function AvailableVersionsTab({ query }: AvailableVersionsTabProps) {
-  const { availableVersions, installedVersions, isInstalling, downloadProgress } = useBibleVersion()
-  const notInstalled = getNotInstalledAvailable(availableVersions, installedVersions)
-  const filtered = filterVersions(notInstalled, query)
-  const { install, installingName } = useVersionInstall()
+  const {
+    availableVersions,
+    installedVersions,
+    isInstalling,
+    downloadProgress,
+  } = useBibleVersion();
+  const notInstalled = getNotInstalledAvailable(
+    availableVersions,
+    installedVersions,
+  );
+  const filtered = filterVersions(notInstalled, query);
+  const { install, installingName } = useVersionInstall();
 
   if (filtered.length === 0) {
     return (
@@ -30,12 +42,12 @@ export function AvailableVersionsTab({ query }: AvailableVersionsTabProps) {
             : "Todas as versões já estão instaladas."}
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-1 gap-2">
         {filtered.map((v) => (
           <VersionRow
             key={v.id}
@@ -62,7 +74,10 @@ export function AvailableVersionsTab({ query }: AvailableVersionsTabProps) {
             <Loader2 className="h-3 w-3 animate-spin" />
             <span>
               Baixando {installingName}...{" "}
-              {Math.round((downloadProgress.current / downloadProgress.total) * 100)}%
+              {Math.round(
+                (downloadProgress.current / downloadProgress.total) * 100,
+              )}
+              %
             </span>
           </div>
           <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
@@ -76,5 +91,5 @@ export function AvailableVersionsTab({ query }: AvailableVersionsTabProps) {
         </div>
       )}
     </div>
-  )
+  );
 }
