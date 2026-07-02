@@ -1,1 +1,0 @@
-../../.context/agents/devops-specialist.md
