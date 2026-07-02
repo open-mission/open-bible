@@ -48,6 +48,12 @@ jobs:
           node-version: 20
           cache: pnpm
 
+      - name: Setup MSVC (Windows)
+        if: matrix.platform == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
