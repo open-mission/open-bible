@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect } from "react"
 import { Download, Loader2 } from "lucide-react"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { getNotInstalledAvailable, filterVersions, getVersionSize } from "./version-meta"
@@ -14,17 +13,13 @@ interface AvailableVersionsTabProps {
 /**
  * Conteúdo da aba "Disponíveis": lista das versões não-instaladas filtrada por
  * `query`. Botão Baixar dispara a instalação; barra de progresso fixa no rodapé.
+ * O ciclo de vida do toast de download é gerenciado por `useVersionInstall`.
  */
 export function AvailableVersionsTab({ query }: AvailableVersionsTabProps) {
   const { availableVersions, installedVersions, isInstalling, downloadProgress } = useBibleVersion()
   const notInstalled = getNotInstalledAvailable(availableVersions, installedVersions)
   const filtered = filterVersions(notInstalled, query)
-  const { install, syncProgress, installingName } = useVersionInstall()
-
-  // Sincroniza o progresso do download no toast enquanto ele corre.
-  useEffect(() => {
-    syncProgress(downloadProgress)
-  }, [downloadProgress, syncProgress])
+  const { install, installingName } = useVersionInstall()
 
   if (filtered.length === 0) {
     return (
