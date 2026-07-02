@@ -5,49 +5,84 @@ description: Generate comprehensive test cases for code. Use when Writing tests 
 skillSlug: test-generation
 phases: [E, V]
 generated: 2026-07-01
-status: unfilled
+status: filled
 scaffoldVersion: "2.0.0"
 ---
 ## Workflow
 
-1. Identify the function/component to test
-2. List the behaviors that need testing
-3. Write tests for happy path scenarios
-4. Add tests for edge cases and boundaries
-5. Include error handling tests
-6. Mock external dependencies appropriately
-7. Verify tests are deterministic and isolated
+1. Identify the function or component to test — prioritize pure functions with no side effects.
+2. List the behaviors: happy path, edge cases, error conditions, boundary values.
+3. Set up the test framework (Vitest recommended for Vite/Next.js compatibility).
+4. Write tests using Arrange-Act-Assert pattern with descriptive names.
+5. Mock external dependencies at the boundary (worker RPC, TursoDB, OPFS).
+6. Run tests and confirm they pass.
+7. Verify tests are deterministic and isolated — no shared state between tests.
+
+## Quality Bar
+
+- Test behavior, not implementation — focus on inputs and outputs.
+- Use descriptive test names: `describe('parseVerseId')` → `it('should parse "1:2:3" into bookId=1, chapter=2, verse=3')`.
+- Follow Arrange-Act-Assert pattern consistently.
+- Keep tests independent and isolated — no shared mutable state.
+- Don't test external libraries (SQLite, Drizzle, Hono, Better Auth).
+- Mock at the boundary: mock the worker RPC for client DB tests, mock TursoDB for API tests.
+- Aim for fast, reliable tests — pure function tests should complete in milliseconds.
 
 ## Examples
 
-**Unit test example:**
+**Unit test for parseVerseId:**
+
 ```typescript
-describe('calculateTotal', () => {
-  it('should sum item prices correctly', () => {
-    const items = [{ price: 10 }, { price: 20 }];
-    expect(calculateTotal(items)).toBe(30);
+import { describe, it, expect } from 'vitest';
+import { parseVerseId } from '@/verse-utils';
+
+describe('parseVerseId', () => {
+  it('should parse valid verse ID into components', () => {
+    const result = parseVerseId('1:2:3');
+    expect(result).toEqual({ bookId: 1, chapter: 2, verse: 3 });
   });
 
-  it('should return 0 for empty array', () => {
-    expect(calculateTotal([])).toBe(0);
+  it('should handle single-digit values', () => {
+    const result = parseVerseId('19:119:176');
+    expect(result).toEqual({ bookId: 19, chapter: 119, verse: 176 });
   });
 
-  it('should handle negative prices', () => {
-    const items = [{ price: 10 }, { price: -5 }];
-    expect(calculateTotal(items)).toBe(5);
+  it('should throw on malformed input', () => {
+    expect(() => parseVerseId('invalid')).toThrow();
+    expect(() => parseVerseId('1:2')).toThrow();
+    expect(() => parseVerseId('1:2:3:4')).toThrow();
+  });
+
+  it('should throw on non-numeric segments', () => {
+    expect(() => parseVerseId('a:b:c')).toThrow();
   });
 });
 ```
 
-## Quality Bar
+**Integration test for API version listing:**
 
-- Test behavior, not implementation
-- Use descriptive test names that explain what and why
-- Follow Arrange-Act-Assert pattern
-- Keep tests independent and isolated
-- Don't test external libraries
-- Mock at the boundary, not everywhere
-- Aim for fast, reliable tests
+```typescript
+import { describe, it, expect, beforeAll } from 'vitest';
+import { listVersions } from '@/api/bible-service';
+
+describe('listVersions', () => {
+  it('should return all available Bible versions', async () => {
+    const versions = await listVersions();
+    expect(versions).toBeInstanceOf(Array);
+    expect(versions.length).toBeGreaterThan(0);
+    expect(versions[0]).toHaveProperty('id');
+    expect(versions[0]).toHaveProperty('name');
+  });
+
+  it('should include metadata for each version', async () => {
+    const versions = await listVersions();
+    for (const v of versions) {
+      expect(v).toHaveProperty('language');
+      expect(v.language).toBe('pt');
+    }
+  });
+});
+```
 
 ## Resource Strategy
 
