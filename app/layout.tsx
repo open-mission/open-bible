@@ -6,12 +6,10 @@ import { BibleVersionProvider } from "@/features/bible-reader/context/bible-vers
 import { ToastProvider } from "@/features/layout/hooks/use-toast";
 import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
 import { UpdateBanner } from "@/features/service-worker/components/update-banner";
-import { DevBanner } from "@/features/layout/components/dev-banner";
 import { VersionLabel } from "@/features/layout/components/version-label";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ENV_LABEL } from "@/lib/app-env";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -71,13 +69,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`bg-background ${inter.variable} ${lora.variable} ${geistMono.variable}`}
     >
-      <body
-        className={cn(
-          "font-sans antialiased",
-          ENV_LABEL.development || ENV_LABEL.staging ? "pt-6" : "",
-        )}
-      >
-        <DevBanner />
+      <body className={cn("font-sans antialiased")}>
         <VersionLabel />
         <ThemeProvider>
           <BibleVersionProvider>
