@@ -16,6 +16,9 @@
 /.next/
 /out/
 
+# tauri build stash (temporary app/api relocation during desktop export)
+/.tauri-build-stash/
+
 # production
 /build
 
