@@ -175,7 +175,7 @@ export default function Home() {
           onSelectChapter={handleSelectChapter}
           selectedBookId={selectedBookId}
           selectedChapter={selectedChapter}
-          versionAbbreviation={currentVersion?.name || versionId.toUpperCase()}
+          versionAbbreviation={versionId.toUpperCase()}
         />
       </SidebarInset>
     </SidebarProvider>

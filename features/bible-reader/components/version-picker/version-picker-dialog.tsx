@@ -43,7 +43,7 @@ export function VersionPickerDialog({
   const availableCount = Math.max(0, availableVersions.length - installedCount);
 
   const content = (
-    <div className="relative flex flex-col h-full max-h-[90vh] bg-background md:max-h-[95vh] overflow-hidden">
+    <div className="relative flex flex-col h-full bg-background overflow-hidden">
       <VersionSearchHeader
         query={query}
         onQueryChange={setQuery}
@@ -53,8 +53,8 @@ export function VersionPickerDialog({
       {/* Fade abaixo do header */}
       <div className="absolute top-14 left-0 right-0 h-6 bg-linear-to-b from-background to-transparent pointer-events-none z-10" />
 
-      <div className="px-4 md:px-6 pt-2 pb-2 shrink-0 z-10 bg-background relative">
-        <Tabs defaultValue="installed">
+      <Tabs defaultValue="installed" className="flex-1 min-h-0 flex flex-col">
+        <div className="px-4 md:px-6 pt-2 pb-2 shrink-0 z-10 bg-background relative">
           <TabsList className="w-full">
             <TabsTrigger value="installed">
               Instaladas ({installedCount})
@@ -63,30 +63,25 @@ export function VersionPickerDialog({
               Disponíveis ({availableCount})
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="installed" className="mt-4">
-            <div className="overflow-y-auto p-4 md:p-0 pt-4 custom-scrollbar h-full max-h-[90vh]">
-              <InstalledVersionsTab query={query} onSelect={handleSelect} />
-            </div>
-          </TabsContent>
-          <TabsContent value="available" className="mt-4">
-            <div className="overflow-y-auto p-4 md:p-0 pt-4 custom-scrollbar h-full max-h-[90vh]">
-              <AvailableVersionsTab query={query} />
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+        </div>
+        <TabsContent value="installed" className="flex-1 min-h-0 mt-0">
+          <div className="h-full overflow-y-auto p-4 md:p-0 pt-4 custom-scrollbar">
+            <InstalledVersionsTab query={query} onSelect={handleSelect} />
+          </div>
+        </TabsContent>
+        <TabsContent value="available" className="flex-1 min-h-0 mt-0">
+          <div className="h-full overflow-y-auto p-4 md:p-0 pt-4 custom-scrollbar">
+            <AvailableVersionsTab query={query} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 
   if (isMobile) {
     return (
-      <BottomSheet
-        open={open}
-        onClose={handleClose}
-        size="full"
-        fullScreen={true}
-      >
-        <div className="flex flex-col">{content}</div>
+      <BottomSheet open={open} onClose={handleClose} size="95">
+        {content}
       </BottomSheet>
     );
   }
