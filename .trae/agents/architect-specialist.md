@@ -1,1 +1,0 @@
-../../.context/agents/architect-specialist.md
