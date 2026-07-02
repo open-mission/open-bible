@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { IconTextSize } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { BibleVersionSelector } from "./bible-version-selector";
+import { ReaderVersionBadge } from "./reader-version-badge";
 import {
   Popover,
   PopoverContent,
