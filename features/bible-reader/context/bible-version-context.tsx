@@ -262,9 +262,20 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
       const originalLength = response.headers.get("x-original-content-length")
       const contentLength = response.headers.get("content-length")
       const contentEncoding = response.headers.get("content-encoding")
-      const totalBytes = originalLength
-        ? parseInt(originalLength, 10)
-        : (contentLength ? parseInt(contentLength, 10) : 0)
+      // The proxy gzips the DB: Content-Length is the COMPRESSED size, and the
+      // browser transparently decompresses response.body, so the bytes we read are
+      // uncompressed. Prefer X-Original-Content-Length (uncompressed). When it is
+      // missing (a proxy strips it, or CORS did not expose it cross-origin), a
+      // gzipped Content-Length would make progress exceed 100% — treat the total as
+      // indeterminate instead.
+      let totalBytes = 0
+      if (originalLength) {
+        totalBytes = parseInt(originalLength, 10)
+      } else if (contentEncoding && /gzip/i.test(contentEncoding)) {
+        totalBytes = 0
+      } else if (contentLength) {
+        totalBytes = parseInt(contentLength, 10)
+      }
 
       console.log(`[install:${id}] headers — content-encoding=${contentEncoding} x-original-content-length=${originalLength} content-length=${contentLength} totalBytes=${totalBytes}`)
 
@@ -283,7 +294,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
 
         if (totalBytes > 0) {
           setDownloadProgress({
-            current: receivedBytes,
+            current: Math.min(receivedBytes, totalBytes),
             total: totalBytes,
           })
         } else {
