@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { IconTextSize } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { ReaderVersionBadge } from "./reader-version-badge";
+import { BibleVersionSelector } from "./bible-version-selector";
 import {
   Popover,
   PopoverContent,
@@ -117,7 +117,7 @@ export function ReaderHeader({
             >
               <span className="text-sm font-semibold mx-1">{chapter}</span>
             </Button>
-            <ReaderVersionBadge
+            <BibleVersionSelector
               variant="ghost"
               className="h-8 rounded-full px-3"
             />
@@ -185,7 +185,7 @@ export function ReaderHeader({
           >
             <span className="text-sm font-semibold mx-1">{chapter}</span>
           </Button>
-          <ReaderVersionBadge
+          <BibleVersionSelector
             variant="ghost"
             className="h-9 rounded-full px-3"
           />
