@@ -1,4 +1,6 @@
-const API_BASE = "/api"
+import { API_ORIGIN } from "./api-base"
+
+const API_BASE = `${API_ORIGIN}/api`
 
 interface APIVersion {
   id: string
