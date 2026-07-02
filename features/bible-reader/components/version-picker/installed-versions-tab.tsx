@@ -1,22 +1,25 @@
-"use client"
+"use client";
 
-import { Check, Trash2 } from "lucide-react"
-import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
-import { filterVersions, getVersionSize } from "./version-meta"
-import { VersionRow } from "./version-row"
+import { Check, Trash2 } from "lucide-react";
+import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context";
+import { filterVersions, getVersionSize } from "./version-meta";
+import { VersionRow } from "./version-row";
 
 interface InstalledVersionsTabProps {
-  query: string
-  onSelect: (id: string) => void
+  query: string;
+  onSelect: (id: string) => void;
 }
 
 /**
  * Conteúdo da aba "Instaladas": lista filtrada por `query`. Selecionar ativa
  * a versão (e fecha o dialog via onSelect). Lixeira desinstala com confirmação.
  */
-export function InstalledVersionsTab({ query, onSelect }: InstalledVersionsTabProps) {
-  const { versionId, installedVersions, uninstallVersion } = useBibleVersion()
-  const filtered = filterVersions(installedVersions, query)
+export function InstalledVersionsTab({
+  query,
+  onSelect,
+}: InstalledVersionsTabProps) {
+  const { versionId, installedVersions, uninstallVersion } = useBibleVersion();
+  const filtered = filterVersions(installedVersions, query);
 
   if (filtered.length === 0) {
     return (
@@ -27,13 +30,13 @@ export function InstalledVersionsTab({ query, onSelect }: InstalledVersionsTabPr
             : "Nenhuma versão instalada. Baixe uma na aba Disponíveis."}
         </p>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-1 gap-2">
       {filtered.map((v) => {
-        const isActive = v.id === versionId
+        const isActive = v.id === versionId;
         return (
           <VersionRow
             key={v.id}
@@ -48,9 +51,9 @@ export function InstalledVersionsTab({ query, onSelect }: InstalledVersionsTabPr
             ) : (
               <button
                 onClick={(e) => {
-                  e.stopPropagation()
+                  e.stopPropagation();
                   if (confirm(`Remover "${v.name}" do dispositivo?`)) {
-                    uninstallVersion(v.id)
+                    uninstallVersion(v.id);
                   }
                 }}
                 className="text-muted-foreground hover:text-destructive transition-colors p-1.5 hover:bg-accent rounded-md cursor-pointer"
@@ -60,8 +63,8 @@ export function InstalledVersionsTab({ query, onSelect }: InstalledVersionsTabPr
               </button>
             )}
           </VersionRow>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
