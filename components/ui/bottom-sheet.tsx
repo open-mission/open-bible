@@ -32,9 +32,9 @@ export function BottomSheet({
           className={cn(
             "p-0 border-none outline-none overflow-hidden bg-background",
             isFull
-              ? "data-[vaul-drawer-direction=bottom]:max-h-dvh data-[vaul-drawer-direction=bottom]:rounded-t-none"
+              ? "data-[vaul-drawer-direction=bottom]:h-dvh data-[vaul-drawer-direction=bottom]:max-h-dvh data-[vaul-drawer-direction=bottom]:rounded-t-none"
               : is95
-                ? "data-[vaul-drawer-direction=bottom]:max-h-[95dvh]"
+                ? "data-[vaul-drawer-direction=bottom]:h-[95dvh] data-[vaul-drawer-direction=bottom]:max-h-[95dvh]"
                 : "data-[vaul-drawer-direction=bottom]:max-h-[80vh]"
           )}
         >
