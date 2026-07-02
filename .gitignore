@@ -52,9 +52,23 @@ next-env.d.ts.env.local
 /public/sqlite-wasm/
 /public/bibles/
 
-# dotcontext runtime state
+# AI tool configs (consolidated in .agents/)
+/.claude/
+/.cursor/
+/.codex/
+/.windsurf/
+/.cline/
+/.trae/
+/.continue/
+
+# opencode config (local)
+/opencode.json
+/.mcp.json
+
+# dotcontext runtime state (auto-generated)
 .context/plans/
-.context/cache/semantic/
+.context/cache/
 .context/runtime/
+.context/logs/
 .context/**/archive/
 
