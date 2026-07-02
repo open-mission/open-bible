@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { IconTextSize } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { ReaderVersionBadge } from "./reader-version-badge";
+
 import {
   Popover,
   PopoverContent,
@@ -26,6 +26,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { BibleVersionSelector } from "./bible-version-selector";
 
 interface ReaderHeaderProps {
   book: { name: string };
