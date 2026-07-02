@@ -16,6 +16,17 @@ const API_DIR = join(root, "app", "api")
 const STASH_DIR = join(root, ".tauri-build-stash")
 const STASHED_API = join(STASH_DIR, "api")
 
+// Safety net: if a previous run was interrupted (e.g. killed by a timeout) after
+// moving app/api to the stash but before the `finally` restored it, app/api is
+// missing and the stash dir lingers. Restore it now so the working tree is never
+// left without the API routes (the Vercel build depends on them). A clean run has
+// no stash dir, so this is a no-op.
+if (!existsSync(API_DIR) && existsSync(STASHED_API)) {
+  renameSync(STASHED_API, API_DIR)
+  rmSync(STASH_DIR, { recursive: true, force: true })
+  console.log("[build-tauri] restaurado app/api de um stash de execução anterior interrompida")
+}
+
 const apiWasMoved = existsSync(API_DIR)
 
 try {
@@ -32,6 +43,13 @@ try {
     NEXT_PUBLIC_API_ORIGIN:
       process.env.NEXT_PUBLIC_API_ORIGIN ?? "https://openbible-prod.vercel.app",
   }
+
+  // The SQLite WASM worker + sqlite3.wasm + OPFS proxy live in public/sqlite-wasm/,
+  // which is gitignored and normally populated by the `prebuild` hook (pnpm
+  // copy:wasm). `next build` is invoked directly below, bypassing that hook, so we
+  // must copy the assets first — otherwise the static export ships without the
+  // worker and the desktop app opens to a blank screen (worker 404 at runtime).
+  execSync("node scripts/copy-sqlite-wasm.mjs", { cwd: root, stdio: "inherit", env })
 
   execSync("next build --webpack", { cwd: root, stdio: "inherit", env })
 } finally {

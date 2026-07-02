@@ -32,6 +32,9 @@ app.use("*", async (c, next) => {
   c.header("Access-Control-Allow-Origin", "*")
   c.header("Access-Control-Allow-Methods", "GET, OPTIONS")
   c.header("Access-Control-Allow-Headers", "Content-Type")
+  // Expose custom headers so cross-origin clients (Tauri desktop, iOS app) can read
+  // the uncompressed size and content-encoding of the gzipped Bible download proxy.
+  c.header("Access-Control-Expose-Headers", "X-Original-Content-Length, Content-Encoding")
   if (c.req.method === "OPTIONS") {
     return c.body(null, 204)
   }
