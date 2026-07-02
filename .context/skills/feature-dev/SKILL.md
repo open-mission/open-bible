@@ -101,7 +101,7 @@ Princípios: DRY, YAGNI, commits frequentes, tarefas auto-contidas.
 
 ## Passo 3 — Branch isolada (git worktree) a partir de `develop`
 
-**Objetivo:** isolar a implementação numa worktree dedicada, sem mexer no diretório de trabalho atual.
+**Objetivo:** isolar a implementação em branch separada, sem mexer no diretório de trabalho atual.
 
 **Modo nativo (superpowers):** invoque `superpowers:using-git-worktrees`.
 

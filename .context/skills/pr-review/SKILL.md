@@ -5,51 +5,49 @@ description: Review pull requests against team standards and best practices. Use
 skillSlug: pr-review
 phases: [R, V]
 generated: 2026-07-01
-status: unfilled
+status: filled
 scaffoldVersion: "2.0.0"
 ---
 ## Workflow
 
-1. Read the PR description to understand the goal
-2. Review the linked issue(s) for context
-3. Check that tests are included and passing
-4. Review code changes file by file
-5. Verify documentation is updated if needed
-6. Leave constructive feedback with specific suggestions
-7. Approve, request changes, or comment based on findings
-
-## Examples
-
-**Approval comment:**
-```
-Looks good! Clean implementation with comprehensive tests.
-
-Minor suggestion: Consider extracting the validation logic
-in `UserService.ts:45` into a separate function for reusability.
-
-Approved ✅
-```
-
-**Request changes:**
-```
-Good progress, but a few items need attention:
-
-1. Missing test for error handling in `fetchUser()`
-2. The new endpoint needs documentation in the API docs
-3. Consider adding input validation for the email field
-
-Please address these and I'll re-review.
-```
+1. Read the PR description and linked issue to understand the goal.
+2. Check the branch name follows convention (`feat/{nr}-desc`, `fix/{nr}-desc`, `improve/{nr}-desc` from `develop`).
+3. Verify commits use semantic types (`feat:`, `fix:`, `improve:`) — validated by commitlint in CI.
+4. Review code changes file by file, focusing on Open Bible-specific pitfalls.
+5. Check that the PR does not modify `next.config.mjs` Workbox rules without explicit justification.
+6. Verify the worker RPC contract (`lib/database/worker-types.ts`) is updated if new DB operations were added.
+7. Ensure `pnpm lint` and `pnpm build` pass in CI.
+8. Leave constructive feedback with specific file/line references.
+9. Approve, request changes, or comment based on findings.
 
 ## Quality Bar
 
-- Start with understanding the PR's goal
-- Be constructive and specific in feedback
-- Distinguish between required changes and suggestions
-- Test the changes locally if complex
-- Check for security implications
-- Verify backward compatibility
-- Approve only when confident in the changes
+- Start by understanding the PR's goal and verifying the issue is referenced correctly (`Closes #nr`).
+- Check for Open Bible gotchas: `ignoreBuildErrors: true` means type errors must be caught by eye; composite PK `(id, version_id)`; download `NetworkOnly` rule.
+- Verify Portuguese UI strings — reject hardcoded English text in user-facing components.
+- Confirm the PR keeps server/client search parity (`LIKE %q% COLLATE NOCASE`, no FTS).
+- Check for CORS implications if the PR touches `/api/*` routes (open CORS for iOS companion app).
+- Verify no secrets or env files are committed.
+- Test the changes locally if complex.
+- Approve only when confident in the changes.
+
+## Examples
+
+**Request changes (Open Bible-specific):**
+```
+Good start, but a few items need attention:
+
+1. The new worker operation in `lib/database/worker-types.ts` is missing
+   the request type — the existing `WorkerRequest` union needs an
+   addition for `toggleHighlight`.
+2. The PR adds an English toast message in `components/reader/verse-actions.tsx:42`
+   — all user-facing strings must be Portuguese.
+3. The search query in `lib/bible-db.ts:112` uses string interpolation
+   instead of parameterized binding — this must use `?` placeholders
+   for SQLite.
+
+Please address these and I'll re-review.
+```
 
 ## Resource Strategy
 

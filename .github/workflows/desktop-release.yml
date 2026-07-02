@@ -48,14 +48,14 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - name: Setup MSVC (Windows)
-        if: matrix.platform == 'windows-latest'
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
+      # better-sqlite3 is a dev-only native module (used only by server import
+      # scripts) and is NOT imported by the desktop build. Its node-gyp postinstall
+      # is the only step that fails on Windows runners. --ignore-scripts skips
+      # native postinstall builds — safe here because the Tauri/Rust side compiles
+      # with its own toolchain and the Next.js static export needs no native Node
+      # modules.
       - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Build and release desktop app
         uses: tauri-apps/tauri-action@v0

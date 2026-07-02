@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
@@ -48,25 +48,6 @@ export function Reader({
   const [multiSelectMode] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [headerVisible, setHeaderVisible] = useState(true);
-
-  useEffect(() => {
-    const target = headerRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setHeaderVisible(entry.isIntersecting);
-      },
-      { threshold: 0 },
-    );
-    observer.observe(target);
-
-    return () => {
-      observer.unobserve(target);
-    };
-  }, [bookId, chapter]);
 
   if (!book) return null;
 
@@ -112,7 +93,6 @@ export function Reader({
         readerMode={readerMode}
         onBookChapterClick={onBookChapterClick}
         onChangeReaderMode={onChangeReaderMode}
-        showMiniReference={!headerVisible}
         fontSize={fontSize}
         onChangeFontSize={onChangeFontSize}
         verseSpacing={verseSpacing}
@@ -130,7 +110,7 @@ export function Reader({
               : "max-w-2xl px-4 md:px-16 py-8"
         }`}
       >
-        <header ref={headerRef} className="mb-12 text-center">
+        <header className="mb-12 text-center">
           <h2
             className={`${fontClass} text-4xl font-semibold text-foreground mb-3`}
           >
@@ -214,7 +194,7 @@ export function Reader({
       </div>
 
       {/* Floating navigation: bottom on mobile, sides on desktop */}
-      <div className="fixed inset-x-0 bottom-36 z-40 flex justify-center pointer-events-none md:hidden">
+      <div className="fixed inset-x-0 bottom-8 z-40 flex justify-center pointer-events-none md:hidden">
         <div className="flex gap-5 pointer-events-auto">
           <button
             onClick={prevChapter}

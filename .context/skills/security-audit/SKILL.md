@@ -5,55 +5,58 @@ description: Review code and infrastructure for security weaknesses. Use when Re
 skillSlug: security-audit
 phases: [R, V]
 generated: 2026-07-01
-status: unfilled
+status: filled
 scaffoldVersion: "2.0.0"
 ---
 ## Workflow
 
-1. Review authentication implementation
-2. Check authorization on all endpoints
-3. Look for injection vulnerabilities
-4. Verify input validation and sanitization
-5. Check for sensitive data exposure
-6. Review dependency security
-7. Document findings with severity
-
-## Examples
-
-**Security audit findings:**
-```
-## Security Audit Report
-
-### Critical
-1. SQL Injection in UserController.ts:45
-   - Query constructed with string concatenation
-   - Fix: Use parameterized queries
-
-### High
-2. Missing authentication on /api/admin/*
-   - Admin routes accessible without auth
-   - Fix: Add auth middleware
-
-### Medium
-3. Sensitive data in logs
-   - Passwords logged in debug mode
-   - Fix: Sanitize logs, remove sensitive fields
-
-### Recommendations
-- Enable security headers (HSTS, CSP)
-- Implement rate limiting
-- Add input validation middleware
-```
+1. Review the Better Auth implementation: `lib/auth.ts` (server config), `lib/auth-client.ts` (client helper), `app/api/auth/[...all]/route.ts`.
+2. Check authorization on all API endpoints — Bible reading is public, but account management should require auth.
+3. Verify all API inputs are validated with Zod schemas (`lib/api/schemas.ts`).
+4. Look for SQL injection in search queries — parameterized `LIKE` with bound parameters required.
+5. Check for sensitive data exposure in the download proxy (`/api/bibles/download/`).
+6. Review CORS configuration — open on `/api/*` for iOS companion app.
+7. Check the Workbox config for caching of authenticated or download routes.
+8. Verify `.env.local` is git-ignored and no secrets are hardcoded.
+9. Document findings with severity.
 
 ## Quality Bar
 
-- Check OWASP top 10 vulnerabilities
-- Never trust user input
-- Review authentication carefully
-- Verify authorization on all routes
-- Check for sensitive data exposure
-- Scan dependencies for known vulnerabilities
-- Document findings with clear severity levels
+- The attack surface is auth (Better Auth), API (Hono + Zod), download proxy, and OPFS client storage.
+- No role/permission tiers exist — auth gates account features, reading is open.
+- User data stays client-side by default (OPFS `app.db`); sync is a future feature.
+- Emergency response: rotate `BETTER_AUTH_SECRET` to invalidate all sessions.
+- Search is `LIKE %q% COLLATE NOCASE` — already parameterized; verify it stays parameterized.
+
+## Examples
+
+**Security audit findings for Open Bible:**
+
+```
+## Security Audit Report
+
+### High
+1. Missing input validation in /api/bibles/search
+   - The `q` parameter is used directly in SQL LIKE clause
+   - Verify it's bound as `?` parameter, not interpolated
+   - Fix verified: `lib/api/bible-service.ts:127` uses parameterized query
+
+### Medium
+2. CORS too permissive for state-changing endpoints
+   - All `/api/*` routes have open CORS
+   - Currently acceptable because no state-changing endpoints exist under this router
+   - Risk: if a notes-sync endpoint is added, CORS must be restricted
+   - Recommendation: document this in the security docs
+
+### Low
+3. No rate limiting on /api/auth/login
+   - Better Auth handles brute-force internally? Verify.
+   - Recommendation: confirm Better Auth rate limiting is configured
+
+### Recommendations
+- Consider adding CSP headers for PWA
+- Document the open CORS decision for the iOS companion app
+```
 
 ## Resource Strategy
 

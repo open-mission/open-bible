@@ -1,17 +1,16 @@
-import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
+import { AnalyticsGate } from "@/features/layout/components/analytics-gate";
+import { OpfsStatusGate } from "@/features/layout/components/opfs-status-gate";
 import { Inter, Lora, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/features/theme/components/theme-provider";
 import { BibleVersionProvider } from "@/features/bible-reader/context/bible-version-context";
 import { ToastProvider } from "@/features/layout/hooks/use-toast";
 import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
 import { UpdateBanner } from "@/features/service-worker/components/update-banner";
-import { DevBanner } from "@/features/layout/components/dev-banner";
 import { VersionLabel } from "@/features/layout/components/version-label";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ENV_LABEL } from "@/lib/app-env";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -71,24 +70,21 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`bg-background ${inter.variable} ${lora.variable} ${geistMono.variable}`}
     >
-      <body
-        className={cn(
-          "font-sans antialiased",
-          ENV_LABEL.development || ENV_LABEL.staging ? "pt-6" : "",
-        )}
-      >
-        <DevBanner />
+      <body className={cn("font-sans antialiased")}>
         <VersionLabel />
         <ThemeProvider>
           <BibleVersionProvider>
             <TooltipProvider>
-              <ToastProvider>{children}</ToastProvider>
+              <ToastProvider>
+                {children}
+                <OpfsStatusGate />
+              </ToastProvider>
             </TooltipProvider>
           </BibleVersionProvider>
         </ThemeProvider>
         <ServiceWorkerRegister />
         <UpdateBanner />
-        {process.env.NODE_ENV === "production" && <Analytics />}
+        <AnalyticsGate />
       </body>
     </html>
   );
