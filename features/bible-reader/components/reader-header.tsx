@@ -9,7 +9,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Toggle } from "@/components/ui/toggle";
 import { ReaderDisplaySettings } from "./reader-display-settings";
 import { ReaderThemeConfig } from "./reader-theme-config";
 import {
@@ -100,7 +99,7 @@ export function ReaderHeader({
             : "max-md:-translate-y-full max-md:opacity-0 max-md:pointer-events-none"
         }`}
       >
-        {/* Desktop Book/Chapter Selector (Left-aligned) */}
+        {/* Desktop Book/Chapter/Version/Display Selector (Left-aligned pill) */}
         <div className="hidden md:flex items-center border-0">
           <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-full border border-border/60">
             <Button
@@ -121,6 +120,34 @@ export function ReaderHeader({
               variant="ghost"
               className="h-8 rounded-full px-3"
             />
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs"
+                    title="Ajustes de visualização"
+                  />
+                }
+              >
+                <IconTextSize data-icon="inline-start" />
+                <span className="hidden lg:inline">Exibição</span>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-80 p-5 flex flex-col gap-5"
+                align="start"
+              >
+                <div className="flex flex-col gap-1">
+                  <h4 className="font-semibold text-sm leading-none">
+                    Ajustes de exibição
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Personalize sua experiência de leitura.
+                  </p>
+                </div>
+                {displaySettings}
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
@@ -133,38 +160,6 @@ export function ReaderHeader({
           }`}
         >
           {book.name} {chapter}
-        </div>
-        {/* Desktop Mini Reference and Tools (Right-aligned) */}
-        <div className="hidden items-center gap-2">
-          <Popover>
-            <PopoverTrigger
-              render={
-                <Toggle
-                  variant="outline"
-                  size="sm"
-                  className="hidden md:inline-flex items-center justify-center gap-2 rounded-md h-8 px-3 text-xs font-medium data-open:bg-muted data-open:text-foreground transition-colors"
-                  title="Ajustes de visualização"
-                />
-              }
-            >
-              <IconTextSize className="h-4 w-4" />
-              <span className="hidden lg:inline">Exibição</span>
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-80 p-5 flex flex-col gap-5"
-              align="end"
-            >
-              <div className="flex flex-col gap-1">
-                <h4 className="font-semibold text-sm leading-none">
-                  Ajustes de exibição
-                </h4>
-                <p className="text-xs text-muted-foreground">
-                  Personalize sua experiência de leitura.
-                </p>
-              </div>
-              {displaySettings}
-            </PopoverContent>
-          </Popover>
         </div>
       </div>
 
