@@ -150,15 +150,25 @@ não faz sentido dentro do Tauri) e a função `headers()` é omitida (não é s
 Run: `pnpm lint && pnpm build`
 Expected: build web passa normalmente (PWA + headers ativos, sem `output: export`).
 
-- [ ] **Step 3: Verificar export desktop gera out/**
+- [ ] **Step 3: Script de build desktop que exclui as rotas /api**
 
-Run: `TAURI_BUILD=1 NEXT_PUBLIC_API_ORIGIN=https://openbible-prod.vercel.app pnpm build`
-Expected: build conclui e cria o diretório `out/` com `index.html` e assets estáticos.
+Descoberta durante a execução: `output: "export"` falha ao coletar as rotas `/api/*` (route
+handlers Hono/TursoDB são dinâmicos e não podem ser exportados estaticamente). No desktop essas
+rotas não existem — o app usa a API remota. Solução: `scripts/build-tauri.mjs` move `app/api` para
+fora da árvore, roda o export e restaura em `finally` (inclusive em erro). Adicionar script
+`"build:tauri": "node scripts/build-tauri.mjs"` no package.json e `/.tauri-build-stash/` no
+.gitignore. O `beforeBuildCommand` do Tauri passa a chamar `pnpm build:tauri`.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Verificar export desktop gera out/**
+
+Run: `pnpm build:tauri`
+Expected: build conclui, cria `out/` com `index.html`, todas as rotas viram estáticas (sem `/api/*`),
+e `app/api` fica restaurado (git status limpo).
+
+- [ ] **Step 5: Commit**
 
 ```bash
-git add next.config.mjs
+git add next.config.mjs scripts/build-tauri.mjs package.json .gitignore
 git commit -m "feat: add conditional static export for Tauri builds"
 ```
 
