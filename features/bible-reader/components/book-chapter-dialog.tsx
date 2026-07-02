@@ -121,9 +121,9 @@ export function BookChapterDialog({
             {/* Quick Version Dropdown inside InputGroup */}
             <Popover open={versionDropdownOpen} onOpenChange={setVersionDropdownOpen}>
               <PopoverTrigger render={
-                <Button variant="ghost" size="sm" className="h-7 px-2 gap-1.5 font-semibold text-xs cursor-pointer hover:bg-accent">
-                  <BookOpen className="h-3.5 w-3.5 text-primary" />
-                  <span className="uppercase">{versionAbbreviation || versionId}</span>
+                <Button variant="ghost" size="sm" className="h-7 px-2 gap-1.5 font-semibold text-xs cursor-pointer hover:bg-accent max-w-[160px]">
+                  <BookOpen className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span className="truncate">{versionAbbreviation || versionId}</span>
                 </Button>
               } />
               <PopoverContent className="w-64 p-1.5 space-y-0.5" align="end">

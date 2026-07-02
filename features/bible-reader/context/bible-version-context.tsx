@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import type { Verse } from "@/lib/types"
 import { getVerses as getMockVerses } from "@/features/bible-reader/utils/bible-data"
 import { fetchChapterVerses as apiFetchChapterVerses } from "@/lib/api-client"
+import { API_ORIGIN } from "@/lib/api-base"
 import { database } from "@/lib/database/database"
 
 export interface VersionMeta {
@@ -252,7 +253,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     setIsInstalling(true)
     setDownloadProgress({ current: 0, total: 100 })
     try {
-      const url = `/api/bibles/download/${id}`
+      const url = `${API_ORIGIN}/api/bibles/download/${id}`
       console.log(`[install:${id}] iniciando fetch`)
       const response = await fetch(url)
       console.log(`[install:${id}] resposta recebida — status=${response.status} ok=${response.ok}`)

@@ -72,6 +72,42 @@ pnpm dev
 | `pnpm build` | Build de produção |
 | `pnpm commit` | Criar commit semântico interativo |
 | `pnpm release` | Criar release com bump de versão |
+| `pnpm desktop:dev` | App desktop (Tauri) em modo dev |
+| `pnpm desktop:build` | Build de produção do app desktop |
+
+---
+
+## 🖥️ Desktop (Tauri)
+
+O Open Bible também roda como app nativo (macOS, Linux e Windows) via [Tauri v2](https://tauri.app),
+reutilizando o mesmo frontend Next.js (static export) e a pilha de leitura offline SQLite WASM + OPFS.
+As rotas `/api/*` não entram no bundle desktop — o download de versões aponta para a API remota.
+
+### Pré-requisitos
+
+- [Rust](https://www.rust-lang.org/tools/install) (toolchain estável)
+- Dependências de sistema por SO:
+  - **macOS** — Xcode Command Line Tools (`xcode-select --install`)
+  - **Linux** — `libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf`
+  - **Windows** — [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) + WebView2
+
+### Desenvolvimento
+
+```bash
+pnpm desktop:dev     # abre a janela nativa apontando para o dev server (porta 3000)
+pnpm desktop:build   # gera o instalador em src-tauri/target/release/bundle/
+```
+
+### Release
+
+Um push de tag `v*` dispara o workflow [`desktop-release.yml`](.github/workflows/desktop-release.yml),
+que compila os três SO em paralelo e anexa os instaladores a um **GitHub Release em rascunho** para
+revisão antes de publicar.
+
+> ⚠️ **Builds não-assinados.** Os instaladores atuais não têm assinatura de código. No **macOS**,
+> contorne o Gatekeeper com clique direito → *Abrir* (ou
+> `xattr -dr com.apple.quarantine "Open Bible.app"`). No **Windows**, no aviso do SmartScreen use
+> *Mais informações* → *Executar assim mesmo*.
 
 ---
 

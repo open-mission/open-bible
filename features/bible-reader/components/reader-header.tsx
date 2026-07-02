@@ -117,7 +117,7 @@ export function ReaderHeader({
             >
               <span className="text-sm font-semibold mx-1">{chapter}</span>
             </Button>
-            <ReaderVersionBadge
+            <BibleVersionSelector
               variant="ghost"
               className="h-8 rounded-full px-3"
             />
@@ -126,7 +126,7 @@ export function ReaderHeader({
 
         {/* Mobile Mini Reference (Centered when visible) */}
         <div
-          className={`absolute left-1/2 -translate-x-1/2 transition-all duration-300 md:hidden font-serif text-sm font-semibold text-foreground ${
+          className={`absolute left-1/2 -translate-x-1/2 transition-all duration-300 hidden font-serif text-sm font-semibold text-foreground ${
             showMiniReference
               ? "opacity-100 translate-y-0"
               : "opacity-0 -translate-y-1 pointer-events-none"
@@ -135,7 +135,7 @@ export function ReaderHeader({
           {book.name} {chapter}
         </div>
         {/* Desktop Mini Reference and Tools (Right-aligned) */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden items-center gap-2">
           <Popover>
             <PopoverTrigger
               render={
@@ -169,7 +169,7 @@ export function ReaderHeader({
       </div>
 
       {/* Mobile Selector Group - Always visible and fixed at the bottom */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex justify-center pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-8 bg-linear-to-t from-background via-background/95 to-transparent text-sm font-medium w-full px-4 pointer-events-none">
+      <nav className="md:hidden fixed top-2 left-0 right-0 z-30 flex justify-center pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-8 bg-linear-to-t from-background via-background/95 to-transparent text-sm font-medium w-full px-4 pointer-events-none">
         <div className="flex items-center gap-0.5 bg-background/95 backdrop-blur-md p-1 rounded-full shadow-lg border border-border/80 pointer-events-auto">
           <Button
             onClick={onBookChapterClick}
@@ -185,7 +185,7 @@ export function ReaderHeader({
           >
             <span className="text-sm font-semibold mx-1">{chapter}</span>
           </Button>
-          <ReaderVersionBadge
+          <BibleVersionSelector
             variant="ghost"
             className="h-9 rounded-full px-3"
           />
