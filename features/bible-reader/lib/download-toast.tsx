@@ -13,7 +13,7 @@ function DownloadToast({ name, progress, status = "loading" }: DownloadToastProp
   const pct = progress ? Math.round((progress.current / progress.total) * 100) : 0
 
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex items-start gap-3 bg-popover text-popover-foreground">
       {status === "loading" && (
         <IconLoader className="size-4 shrink-0 mt-0.5 animate-spin" />
       )}
