@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
 import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context";
@@ -54,12 +53,6 @@ export function Reader({
 
   const open = selectedVerseIds.size > 0;
   const selectedVerses = verses.filter((v) => selectedVerseIds.has(v.id));
-  const anchorVerse = selectedVerses.length
-    ? selectedVerses.reduce(
-        (min, v) => (v.verse < min.verse ? v : min),
-        selectedVerses[0],
-      )
-    : null;
   const versionAbbr = versionId.toUpperCase();
 
   useEffect(() => {
@@ -69,7 +62,7 @@ export function Reader({
       if (!target) return;
       if (
         target.closest("[data-verse-row]") ||
-        target.closest("[data-slot='popover-content']")
+        target.closest("[data-verse-selection-bar]")
       )
         return;
       setSelectedVerseIds(new Set());
@@ -189,32 +182,16 @@ export function Reader({
               ))}
             </div>
           ) : (
-            verses.map((verse) => {
-              const row = (
-                <VerseRow
-                  key={verse.id}
-                  verse={verse}
-                  isActive={verse.id === activeVerseId}
-                  isSelected={selectedVerseIds.has(verse.id)}
-                  onClick={() => handleVerseClick(verse.id)}
-                  verseSpacing={verseSpacing}
-                />
-              );
-              if (anchorVerse?.id !== verse.id) return row;
-              return (
-                <Popover key={verse.id} open={open}>
-                  <PopoverTrigger>{row}</PopoverTrigger>
-                  {open && (
-                    <VerseSelectionPopover
-                      book={book}
-                      chapter={chapter}
-                      selectedVerses={selectedVerses}
-                      versionAbbr={versionAbbr}
-                    />
-                  )}
-                </Popover>
-              );
-            })
+            verses.map((verse) => (
+              <VerseRow
+                key={verse.id}
+                verse={verse}
+                isActive={verse.id === activeVerseId}
+                isSelected={selectedVerseIds.has(verse.id)}
+                onClick={() => handleVerseClick(verse.id)}
+                verseSpacing={verseSpacing}
+              />
+            ))
           )}
         </article>
 

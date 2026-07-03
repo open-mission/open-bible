@@ -1,10 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, ClipboardText, Check } from "@tabler/icons-react"
+import { IconCopy, IconClipboardText, IconCheck, IconX } from "@tabler/icons-react"
 import type { Book, Verse } from "@/lib/types"
-import { PopoverContent } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
 import { useToast } from "@/features/layout/hooks/use-toast"
 import {
   formatVerseReference,
@@ -16,6 +14,7 @@ interface VerseSelectionPopoverProps {
   chapter: number
   selectedVerses: Verse[]
   versionAbbr: string
+  onClose: () => void
 }
 
 type CopiedKind = "reference" | "text" | null
@@ -55,6 +54,7 @@ export function VerseSelectionPopover({
   chapter,
   selectedVerses,
   versionAbbr,
+  onClose,
 }: VerseSelectionPopoverProps) {
   const [copied, setCopied] = useState<CopiedKind>(null)
   const { addToast, removeToast } = useToast()
@@ -88,48 +88,65 @@ export function VerseSelectionPopover({
   }
 
   return (
-    <PopoverContent
-      align="start"
-      side="bottom"
-      sideOffset={6}
-      className="w-64 p-2 gap-1"
-      onOpenAutoFocus={(e) => e.preventDefault()}
+    <div
+      data-verse-selection-bar=""
+      className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4"
     >
-      <div className="px-2 py-1.5 flex flex-col gap-0.5">
-        <p className="text-sm font-semibold text-foreground leading-tight">
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-background/95 backdrop-blur-sm border border-border shadow-lg px-3 py-1.5 text-sm">
+        {/* Reference + count */}
+        <span className="font-medium text-foreground truncate max-w-[200px] sm:max-w-[280px]">
           {reference}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {count} {count === 1 ? "versículo selecionado" : "versículos selecionados"}
-        </p>
+        </span>
+        <span className="text-xs text-muted-foreground shrink-0">
+          {count > 1 ? `· ${count} versículos` : `· ${count} versículo`}
+        </span>
+
+        <div className="h-4 w-px bg-border mx-0.5" />
+
+        {/* Copy reference */}
+        <button
+          type="button"
+          onClick={() => handleCopy("reference")}
+          className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-normal text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          aria-label="Copiar referência"
+        >
+          {copied === "reference" ? (
+            <IconCheck className="size-3.5 text-primary" />
+          ) : (
+            <IconCopy className="size-3.5" />
+          )}
+          <span className="hidden sm:inline">
+            {copied === "reference" ? "Copiado!" : "Ref"}
+          </span>
+        </button>
+
+        {/* Copy text */}
+        <button
+          type="button"
+          onClick={() => handleCopy("text")}
+          className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-normal text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          aria-label="Copiar texto"
+        >
+          {copied === "text" ? (
+            <IconCheck className="size-3.5 text-primary" />
+          ) : (
+            <IconClipboardText className="size-3.5" />
+          )}
+          <span className="hidden sm:inline">
+            {copied === "text" ? "Copiado!" : "Texto"}
+          </span>
+        </button>
+
+        {/* Close */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center justify-center rounded-full size-6 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          aria-label="Limpar seleção"
+        >
+          <IconX className="size-3.5" />
+        </button>
       </div>
-      <div className="h-px bg-border my-1" />
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start gap-2 font-normal"
-        onClick={() => handleCopy("reference")}
-      >
-        {copied === "reference" ? (
-          <Check className="size-4 text-primary" />
-        ) : (
-          <Copy className="size-4" />
-        )}
-        {copied === "reference" ? "Copiado!" : "Copiar referência"}
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start gap-2 font-normal"
-        onClick={() => handleCopy("text")}
-      >
-        {copied === "text" ? (
-          <Check className="size-4 text-primary" />
-        ) : (
-          <ClipboardText className="size-4" />
-        )}
-        {copied === "text" ? "Copiado!" : "Copiar texto"}
-      </Button>
-    </PopoverContent>
+    </div>
   )
 }
