@@ -25,7 +25,7 @@ function groupVerseNumbers(verseNumbers: number[]): string[] {
 }
 
 /**
- * Formata a referência: "{abreviação} {capítulo}:{versículos} ({versão})".
+ * Formata a referência: "{nome do livro} {capítulo}:{versículos} ({versão})".
  * Versículos contíguos viram intervalo ("16-18"), avulsos viram vírgula ("16, 18").
  * Ex.: "João 3:16-18, 20 (ARA)".
  */
@@ -36,7 +36,7 @@ export function formatVerseReference(
   versionAbbr: string,
 ): string {
   const segments = groupVerseNumbers(verses.map((v) => v.verse));
-  return `${book.abbreviation} ${chapter}:${segments.join(", ")} (${versionAbbr})`;
+  return `${book.name} ${chapter}:${segments.join(", ")} (${versionAbbr})`;
 }
 
 /**
