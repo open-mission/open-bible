@@ -1,3 +1,4 @@
+import { forwardRef } from "react"
 import type { Verse } from "@/lib/types"
 
 interface VerseRowProps {
@@ -8,7 +9,10 @@ interface VerseRowProps {
   verseSpacing?: "small" | "medium" | "large"
 }
 
-export function VerseRow({ verse, isActive, isSelected, onClick, verseSpacing = "medium" }: VerseRowProps) {
+export const VerseRow = forwardRef<HTMLDivElement, VerseRowProps>(function VerseRow(
+  { verse, isActive, isSelected, onClick, verseSpacing = "medium" },
+  ref,
+) {
   const spacingClasses = {
     small: "py-1.5 mb-1",
     medium: "py-2.5 mb-2",
@@ -17,6 +21,8 @@ export function VerseRow({ verse, isActive, isSelected, onClick, verseSpacing = 
 
   return (
     <div
+      ref={ref}
+      data-verse-row=""
       role="button"
       tabIndex={0}
       onClick={onClick}
@@ -45,5 +51,5 @@ export function VerseRow({ verse, isActive, isSelected, onClick, verseSpacing = 
       </p>
     </div>
   )
-}
+})
 
