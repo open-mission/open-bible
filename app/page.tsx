@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Reader } from "@/features/bible-reader/components/reader";
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty";
 import { PanelLayout } from "@/features/layout/components/panel-layout";
 import { InspectorPanel } from "@/features/bible-reader/components/inspector-panel";
 import { BookChapterDialog } from "@/features/bible-reader/components/book-chapter-dialog";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
-import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context";
-import { useToast } from "@/features/layout/hooks/use-toast";
+import { useBibleVersion, useDownloadProgress } from "@/features/bible-reader/context/bible-version-context";
+import { useToastAction } from "@/features/layout/hooks/use-toast";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { useReaderPosition } from "@/features/bible-reader/hooks/use-reader-position";
 import { usePanelState } from "@/features/layout/hooks/use-panel-state";
@@ -35,12 +35,11 @@ export default function Home() {
     versionId,
     installedVersions,
     installVersion,
-    isInstalling,
-    downloadProgress,
     setVersionId,
     isVersionsLoaded,
   } = useBibleVersion();
-  const { addToast, updateToast, removeToast } = useToast();
+  const { isInstalling, downloadProgress } = useDownloadProgress();
+  const { addToast, updateToast, removeToast } = useToastAction();
   const [activeToastId, setActiveToastId] = useState<string | null>(null);
 
   // Auto-download ARA on first visit if no version is installed
@@ -119,14 +118,14 @@ export default function Home() {
 
   const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(false);
 
-  function handleSelectBook(bookId: string) {
+  const handleSelectBook = useCallback((bookId: string) => {
     setSelectedBookId(bookId);
     setSelectedChapter(null);
-  }
+  }, [setSelectedBookId, setSelectedChapter]);
 
-  function handleSelectChapter(chapter: number) {
+  const handleSelectChapter = useCallback((chapter: number) => {
     setSelectedChapter(chapter);
-  }
+  }, [setSelectedChapter]);
 
   const currentBook = selectedBookId ? getBook(selectedBookId) : null;
   const verseReference =

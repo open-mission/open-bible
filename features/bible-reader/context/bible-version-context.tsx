@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react"
 import type { Verse } from "@/lib/types"
 import { getVerses as getMockVerses } from "@/features/bible-reader/utils/bible-data"
 import { fetchChapterVerses as apiFetchChapterVerses } from "@/lib/api-client"
@@ -71,8 +71,6 @@ interface BibleVersionContextValue {
   setDefaultVersionId: (id: string) => void
   installedVersions: VersionMeta[]
   availableVersions: AvailableVersion[]
-  isInstalling: boolean
-  downloadProgress: { current: number; total: number } | null
   installVersion: (id: string) => Promise<void>
   uninstallVersion: (id: string) => Promise<void>
   getVerses: (bookId: string, chapter: number) => Promise<Verse[]>
@@ -81,6 +79,21 @@ interface BibleVersionContextValue {
 }
 
 const BibleVersionContext = createContext<BibleVersionContextValue | null>(null)
+
+// Separate context for download progress to avoid re-rendering all BibleVersion consumers
+interface DownloadProgressContextValue {
+  isInstalling: boolean
+  downloadProgress: { current: number; total: number } | null
+}
+
+const DownloadProgressContext = createContext<DownloadProgressContextValue>({
+  isInstalling: false,
+  downloadProgress: null,
+})
+
+export function useDownloadProgress() {
+  return useContext(DownloadProgressContext)
+}
 
 function loadVersionId(fallback: string): string {
   if (typeof window === "undefined") return fallback
@@ -132,6 +145,12 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
   const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null)
   const [versionMetaCache, setVersionMetaCache] = useState<Record<string, VersionMeta>>({})
   const [isVersionsLoaded, setIsVersionsLoaded] = useState(false)
+
+  // Ref to keep installedVersions stable for getVerses callback (Fix 7)
+  const installedVersionsRef = useRef<VersionMeta[]>(installedVersions)
+  useEffect(() => {
+    installedVersionsRef.current = installedVersions
+  }, [installedVersions])
 
   const refreshInstalled = useCallback(async () => {
     try {
@@ -230,8 +249,8 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
         await database.initialize()
         const currentVersion = versionId || defaultVersionId || "ara"
 
-        // Avoid querying if the version is not fully loaded/installed offline yet
-        const isInstalled = installedVersions.some((v) => v.id === currentVersion)
+        // Use ref to avoid re-creating this callback when installedVersions changes
+        const isInstalled = installedVersionsRef.current.some((v) => v.id === currentVersion)
         if (!isInstalled) {
           return []
         }
@@ -243,7 +262,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
         return []
       }
     },
-    [versionId, defaultVersionId, installedVersions]
+    [versionId, defaultVersionId]
   )
 
   const installVersion = useCallback(async (id: string) => {
@@ -341,26 +360,49 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     }
   }, [refreshInstalled, versionId, setVersionId, defaultVersionId])
 
+  const bibleContextValue = useMemo<BibleVersionContextValue>(
+    () => ({
+      versionId,
+      setVersionId,
+      defaultVersionId,
+      setDefaultVersionId,
+      installedVersions,
+      availableVersions,
+      installVersion,
+      uninstallVersion,
+      getVerses,
+      refreshInstalled,
+      isVersionsLoaded,
+    }),
+    [
+      versionId,
+      setVersionId,
+      defaultVersionId,
+      setDefaultVersionId,
+      installedVersions,
+      availableVersions,
+      installVersion,
+      uninstallVersion,
+      getVerses,
+      refreshInstalled,
+      isVersionsLoaded,
+    ]
+  )
+
+  const downloadProgressValue = useMemo<DownloadProgressContextValue>(
+    () => ({
+      isInstalling,
+      downloadProgress,
+    }),
+    [isInstalling, downloadProgress]
+  )
+
   return (
-    <BibleVersionContext.Provider
-      value={{
-        versionId,
-        setVersionId,
-        defaultVersionId,
-        setDefaultVersionId,
-        installedVersions,
-        availableVersions,
-        isInstalling,
-        downloadProgress,
-        installVersion,
-        uninstallVersion,
-        getVerses,
-        refreshInstalled,
-        isVersionsLoaded,
-      }}
-    >
-      {children}
-    </BibleVersionContext.Provider>
+    <DownloadProgressContext.Provider value={downloadProgressValue}>
+      <BibleVersionContext.Provider value={bibleContextValue}>
+        {children}
+      </BibleVersionContext.Provider>
+    </DownloadProgressContext.Provider>
   )
 }
 
