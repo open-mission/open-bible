@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { isOpfsAvailable } from "@/lib/opfs-available"
-import { useToast } from "@/features/layout/hooks/use-toast"
+import { useToastAction } from "@/features/layout/hooks/use-toast"
 
 /**
  * Surfaces a friendly, persistent error toast when the underlying webview does not
@@ -11,7 +11,7 @@ import { useToast } from "@/features/layout/hooks/use-toast"
  * No-op when OPFS is available. Rendered inside ToastProvider so it can use toasts.
  */
 export function OpfsStatusGate() {
-  const { addToast } = useToast()
+  const { addToast } = useToastAction()
 
   useEffect(() => {
     if (!isOpfsAvailable()) {

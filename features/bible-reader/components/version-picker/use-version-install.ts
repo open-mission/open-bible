@@ -1,8 +1,8 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
-import { useToast } from "@/features/layout/hooks/use-toast"
+import { useBibleVersion, useDownloadProgress } from "@/features/bible-reader/context/bible-version-context"
+import { useToastAction } from "@/features/layout/hooks/use-toast"
 
 /**
  * Encapsula a instalação de uma versão + o ciclo de vida do toast de progresso
@@ -15,8 +15,9 @@ import { useToast } from "@/features/layout/hooks/use-toast"
  * de effect que chama setState — isso causa loop infinito.
  */
 export function useVersionInstall() {
-  const { installVersion, isInstalling, downloadProgress } = useBibleVersion()
-  const { addToast, updateToast, removeToast } = useToast()
+  const { installVersion } = useBibleVersion()
+  const { isInstalling, downloadProgress } = useDownloadProgress()
+  const { addToast, updateToast, removeToast } = useToastAction()
   const toastIdRef = useRef<string | null>(null)
   const [installingName, setInstallingName] = useState("")
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react"
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from "react"
 import {
   type ThemeColor,
   type ThemeMode,
@@ -225,7 +225,7 @@ function ThemeModeProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <ThemeModeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
+    <ThemeModeContext.Provider value={useMemo(() => ({ theme, setTheme, resolvedTheme }), [theme, setTheme, resolvedTheme])}>
       {children}
     </ThemeModeContext.Provider>
   )
@@ -343,9 +343,12 @@ function PaletteColorProvider({ children }: { children: React.ReactNode }) {
     saveThemeConfig({ ...saved, color: c })
   }, [])
 
+  const paletteValue = useMemo(() => ({ palette, setPalette }), [palette, setPalette])
+  const colorValue = useMemo(() => ({ color, setColor }), [color, setColor])
+
   return (
-    <PaletteContext.Provider value={{ palette, setPalette }}>
-      <ColorContext.Provider value={{ color, setColor }}>
+    <PaletteContext.Provider value={paletteValue}>
+      <ColorContext.Provider value={colorValue}>
         {children}
       </ColorContext.Provider>
     </PaletteContext.Provider>

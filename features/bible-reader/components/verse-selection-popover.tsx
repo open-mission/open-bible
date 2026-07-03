@@ -9,7 +9,7 @@ import {
   IconHighlight,
 } from "@tabler/icons-react";
 import type { Book, Verse } from "@/lib/types";
-import { useToast } from "@/features/layout/hooks/use-toast";
+import { useToastAction } from "@/features/layout/hooks/use-toast";
 import {
   formatVerseReference,
   formatVerseText,
@@ -62,7 +62,7 @@ export function VerseSelectionPopover({
   onClose,
 }: VerseSelectionPopoverProps) {
   const [copied, setCopied] = useState<CopiedKind>(null);
-  const { addToast, removeToast } = useToast();
+  const { addToast, removeToast } = useToastAction();
   const isMobile = useIsMobile();
   const reference = formatVerseReference(
     book,

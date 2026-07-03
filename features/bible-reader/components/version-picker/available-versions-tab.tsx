@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, Loader2 } from "lucide-react";
-import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context";
+import { useBibleVersion, useDownloadProgress } from "@/features/bible-reader/context/bible-version-context";
 import {
   getNotInstalledAvailable,
   filterVersions,
@@ -23,9 +23,8 @@ export function AvailableVersionsTab({ query }: AvailableVersionsTabProps) {
   const {
     availableVersions,
     installedVersions,
-    isInstalling,
-    downloadProgress,
   } = useBibleVersion();
+  const { isInstalling, downloadProgress } = useDownloadProgress();
   const notInstalled = getNotInstalledAvailable(
     availableVersions,
     installedVersions,

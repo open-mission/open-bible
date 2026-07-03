@@ -1,16 +1,15 @@
-import { forwardRef } from "react"
+import { forwardRef, memo } from "react"
 import type { Verse } from "@/lib/types"
 
 interface VerseRowProps {
   verse: Verse
   isActive: boolean
   isSelected?: boolean
-  onClick: () => void
   verseSpacing?: "small" | "medium" | "large"
 }
 
-export const VerseRow = forwardRef<HTMLDivElement, VerseRowProps>(function VerseRow(
-  { verse, isActive, isSelected, onClick, verseSpacing = "medium" },
+export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function VerseRow(
+  { verse, isActive, isSelected, verseSpacing = "medium" },
   ref,
 ) {
   const spacingClasses = {
@@ -22,11 +21,10 @@ export const VerseRow = forwardRef<HTMLDivElement, VerseRowProps>(function Verse
   return (
     <div
       ref={ref}
+      data-verse-id={verse.id}
       data-verse-row=""
       role="button"
       tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick()}
       style={
         isSelected
           ? { backgroundColor: "color-mix(in srgb, var(--color-primary) 12%, transparent)" }
@@ -40,16 +38,13 @@ export const VerseRow = forwardRef<HTMLDivElement, VerseRowProps>(function Verse
         }`}
       aria-pressed={isActive}
     >
-      {/* Verse number */}
       <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
         {verse.verse}
       </sup>
-
-      {/* Verse text */}
       <p className="flex-1 leading-[1.8] text-foreground">
         {verse.text}
       </p>
     </div>
   )
-})
+}))
 

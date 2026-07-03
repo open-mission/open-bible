@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
@@ -11,7 +11,6 @@ import { VerseSelectionPopover } from "./verse-selection-popover";
 import { useKeyboardNavigation } from "../hooks/use-keyboard-navigation";
 import { useSwipeNavigation } from "../hooks/use-swipe-navigation";
 import { ReaderHeader } from "./reader-header";
-import { ReaderChapterNav } from "./reader-chapter-nav";
 import { cn } from "@/lib/utils";
 
 interface ReaderProps {
@@ -55,6 +54,38 @@ export function Reader({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const prevChapter = useCallback(() => {
+    if (chapter > 1) {
+      setSlideDirection("right");
+      onChapterChange(chapter - 1);
+    }
+  }, [chapter, onChapterChange]);
+
+  const nextChapter = useCallback(() => {
+    if (book && chapter < book.chapters) {
+      setSlideDirection("left");
+      onChapterChange(chapter + 1);
+    }
+  }, [book, chapter, onChapterChange]);
+
+  const handleVerseClick = useCallback((verseId: string) => {
+    setActiveVerseId(verseId);
+    setSelectedVerseIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(verseId)) next.delete(verseId);
+      else next.add(verseId);
+      return next;
+    });
+  }, [])
+
+  const handleArticleClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement | null
+    const verseRow = target?.closest<HTMLElement>("[data-verse-id]")
+    if (verseRow?.dataset.verseId) {
+      handleVerseClick(verseRow.dataset.verseId)
+    }
+  }, [])
+
   const open = selectedVerseIds.size > 0;
   const selectedVerses = verses.filter((v) => selectedVerseIds.has(v.id));
   const versionAbbr = versionId.toUpperCase();
@@ -86,30 +117,6 @@ export function Reader({
   useSwipeNavigation(prevChapter, nextChapter);
 
   if (!book) return null;
-
-  function handleVerseClick(verseId: string) {
-    setActiveVerseId(verseId);
-    setSelectedVerseIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(verseId)) next.delete(verseId);
-      else next.add(verseId);
-      return next;
-    });
-  }
-
-  function prevChapter() {
-    if (chapter > 1) {
-      setSlideDirection("right");
-      onChapterChange(chapter - 1);
-    }
-  }
-
-  function nextChapter() {
-    if (book && chapter < book.chapters) {
-      setSlideDirection("left");
-      onChapterChange(chapter + 1);
-    }
-  }
 
   const spacingClasses = {
     small: "py-1.5 mb-1",
@@ -166,6 +173,7 @@ export function Reader({
 
         <article
           ref={containerRef}
+          onClick={handleArticleClick}
           className={`${fontClass} text-foreground selection:bg-highlight ${
             slideDirection === "left"
               ? "animate-slide-in-left"
@@ -208,7 +216,6 @@ export function Reader({
                 verse={verse}
                 isActive={verse.id === activeVerseId}
                 isSelected={selectedVerseIds.has(verse.id)}
-                onClick={() => handleVerseClick(verse.id)}
                 verseSpacing={verseSpacing}
               />
             ))
