@@ -1,27 +1,27 @@
-import type { Book, Verse } from "@/lib/types"
+import type { Book, Verse } from "@/lib/types";
 
 /**
  * Agrupa números de versículo (ordenados) em segmentos: contíguos viram
  * "start-end", avulsos viram "n". Ex.: [16, 17, 18, 20] -> ["16-18", "20"].
  */
 function groupVerseNumbers(verseNumbers: number[]): string[] {
-  if (verseNumbers.length === 0) return []
-  const sorted = [...verseNumbers].sort((a, b) => a - b)
-  const segments: string[] = []
-  let start = sorted[0]
-  let prev = sorted[0]
+  if (verseNumbers.length === 0) return [];
+  const sorted = [...verseNumbers].sort((a, b) => a - b);
+  const segments: string[] = [];
+  let start = sorted[0];
+  let prev = sorted[0];
   for (let i = 1; i < sorted.length; i++) {
-    const n = sorted[i]
+    const n = sorted[i];
     if (n === prev + 1) {
-      prev = n
-      continue
+      prev = n;
+      continue;
     }
-    segments.push(start === prev ? `${start}` : `${start}-${prev}`)
-    start = n
-    prev = n
+    segments.push(start === prev ? `${start}` : `${start}-${prev}`);
+    start = n;
+    prev = n;
   }
-  segments.push(start === prev ? `${start}` : `${start}-${prev}`)
-  return segments
+  segments.push(start === prev ? `${start}` : `${start}-${prev}`);
+  return segments;
 }
 
 /**
@@ -35,8 +35,8 @@ export function formatVerseReference(
   verses: Verse[],
   versionAbbr: string,
 ): string {
-  const segments = groupVerseNumbers(verses.map((v) => v.verse))
-  return `${book.abbreviation} ${chapter}:${segments.join(", ")} (${versionAbbr})`
+  const segments = groupVerseNumbers(verses.map((v) => v.verse));
+  return `${book.abbreviation} ${chapter}:${segments.join(", ")} (${versionAbbr})`;
 }
 
 /**
@@ -51,8 +51,8 @@ export function formatVerseText(
   verses: Verse[],
   versionAbbr: string,
 ): string {
-  const reference = formatVerseReference(book, chapter, verses, versionAbbr)
-  const ordered = [...verses].sort((a, b) => a.verse - b.verse)
-  const body = ordered.map((v) => `${v.verse} ${v.text}`).join("\n")
-  return `${reference}\n${body}`
+  const reference = formatVerseReference(book, chapter, verses, versionAbbr);
+  const ordered = [...verses].sort((a, b) => a.verse - b.verse);
+  const body = ordered.map((v) => `${v.verse} ${v.text}`).join("\n");
+  return `${reference}\n${body}`;
 }

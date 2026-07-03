@@ -1,23 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { IconCopy, IconClipboardText, IconCheck, IconX } from "@tabler/icons-react"
-import type { Book, Verse } from "@/lib/types"
-import { useToast } from "@/features/layout/hooks/use-toast"
+import { useState } from "react";
+import {
+  IconCopy,
+  IconClipboardText,
+  IconCheck,
+  IconX,
+} from "@tabler/icons-react";
+import type { Book, Verse } from "@/lib/types";
+import { useToast } from "@/features/layout/hooks/use-toast";
 import {
   formatVerseReference,
   formatVerseText,
-} from "@/features/bible-reader/utils/verse-reference"
+} from "@/features/bible-reader/utils/verse-reference";
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/lib/use-media-query";
 
 interface VerseSelectionPopoverProps {
-  book: Book
-  chapter: number
-  selectedVerses: Verse[]
-  versionAbbr: string
-  onClose: () => void
+  book: Book;
+  chapter: number;
+  selectedVerses: Verse[];
+  versionAbbr: string;
+  onClose: () => void;
 }
 
-type CopiedKind = "reference" | "text" | null
+type CopiedKind = "reference" | "text" | null;
 
 /**
  * Copia texto para a área de transferência. Usa a Clipboard API assíncrona em
@@ -27,25 +34,25 @@ type CopiedKind = "reference" | "text" | null
 async function copyToClipboard(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text)
-      return true
+      await navigator.clipboard.writeText(text);
+      return true;
     }
   } catch {
     /* cai no fallback */
   }
   try {
-    const textarea = document.createElement("textarea")
-    textarea.value = text
-    textarea.style.position = "fixed"
-    textarea.style.opacity = "0"
-    document.body.appendChild(textarea)
-    textarea.focus()
-    textarea.select()
-    const ok = document.execCommand("copy")
-    document.body.removeChild(textarea)
-    return ok
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return ok;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -56,45 +63,54 @@ export function VerseSelectionPopover({
   versionAbbr,
   onClose,
 }: VerseSelectionPopoverProps) {
-  const [copied, setCopied] = useState<CopiedKind>(null)
-  const { addToast, removeToast } = useToast()
-
-  const reference = formatVerseReference(book, chapter, selectedVerses, versionAbbr)
-  const count = selectedVerses.length
+  const [copied, setCopied] = useState<CopiedKind>(null);
+  const { addToast, removeToast } = useToast();
+  const isMobile = useIsMobile();
+  const reference = formatVerseReference(
+    book,
+    chapter,
+    selectedVerses,
+    versionAbbr,
+  );
+  const count = selectedVerses.length;
 
   async function handleCopy(kind: "reference" | "text") {
     const text =
       kind === "reference"
         ? reference
-        : formatVerseText(book, chapter, selectedVerses, versionAbbr)
-    const ok = await copyToClipboard(text)
+        : formatVerseText(book, chapter, selectedVerses, versionAbbr);
+    const ok = await copyToClipboard(text);
     if (ok) {
-      setCopied(kind)
+      setCopied(kind);
       const id = addToast({
-        message: kind === "reference" ? "Referência copiada!" : "Texto copiado!",
+        message:
+          kind === "reference" ? "Referência copiada!" : "Texto copiado!",
         type: "success",
-      })
+      });
       setTimeout(() => {
-        setCopied(null)
-        removeToast(id)
-      }, 2000)
+        setCopied(null);
+        removeToast(id);
+      }, 2000);
     } else {
       const id = addToast({
         message: "Não foi possível copiar.",
         type: "error",
-      })
-      setTimeout(() => removeToast(id), 3000)
+      });
+      setTimeout(() => removeToast(id), 3000);
     }
   }
 
   return (
     <div
       data-verse-selection-bar=""
-      className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4"
+      className={cn(
+        "fixed inset-x-0 bottom-4 z-50 flex justify-center p-4",
+        isMobile ? "bottom-20 scale-115" : "bottom-4",
+      )}
     >
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-background/95 backdrop-blur-sm border border-border shadow-lg px-3 py-1.5 text-sm">
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-background/95 backdrop-blur-sm border border-border shadow-lg px-3 py-2 text-sm">
         {/* Reference + count */}
-        <span className="font-medium text-foreground truncate max-w-[200px] sm:max-w-[280px]">
+        <span className="font-medium text-foreground truncate max-w-50 sm:max-w-70">
           {reference}
         </span>
         <span className="text-xs text-muted-foreground shrink-0">
@@ -111,12 +127,12 @@ export function VerseSelectionPopover({
           aria-label="Copiar referência"
         >
           {copied === "reference" ? (
-            <IconCheck className="size-3.5 text-primary" />
+            <IconCheck className="size-4 text-primary" />
           ) : (
-            <IconCopy className="size-3.5" />
+            <IconCopy className="size-4" />
           )}
           <span className="hidden sm:inline">
-            {copied === "reference" ? "Copiado!" : "Ref"}
+            {copied === "reference" ? "Copiado!" : "Referência"}
           </span>
         </button>
 
@@ -128,9 +144,9 @@ export function VerseSelectionPopover({
           aria-label="Copiar texto"
         >
           {copied === "text" ? (
-            <IconCheck className="size-3.5 text-primary" />
+            <IconCheck className="size-4 text-primary" />
           ) : (
-            <IconClipboardText className="size-3.5" />
+            <IconClipboardText className="size-4" />
           )}
           <span className="hidden sm:inline">
             {copied === "text" ? "Copiado!" : "Texto"}
@@ -148,5 +164,5 @@ export function VerseSelectionPopover({
         </button>
       </div>
     </div>
-  )
+  );
 }

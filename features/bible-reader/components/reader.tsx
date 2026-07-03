@@ -10,6 +10,7 @@ import { VerseRow } from "./verse-row";
 import { VerseSelectionPopover } from "./verse-selection-popover";
 import { ReaderHeader } from "./reader-header";
 import { ReaderChapterNav } from "./reader-chapter-nav";
+import { cn } from "@/lib/utils";
 
 interface ReaderProps {
   bookId: string;
@@ -194,14 +195,14 @@ export function Reader({
             ))
           )}
         </article>
-
-        <ReaderChapterNav
-          book={book}
-          chapter={chapter}
-          onPrevChapter={prevChapter}
-          onNextChapter={nextChapter}
-        />
       </div>
+
+      <div
+        className={cn(
+          "w-full bg-linear-to-t z-10 from-black to-transparent absolute bottom-0",
+          open ? "h-50" : "h-30",
+        )}
+      ></div>
 
       {/* Floating navigation: bottom on mobile, sides on desktop */}
       <div className="fixed inset-x-0 bottom-8 z-40 flex justify-center pointer-events-none md:hidden">
