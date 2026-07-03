@@ -266,6 +266,17 @@ export function Reader({
           <ChevronRight className="size-5" />
         </button>
       </div>
+
+      {/* Verse selection bottom bar */}
+      {open && (
+        <VerseSelectionPopover
+          book={book}
+          chapter={chapter}
+          selectedVerses={selectedVerses}
+          versionAbbr={versionAbbr}
+          onClose={() => setSelectedVerseIds(new Set())}
+        />
+      )}
     </div>
   );
 }
