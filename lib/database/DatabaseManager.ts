@@ -50,6 +50,10 @@ export class DatabaseManager {
       reject(err)
     }
     this.pending.clear()
+    // Allow re-initialization after a crash so the next RPC call boots a fresh worker.
+    this.worker = null
+    this.initialized = false
+    this.initPromise = null
   }
 
   /** Idempotent. Boots the worker + SAHPool VFS and ensures app.db exists. */
