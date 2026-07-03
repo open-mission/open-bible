@@ -51,9 +51,7 @@ function ToastPortal({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: str
               {toast.progress && (
                 <div className="mt-2">
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
-                    <span>
-                      {toast.progress.current}/{toast.progress.total} livros
-                    </span>
+                    <span>Baixando...</span>
                     <span>
                       {Math.round(
                         (toast.progress.current / toast.progress.total) * 100
