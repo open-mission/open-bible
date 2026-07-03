@@ -8,6 +8,8 @@ import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context";
 import { VerseRow } from "./verse-row";
 import { VerseSelectionPopover } from "./verse-selection-popover";
+import { useKeyboardNavigation } from "../hooks/use-keyboard-navigation";
+import { useSwipeNavigation } from "../hooks/use-swipe-navigation";
 import { ReaderHeader } from "./reader-header";
 import { ReaderChapterNav } from "./reader-chapter-nav";
 import { cn } from "@/lib/utils";
@@ -49,6 +51,7 @@ export function Reader({
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
     new Set(),
   );
+  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +82,9 @@ export function Reader({
     };
   }, [open]);
 
+  useKeyboardNavigation(prevChapter, nextChapter);
+  useSwipeNavigation(prevChapter, nextChapter);
+
   if (!book) return null;
 
   function handleVerseClick(verseId: string) {
@@ -92,11 +98,17 @@ export function Reader({
   }
 
   function prevChapter() {
-    if (chapter > 1) onChapterChange(chapter - 1);
+    if (chapter > 1) {
+      setSlideDirection("right");
+      onChapterChange(chapter - 1);
+    }
   }
 
   function nextChapter() {
-    if (book && chapter < book.chapters) onChapterChange(chapter + 1);
+    if (book && chapter < book.chapters) {
+      setSlideDirection("left");
+      onChapterChange(chapter + 1);
+    }
   }
 
   const spacingClasses = {
@@ -154,8 +166,15 @@ export function Reader({
 
         <article
           ref={containerRef}
-          className={`${fontClass} text-foreground selection:bg-highlight`}
+          className={`${fontClass} text-foreground selection:bg-highlight ${
+            slideDirection === "left"
+              ? "animate-slide-in-left"
+              : slideDirection === "right"
+                ? "animate-slide-in-right"
+                : ""
+          }`}
           style={{ fontSize: `${fontSize}px` }}
+          onAnimationEnd={() => setSlideDirection(null)}
         >
           {loading ? (
             <div className="space-y-1">
