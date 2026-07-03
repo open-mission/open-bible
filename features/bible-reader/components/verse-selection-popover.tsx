@@ -9,7 +9,7 @@ import {
   IconHighlight,
 } from "@tabler/icons-react";
 import type { Book, Verse } from "@/lib/types";
-import { useToastAction } from "@/features/layout/hooks/use-toast";
+import { toast } from "sonner";
 import {
   formatVerseReference,
   formatVerseText,
@@ -62,7 +62,6 @@ export function VerseSelectionPopover({
   onClose,
 }: VerseSelectionPopoverProps) {
   const [copied, setCopied] = useState<CopiedKind>(null);
-  const { addToast, removeToast } = useToastAction();
   const isMobile = useIsMobile();
   const reference = formatVerseReference(
     book,
@@ -80,21 +79,12 @@ export function VerseSelectionPopover({
     const ok = await copyToClipboard(text);
     if (ok) {
       setCopied(kind);
-      const id = addToast({
-        message:
-          kind === "reference" ? "Referência copiada!" : "Texto copiado!",
-        type: "success",
-      });
-      setTimeout(() => {
-        setCopied(null);
-        removeToast(id);
-      }, 2000);
+      toast.success(
+        kind === "reference" ? "Referência copiada!" : "Texto copiado!"
+      );
+      setTimeout(() => setCopied(null), 2000);
     } else {
-      const id = addToast({
-        message: "Não foi possível copiar.",
-        type: "error",
-      });
-      setTimeout(() => removeToast(id), 3000);
+      toast.error("Não foi possível copiar.");
     }
   }
 
