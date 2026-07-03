@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
 import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
+import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context";
 import { VerseRow } from "./verse-row";
+import { VerseSelectionPopover } from "./verse-selection-popover";
 import { ReaderHeader } from "./reader-header";
 import { ReaderChapterNav } from "./reader-chapter-nav";
 
@@ -40,28 +43,58 @@ export function Reader({
 }: ReaderProps) {
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
+  const { versionId } = useBibleVersion();
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
     new Set(),
   );
-  const [multiSelectMode] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const open = selectedVerseIds.size > 0;
+  const selectedVerses = verses.filter((v) => selectedVerseIds.has(v.id));
+  const anchorVerse = selectedVerses.length
+    ? selectedVerses.reduce(
+        (min, v) => (v.verse < min.verse ? v : min),
+        selectedVerses[0],
+      )
+    : null;
+  const versionAbbr = versionId.toUpperCase();
+
+  useEffect(() => {
+    if (!open) return;
+    function handlePointerDown(e: PointerEvent) {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (
+        target.closest("[data-verse-row]") ||
+        target.closest("[data-slot='popover-content']")
+      )
+        return;
+      setSelectedVerseIds(new Set());
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setSelectedVerseIds(new Set());
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   if (!book) return null;
 
   function handleVerseClick(verseId: string) {
-    if (multiSelectMode) {
-      setSelectedVerseIds((prev) => {
-        const next = new Set(prev);
-        if (next.has(verseId)) next.delete(verseId);
-        else next.add(verseId);
-        return next;
-      });
-      return;
-    }
-    setActiveVerseId((prev) => (prev === verseId ? null : verseId));
+    setActiveVerseId(verseId);
+    setSelectedVerseIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(verseId)) next.delete(verseId);
+      else next.add(verseId);
+      return next;
+    });
   }
 
   function prevChapter() {
@@ -125,22 +158,6 @@ export function Reader({
           </div>
         </header>
 
-        {multiSelectMode && (
-          <div className="flex items-center justify-between bg-primary/10 border-b border-primary/20 px-4 py-1.5 mb-4 shrink-0">
-            <span className="text-xs text-primary font-medium">
-              {selectedVerseIds.size === 0
-                ? "Clique nos versículos para selecionar"
-                : `${selectedVerseIds.size} versículo${selectedVerseIds.size > 1 ? "s" : ""} selecionado${selectedVerseIds.size > 1 ? "s" : ""}`}
-            </span>
-            <button
-              onClick={() => setSelectedVerseIds(new Set())}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Limpar
-            </button>
-          </div>
-        )}
-
         <article
           ref={containerRef}
           className={`${fontClass} text-foreground selection:bg-highlight`}
@@ -172,16 +189,32 @@ export function Reader({
               ))}
             </div>
           ) : (
-            verses.map((verse) => (
-              <VerseRow
-                key={verse.id}
-                verse={verse}
-                isActive={verse.id === activeVerseId}
-                isSelected={selectedVerseIds.has(verse.id)}
-                onClick={() => handleVerseClick(verse.id)}
-                verseSpacing={verseSpacing}
-              />
-            ))
+            verses.map((verse) => {
+              const row = (
+                <VerseRow
+                  key={verse.id}
+                  verse={verse}
+                  isActive={verse.id === activeVerseId}
+                  isSelected={selectedVerseIds.has(verse.id)}
+                  onClick={() => handleVerseClick(verse.id)}
+                  verseSpacing={verseSpacing}
+                />
+              );
+              if (anchorVerse?.id !== verse.id) return row;
+              return (
+                <Popover key={verse.id} open={open}>
+                  <PopoverTrigger>{row}</PopoverTrigger>
+                  {open && (
+                    <VerseSelectionPopover
+                      book={book}
+                      chapter={chapter}
+                      selectedVerses={selectedVerses}
+                      versionAbbr={versionAbbr}
+                    />
+                  )}
+                </Popover>
+              );
+            })
           )}
         </article>
 
