@@ -53,6 +53,6 @@ export function formatVerseText(
 ): string {
   const reference = formatVerseReference(book, chapter, verses, versionAbbr)
   const ordered = [...verses].sort((a, b) => a.verse - b.verse)
-  const body = ordered.map((v) => `${v.verse} ${v.text}`).join("\n")
+  const body = ordered.map((v) => `${v.verse} ${v.text}`).join(" ")
   return `${reference}\n${body}`
 }
