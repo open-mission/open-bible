@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, ClipboardText, Check } from "@tabler/icons-react"
+import { IconCopy, IconClipboardText, IconCheck } from "@tabler/icons-react"
 import type { Book, Verse } from "@/lib/types"
 import { PopoverContent } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
@@ -111,9 +111,9 @@ export function VerseSelectionPopover({
         onClick={() => handleCopy("reference")}
       >
         {copied === "reference" ? (
-          <Check className="size-4 text-primary" />
+          <IconCheck className="size-4 text-primary" />
         ) : (
-          <Copy className="size-4" />
+          <IconCopy className="size-4" />
         )}
         {copied === "reference" ? "Copiado!" : "Copiar referência"}
       </Button>
@@ -124,9 +124,9 @@ export function VerseSelectionPopover({
         onClick={() => handleCopy("text")}
       >
         {copied === "text" ? (
-          <Check className="size-4 text-primary" />
+          <IconCheck className="size-4 text-primary" />
         ) : (
-          <ClipboardText className="size-4" />
+          <IconClipboardText className="size-4" />
         )}
         {copied === "text" ? "Copiado!" : "Copiar texto"}
       </Button>
