@@ -8,11 +8,13 @@ import type { HighlightData } from "../context/highlights-context"
 interface HighlightSidebarProps {
   highlights: HighlightData[]
   onShowAll: (highlights: HighlightData[]) => void
+  isSelected?: boolean
 }
 
 export function HighlightSidebar({
   highlights,
   onShowAll,
+  isSelected,
 }: HighlightSidebarProps) {
   if (!highlights || highlights.length === 0) return null
 
@@ -27,18 +29,22 @@ export function HighlightSidebar({
             onShowAll(highlights)
           }}
           className={cn(
-            badgeVariants({ variant: "outline" }),
-            "gap-1 cursor-pointer",
+            badgeVariants({ variant: isSelected ? "outline" : "ghost" }),
+            isSelected ? "gap-1" : "gap-0 p-1",
+            "cursor-pointer",
           )}
           aria-label={h.category?.name ?? h.highlight.color}
+          title={h.category?.name ?? h.highlight.color}
         >
           <span
             className="size-2 rounded-full shrink-0"
             style={{ backgroundColor: getColorValue(h.highlight.color) }}
           />
-          <span className="truncate max-w-[16ch]">
-            {h.category?.name ?? h.highlight.color}
-          </span>
+          {isSelected && (
+            <span className="truncate max-w-[16ch]">
+              {h.category?.name ?? h.highlight.color}
+            </span>
+          )}
         </button>
       ))}
     </div>

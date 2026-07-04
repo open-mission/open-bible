@@ -55,6 +55,7 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
           <HighlightSidebar
             highlights={highlights}
             onShowAll={onShowAll ?? (() => {})}
+            isSelected={isSelected}
           />
         </div>
       )}
