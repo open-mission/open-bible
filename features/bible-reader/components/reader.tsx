@@ -33,7 +33,7 @@ interface ReaderProps {
   onChangeReaderFont: (font: "sans" | "serif" | "mono") => void;
 }
 
-export function Reader({
+function ReaderContent({
   bookId,
   chapter,
   onChapterChange,
@@ -46,10 +46,10 @@ export function Reader({
   onChangeVerseSpacing,
   readerFont,
   onChangeReaderFont,
-}: ReaderProps) {
+  versionId,
+}: ReaderProps & { versionId: string }) {
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
-  const { versionId } = useBibleVersion();
   const { highlightsByVerse } = useHighlightsContext();
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
@@ -152,9 +152,8 @@ export function Reader({
         : "font-serif";
 
   return (
-    <HighlightsProvider bookId={bookId} chapter={chapter} versionId={versionId}>
-      <div className="flex flex-col min-w-0 h-full">
-        <ReaderHeader
+    <div className="flex flex-col min-w-0 h-full">
+      <ReaderHeader
         book={book}
         chapter={chapter}
         readerMode={readerMode}
@@ -384,7 +383,17 @@ export function Reader({
           onDelete={deleteHighlight}
         />
       )}
-      </div>
+    </div>
+  );
+}
+
+export function Reader(props: ReaderProps) {
+  const { bookId, chapter } = props;
+  const { versionId } = useBibleVersion();
+
+  return (
+    <HighlightsProvider bookId={bookId} chapter={chapter} versionId={versionId}>
+      <ReaderContent {...props} versionId={versionId} />
     </HighlightsProvider>
   );
 }
