@@ -75,5 +75,11 @@ export const MIGRATIONS: Migration[] = [
       `CREATE INDEX IF NOT EXISTS \`idx_highlight_verses_highlight_id\` ON \`highlight_verses\` (\`highlight_id\`)`,
     ],
   },
+  {
+    tag: "0003_highlight_content",
+    statements: [
+      `ALTER TABLE \`highlights\` ADD COLUMN \`content\` text DEFAULT '' NOT NULL`,
+    ],
+  },
 ]
 

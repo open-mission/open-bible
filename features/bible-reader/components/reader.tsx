@@ -355,6 +355,7 @@ function ReaderContent({
           onCreate={async (patch) => {
             await createHighlight({
               color: patch.color,
+              content: patch.content,
               book: bookId,
               chapter,
               verses: createEditorVerses,

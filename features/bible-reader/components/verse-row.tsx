@@ -43,12 +43,16 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
         }`}
       aria-pressed={isActive}
     >
+      {highlights && highlights.length > 0 && (
+        <div className="absolute left-0 top-0 bottom-0 flex items-start pl-0.5 pt-[3px]">
+          <HighlightSidebar
+            highlights={highlights}
+            onHighlightClick={onHighlightClick ?? (() => {})}
+            onShowAll={onShowAll ?? (() => {})}
+          />
+        </div>
+      )}
       <div className="flex items-start">
-        <HighlightSidebar
-          highlights={highlights ?? []}
-          onHighlightClick={onHighlightClick ?? (() => {})}
-          onShowAll={onShowAll ?? (() => {})}
-        />
         <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
           {verse.verse}
         </sup>

@@ -16,8 +16,8 @@ interface HighlightEditorProps {
   open: boolean
   onClose: () => void
   highlight: HighlightData | null
-  onSave: (patch: { color: string; categoryId: string | null }) => Promise<void>
-  onCreate: (patch: { color: string; categoryId: string | null }) => Promise<void>
+  onSave: (patch: { color: string; categoryId: string | null; content: string }) => Promise<void>
+  onCreate: (patch: { color: string; categoryId: string | null; content: string }) => Promise<void>
   onDelete: (id: string) => Promise<void>
   listCategories: () => Promise<HighlightCategory[]>
   createCategory: (name: string) => Promise<HighlightCategory>
@@ -33,8 +33,8 @@ function HighlightEditorContent({
   onClose,
 }: {
   highlight: HighlightData | null
-  onSave: (patch: { color: string; categoryId: string | null }) => Promise<void>
-  onCreate: (patch: { color: string; categoryId: string | null }) => Promise<void>
+  onSave: (patch: { color: string; categoryId: string | null; content: string }) => Promise<void>
+  onCreate: (patch: { color: string; categoryId: string | null; content: string }) => Promise<void>
   onDelete: (id: string) => Promise<void>
   listCategories: () => Promise<HighlightCategory[]>
   createCategory: (name: string) => Promise<HighlightCategory>
@@ -47,15 +47,18 @@ function HighlightEditorContent({
   const [categoryId, setCategoryId] = useState<string | null>(
     isCreateMode ? null : highlight.category?.id ?? null,
   )
+  const [content, setContent] = useState<string>(
+    isCreateMode ? "" : highlight.highlight.content ?? "",
+  )
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
     setSaving(true)
     try {
       if (isCreateMode) {
-        await onCreate({ color, categoryId })
+        await onCreate({ color, categoryId, content })
       } else {
-        await onSave({ color, categoryId })
+        await onSave({ color, categoryId, content })
       }
       onClose()
     } catch {
@@ -101,6 +104,18 @@ function HighlightEditorContent({
           onChange={(id) => setCategoryId(id)}
           listCategories={listCategories}
           createCategory={createCategory}
+        />
+      </div>
+      <Separator />
+
+      <div className="px-4 py-3">
+        <label className="text-sm font-medium text-muted-foreground mb-2 block">Anotação</label>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Adicione uma anotação pessoal..."
+          rows={3}
+          className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground resize-none"
         />
       </div>
       <Separator />

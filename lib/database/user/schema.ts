@@ -77,6 +77,7 @@ export const highlightCategories = sqliteTable("highlight_categories", {
 export const highlights = sqliteTable("highlights", {
   id: text("id").primaryKey(),
   color: text("color").notNull(),
+  content: text("content").default("").notNull(),
   categoryId: text("category_id")
     .references(() => highlightCategories.id, { onDelete: "set null" }),
   noteId: text("note_id")

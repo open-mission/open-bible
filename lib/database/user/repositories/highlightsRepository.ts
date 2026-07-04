@@ -8,11 +8,12 @@ function uuid(): string {
 
 export function highlightsRepository(db: UserDb) {
   return {
-    async create(input: { color: string; categoryId?: string | null; noteId?: string | null }): Promise<Highlight> {
+    async create(input: { color: string; content?: string; categoryId?: string | null; noteId?: string | null }): Promise<Highlight> {
       const now = new Date()
       const row: NewHighlight = {
         id: uuid(),
         color: input.color,
+        content: input.content ?? "",
         categoryId: input.categoryId ?? null,
         noteId: input.noteId ?? null,
         createdAt: now,
@@ -22,7 +23,7 @@ export function highlightsRepository(db: UserDb) {
       return row as Highlight
     },
 
-    async update(id: string, patch: { color?: string; categoryId?: string | null; noteId?: string | null }): Promise<void> {
+    async update(id: string, patch: { color?: string; content?: string; categoryId?: string | null; noteId?: string | null }): Promise<void> {
       await db
         .update(highlights)
         .set({ ...patch, updatedAt: new Date() })

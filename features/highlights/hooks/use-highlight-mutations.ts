@@ -14,12 +14,14 @@ export function useHighlightMutations() {
       chapter: number
       verses: number[]
       bible: string
+      content?: string
       categoryId?: string | null
       noteId?: string | null
     }) => {
       await database.initialize()
       const h = await database.highlights.create({
         color: input.color,
+        content: input.content,
         categoryId: input.categoryId ?? null,
         noteId: input.noteId ?? null,
       })
@@ -41,7 +43,7 @@ export function useHighlightMutations() {
   )
 
   const updateHighlight = useCallback(
-    async (id: string, patch: { color?: string; categoryId?: string | null }) => {
+    async (id: string, patch: { color?: string; content?: string; categoryId?: string | null }) => {
       await database.initialize()
       await database.highlights.update(id, patch)
       await refresh()
