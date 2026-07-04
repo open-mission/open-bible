@@ -20,6 +20,13 @@ export function highlightVersesRepository(db: UserDb) {
         .where(eq(highlightVerses.highlightId, highlightId))
     },
 
+    async findByHighlightId(highlightId: string): Promise<HighlightVerse[]> {
+      return db
+        .select()
+        .from(highlightVerses)
+        .where(eq(highlightVerses.highlightId, highlightId))
+    },
+
     async listByChapter(book: string, chapter: number, bible: string): Promise<HighlightVerse[]> {
       return db
         .select()
