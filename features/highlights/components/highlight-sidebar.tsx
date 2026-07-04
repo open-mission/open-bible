@@ -29,17 +29,34 @@ export function HighlightSidebar({
               e.stopPropagation()
               onShowAll([h])
             }}
-            className={cn(
-              "cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none shrink-0",
-              showLabel
-                ? "px-2 py-0.5 text-[9px] font-bold text-white rounded-full flex items-center justify-center min-h-[18px]"
-                : "w-8 h-2 rounded-full"
-            )}
-            style={{ backgroundColor: getColorValue(h.highlight.color) }}
+            className="cursor-pointer focus:outline-none shrink-0 rounded-full flex items-center justify-center overflow-hidden hover:scale-105 active:scale-95 border border-border/10"
+            style={{
+              backgroundColor: getColorValue(h.highlight.color),
+              transition: "all 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+              height: showLabel ? "18px" : "8px",
+              paddingLeft: showLabel ? "8px" : "0px",
+              paddingRight: showLabel ? "8px" : "0px",
+              maxWidth: showLabel ? "160px" : "32px",
+              minWidth: showLabel ? "48px" : "32px",
+            }}
             aria-label={h.category?.name ?? "Destaque"}
             title={h.category?.name ?? "Destaque"}
           >
-            {showLabel && h.category.name}
+            {h.category?.name && (
+              <span
+                className="truncate font-bold text-[9px] text-white"
+                style={{
+                  transition: "all 200ms ease-out",
+                  transitionDelay: showLabel ? "100ms" : "0ms",
+                  opacity: showLabel ? 1 : 0,
+                  transform: showLabel ? "scale(1)" : "scale(0.9)",
+                  maxWidth: showLabel ? "120px" : "0px",
+                  display: "inline-block",
+                }}
+              >
+                {h.category.name}
+              </span>
+            )}
           </button>
         )
       })}
