@@ -43,9 +43,9 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
       aria-pressed={isActive}
     >
       <div className="flex items-start">
-        <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
+        <span className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0 leading-[1.8]">
           {verse.verse}
-        </sup>
+        </span>
         <p className="flex-1 leading-[1.8] text-foreground">
           {verse.text}
         </p>
