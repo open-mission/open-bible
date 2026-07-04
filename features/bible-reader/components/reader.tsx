@@ -12,7 +12,7 @@ import { useKeyboardNavigation } from "../hooks/use-keyboard-navigation";
 import { useSwipeNavigation } from "../hooks/use-swipe-navigation";
 import { ReaderHeader } from "./reader-header";
 import { cn } from "@/lib/utils";
-import { HighlightsProvider } from "@/features/highlights/context/highlights-context";
+import { HighlightsProvider, useHighlightsContext } from "@/features/highlights/context/highlights-context";
 
 interface ReaderProps {
   bookId: string;
@@ -46,6 +46,7 @@ export function Reader({
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
   const { versionId } = useBibleVersion();
+  const { highlightsByVerse } = useHighlightsContext();
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
@@ -223,6 +224,10 @@ export function Reader({
                 verse={verse}
                 isActive={verse.id === activeVerseId}
                 isSelected={selectedVerseIds.has(verse.id)}
+                highlights={highlightsByVerse.get(verse.id)}
+                onHighlightClick={(_id) => {
+                  // Will be wired in Task 15
+                }}
                 verseSpacing={verseSpacing}
               />
             ))

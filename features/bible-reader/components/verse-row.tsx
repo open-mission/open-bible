@@ -1,15 +1,19 @@
 import { forwardRef, memo } from "react"
 import type { Verse } from "@/lib/types"
+import { HighlightSidebar } from "@/features/highlights/components/highlight-sidebar"
+import type { HighlightData } from "@/features/highlights/context/highlights-context"
 
 interface VerseRowProps {
   verse: Verse
   isActive: boolean
   isSelected?: boolean
+  highlights?: HighlightData[]
+  onHighlightClick?: (highlightId: string) => void
   verseSpacing?: "small" | "medium" | "large"
 }
 
 export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function VerseRow(
-  { verse, isActive, isSelected, verseSpacing = "medium" },
+  { verse, isActive, isSelected, highlights, onHighlightClick, verseSpacing = "medium" },
   ref,
 ) {
   const spacingClasses = {
@@ -38,12 +42,19 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
         }`}
       aria-pressed={isActive}
     >
-      <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
-        {verse.verse}
-      </sup>
-      <p className="flex-1 leading-[1.8] text-foreground">
-        {verse.text}
-      </p>
+      <div className="flex items-start">
+        <HighlightSidebar
+          highlights={highlights ?? []}
+          onHighlightClick={onHighlightClick ?? (() => {})}
+          onShowAll={() => {}}
+        />
+        <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
+          {verse.verse}
+        </sup>
+        <p className="flex-1 leading-[1.8] text-foreground">
+          {verse.text}
+        </p>
+      </div>
     </div>
   )
 }))
