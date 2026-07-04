@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
+import { Card, CardHeader, CardAction, CardContent } from "@/components/ui/card"
 import { getColorValue, PREDEFINED_COLORS } from "../utils/highlight-colors"
 import { getBookName } from "@/lib/books"
 import type { Highlight, HighlightVerse } from "@/lib/database/user/schema"
@@ -176,26 +177,31 @@ export function AllHighlightsSheet({
           </p>
         ) : (
           filtered.map((e) => (
-            <div
+            <Card
               key={e.highlight.id}
-              className="p-3.5 flex flex-col gap-2.5 bg-card border border-border/50 rounded-xl shadow-xs transition-all hover:border-border/80 hover:shadow-sm"
+              size="sm"
+              className="hover:border-border/85 hover:shadow-xs transition-all duration-200"
             >
-              <div className="flex items-center justify-between gap-2">
+              <CardHeader className="flex flex-row items-center justify-between gap-2 p-3 pb-2 select-none">
                 <div className="flex items-center gap-2 truncate">
                   <div
                     className="size-3 rounded-full shrink-0"
                     style={{ backgroundColor: getColorValue(e.highlight.color) }}
                   />
-                  {e.category?.name && (
+                  {e.category?.name ? (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary truncate max-w-[14ch]">
                       {e.category.name}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize">
+                      {e.highlight.color}
                     </span>
                   )}
                   <span className="text-xs text-muted-foreground truncate font-medium">
                     {reference(e.verses)}
                   </span>
                 </div>
-                <div className="flex items-center gap-0.5 shrink-0">
+                <CardAction className="flex items-center gap-0.5 shrink-0 self-center">
                   <Button
                     type="button"
                     variant="ghost"
@@ -226,21 +232,22 @@ export function AllHighlightsSheet({
                   >
                     <IconTrash />
                   </Button>
-                </div>
-              </div>
+                </CardAction>
+              </CardHeader>
+              <CardContent className="px-3 pb-3 flex flex-col gap-2">
+                {e.text && (
+                  <p className="text-xs text-foreground/80 leading-relaxed italic bg-muted/40 px-3 py-2 rounded-lg border-l-2 border-border/80">
+                    &ldquo;{e.text}&rdquo;
+                  </p>
+                )}
 
-              {e.text && (
-                <p className="text-xs text-foreground/80 leading-relaxed italic bg-muted/40 px-3 py-2 rounded-lg border-l-2 border-border/80">
-                  &ldquo;{e.text}&rdquo;
-                </p>
-              )}
-
-              {e.highlight.content && (
-                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap pl-1 border-l border-border/40">
-                  {e.highlight.content}
-                </p>
-              )}
-            </div>
+                {e.highlight.content && (
+                  <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap pl-1 border-l border-border/40">
+                    {e.highlight.content}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           ))
         )}
       </div>
