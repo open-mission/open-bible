@@ -37,7 +37,7 @@ export function HighlightSidebar({
           title={h.category?.name ?? h.highlight.color}
         >
           <span
-            className="size-2 rounded-full shrink-0"
+            className="size-3 rounded-full shrink-0"
             style={{ backgroundColor: getColorValue(h.highlight.color) }}
           />
           {isSelected && (
