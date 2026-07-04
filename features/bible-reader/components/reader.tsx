@@ -80,13 +80,16 @@ export function Reader({
     });
   }, []);
 
-  const handleArticleClick = useCallback((e: React.MouseEvent) => {
-    const target = e.target as HTMLElement | null;
-    const verseRow = target?.closest<HTMLElement>("[data-verse-id]");
-    if (verseRow?.dataset.verseId) {
-      handleVerseClick(verseRow.dataset.verseId);
-    }
-  }, []);
+  const handleArticleClick = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const verseRow = target?.closest<HTMLElement>("[data-verse-id]");
+      if (verseRow?.dataset.verseId) {
+        handleVerseClick(verseRow.dataset.verseId);
+      }
+    },
+    [handleVerseClick],
+  );
 
   const open = selectedVerseIds.size > 0;
   const selectedVerses = verses.filter((v) => selectedVerseIds.has(v.id));
