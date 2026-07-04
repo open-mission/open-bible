@@ -140,6 +140,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
   const [isInstalling, setIsInstalling] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null)
   const [isVersionsLoaded, setIsVersionsLoaded] = useState(false)
+  const [versionMetaCache, setVersionMetaCache] = useState<Record<string, VersionMeta>>({})
 
   // Ref to keep installedVersions stable for getVerses callback (Fix 7)
   const installedVersionsRef = useRef<VersionMeta[]>(installedVersions)
