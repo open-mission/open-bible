@@ -43,7 +43,7 @@ jobs:
         uses: pnpm/action-setup@v4
       
       - name: Configure pnpm
-        run: pnpm config set fetch-timeout 120000 --save
+        run: pnpm config set fetch-timeout 120000
 
       - name: Setup Node
         uses: actions/setup-node@v4
