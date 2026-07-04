@@ -1,8 +1,7 @@
 "use client"
 
-import { badgeVariants } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { getColorValue } from "../utils/highlight-colors"
+import { getNeonStyle, getContrastColor } from "../utils/highlight-colors"
 import type { HighlightData } from "../context/highlights-context"
 
 interface HighlightSidebarProps {
@@ -19,34 +18,53 @@ export function HighlightSidebar({
   if (!highlights || highlights.length === 0) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {highlights.map((h) => (
-        <button
-          key={h.highlight.id}
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onShowAll(highlights)
-          }}
-          className={cn(
-            badgeVariants({ variant: isSelected ? "outline" : "ghost" }),
-            isSelected ? "gap-1" : "gap-0 p-1",
-            "cursor-pointer",
-          )}
-          aria-label={h.category?.name ?? h.highlight.color}
-          title={h.category?.name ?? h.highlight.color}
-        >
-          <span
-            className="size-3 rounded-full shrink-0"
-            style={{ backgroundColor: getColorValue(h.highlight.color) }}
-          />
-          {isSelected && (
-            <span className="truncate max-w-[16ch]">
-              {h.category?.name ?? h.highlight.color}
-            </span>
-          )}
-        </button>
-      ))}
+    <div className="flex flex-wrap items-center gap-1.5 mt-1 select-none">
+      {highlights.map((h) => {
+        const style = getNeonStyle(h.highlight.color)
+        const showLabel = isSelected && !!h.category?.name
+        
+        return (
+          <button
+            key={h.highlight.id}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onShowAll([h])
+            }}
+            className="cursor-pointer focus:outline-none shrink-0 rounded-full flex items-center justify-center overflow-hidden hover:scale-105 active:scale-95 border"
+            style={{
+              backgroundColor: style.hex,
+              borderColor: "transparent",
+              boxShadow: style.glow,
+              transition: "all 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+              height: showLabel ? "18px" : "8px",
+              paddingLeft: showLabel ? "8px" : "0px",
+              paddingRight: showLabel ? "8px" : "0px",
+              maxWidth: showLabel ? "160px" : "32px",
+              minWidth: showLabel ? "48px" : "32px",
+            }}
+            aria-label={h.category?.name ?? "Destaque"}
+            title={h.category?.name ?? "Destaque"}
+          >
+            {h.category?.name && (
+              <span
+                className="truncate font-bold text-[9px] font-sans"
+                style={{
+                  color: getContrastColor(style.hex),
+                  transition: "all 200ms ease-out",
+                  transitionDelay: showLabel ? "100ms" : "0ms",
+                  opacity: showLabel ? 1 : 0,
+                  transform: showLabel ? "scale(1)" : "scale(0.9)",
+                  maxWidth: showLabel ? "120px" : "0px",
+                  display: "inline-block",
+                }}
+              >
+                {h.category.name}
+              </span>
+            )}
+          </button>
+        )
+      })}
     </div>
   )
 }

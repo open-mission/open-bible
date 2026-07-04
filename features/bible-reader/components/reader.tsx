@@ -70,6 +70,7 @@ function ReaderContent({
   const [showCreateEditor, setShowCreateEditor] = useState(false);
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
   const [showAllHighlights, setShowAllHighlights] = useState(false);
+  const [allHighlightsQuery, setAllHighlightsQuery] = useState("");
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
@@ -169,6 +170,10 @@ function ReaderContent({
         onChangeVerseSpacing={onChangeVerseSpacing}
         readerFont={readerFont}
         onChangeReaderFont={onChangeReaderFont}
+        onShowAllHighlights={() => {
+          setAllHighlightsQuery("");
+          setShowAllHighlights(true);
+        }}
       />
 
       <div
@@ -242,8 +247,12 @@ function ReaderContent({
                 isSelected={selectedVerseIds.has(verse.id)}
                 highlights={highlightsByVerse.get(verse.id)}
                 onShowAll={(highlights) => {
-                  setListSheetHighlights(highlights);
-                  setShowHighlightList(true);
+                  const h = highlights[0];
+                  if (h) {
+                    const queryText = h.category?.name ?? h.highlight.color;
+                    setAllHighlightsQuery(queryText);
+                    setShowAllHighlights(true);
+                  }
                 }}
                 verseSpacing={verseSpacing}
               />
@@ -271,7 +280,10 @@ function ReaderContent({
             <ChevronLeft className="size-5" />
           </button>
           <button
-            onClick={() => setShowAllHighlights(true)}
+            onClick={() => {
+              setAllHighlightsQuery("");
+              setShowAllHighlights(true);
+            }}
             className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
             aria-label="Todos os destaques"
           >
@@ -338,7 +350,18 @@ function ReaderContent({
           onSave={async (patch) => {
             await updateHighlight(editingHighlight.highlight.id, patch);
           }}
-          onCreate={async () => {}}
+          onCreate={async (patch) => {
+            const verseNums = editingHighlight.verses.map((v) => v.verse);
+            await createHighlight({
+              color: patch.color,
+              content: patch.content,
+              categoryId: patch.categoryId,
+              book: editingHighlight.verses[0].book,
+              chapter: editingHighlight.verses[0].chapter,
+              verses: verseNums,
+              bible: editingHighlight.verses[0].bible,
+            });
+          }}
           onDelete={deleteHighlight}
           listCategories={listCategories}
           createCategory={createCategory}
@@ -359,6 +382,7 @@ function ReaderContent({
             await createHighlight({
               color: patch.color,
               content: patch.content,
+              categoryId: patch.categoryId,
               book: bookId,
               chapter,
               verses: createEditorVerses,
@@ -393,6 +417,7 @@ function ReaderContent({
         <AllHighlightsSheet
           open={showAllHighlights}
           onClose={() => setShowAllHighlights(false)}
+          initialQuery={allHighlightsQuery}
           onEdit={async (highlightId) => {
             await database.initialize();
             const h = await database.highlights.findById(highlightId);

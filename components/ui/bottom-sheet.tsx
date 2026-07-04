@@ -35,7 +35,7 @@ export function BottomSheet({
               ? "data-[vaul-drawer-direction=bottom]:h-dvh data-[vaul-drawer-direction=bottom]:max-h-dvh data-[vaul-drawer-direction=bottom]:rounded-t-none"
               : is95
                 ? "data-[vaul-drawer-direction=bottom]:h-[95dvh] data-[vaul-drawer-direction=bottom]:max-h-[95dvh]"
-                : "data-[vaul-drawer-direction=bottom]:max-h-[80vh]"
+                : "data-[vaul-drawer-direction=bottom]:h-[85dvh] data-[vaul-drawer-direction=bottom]:max-h-[85dvh]"
           )}
         >
           <div className="flex-1 overflow-y-auto overscroll-contain no-scrollbar">
@@ -49,7 +49,7 @@ export function BottomSheet({
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden border border-border shadow-xl">
+      <DialogContent showCloseButton={false} className="max-w-lg p-0 gap-0 overflow-hidden border border-border shadow-xl">
         <div className="overflow-y-auto max-h-[85vh] no-scrollbar">
           {children}
         </div>

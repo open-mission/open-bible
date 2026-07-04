@@ -1,20 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { IconHighlight } from "@tabler/icons-react"
+import { useMemo } from "react"
+import { IconPencil } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { HighlightColorPicker } from "./highlight-color-picker"
 import type { HighlightColor } from "../utils/highlight-colors"
 import type { HighlightCategory } from "@/lib/database/user/schema"
-
-
+import { useHighlightsContext } from "../context/highlights-context"
 
 interface HighlightMenuProps {
   selectedVerseIds: string[]
   bookId: string
   chapter: number
   versionId: string
+  isMobile: boolean
   onCreateHighlight: (input: {
     color: string
     book: string
@@ -22,6 +22,7 @@ interface HighlightMenuProps {
     verses: number[]
     bible: string
   }) => Promise<void>
+  onUpdateHighlight: (id: string, patch: { color?: string; categoryId?: string | null }) => Promise<void>
   onDeleteHighlight: (id: string) => Promise<void>
   listCategories: () => Promise<HighlightCategory[]>
   createCategory: (name: string) => Promise<HighlightCategory>
@@ -34,82 +35,79 @@ export function HighlightMenu({
   bookId,
   chapter,
   versionId,
+  isMobile,
   onCreateHighlight,
+  onUpdateHighlight,
   onDeleteHighlight,
-  listCategories,
-  createCategory,
   onClose,
   onOpenEditor,
 }: HighlightMenuProps) {
-  const [showColors, setShowColors] = useState(false)
+  const { highlightsByVerse } = useHighlightsContext()
+
+  // Find if there is an active highlight for the exact selected verses
+  const activeHighlight = useMemo(() => {
+    if (selectedVerseIds.length === 0) return null
+    const firstVerseId = selectedVerseIds[0]
+    const verseHighlights = highlightsByVerse.get(firstVerseId) ?? []
+    return verseHighlights.find((h) => {
+      const hVerses = h.verses.map((v) => v.verse)
+      return selectedVerseIds.every((id) => {
+        const num = parseInt(id.split("-").pop()!, 10)
+        return hVerses.includes(num)
+      })
+    }) || null
+  }, [selectedVerseIds, highlightsByVerse])
 
   async function handleColorSelect(color: HighlightColor) {
     try {
-      const verseNumbers = selectedVerseIds.map((id) => {
-        const parts = id.split("-")
-        return parseInt(parts[parts.length - 1], 10)
-      })
+      if (activeHighlight) {
+        if (color === activeHighlight.highlight.color) {
+          // Toggle off: if clicking the active color, delete the highlight
+          await onDeleteHighlight(activeHighlight.highlight.id)
+          toast.success("Destaque removido")
+        } else {
+          // Update color of existing highlight
+          await onUpdateHighlight(activeHighlight.highlight.id, { color })
+          toast.success("Cor do destaque atualizada")
+        }
+      } else {
+        // Create new highlight
+        const verseNumbers = selectedVerseIds.map((id) => {
+          const parts = id.split("-")
+          return parseInt(parts[parts.length - 1], 10)
+        })
 
-      await onCreateHighlight({
-        color,
-        book: bookId,
-        chapter,
-        verses: verseNumbers,
-        bible: versionId,
-      })
-      onClose()
+        await onCreateHighlight({
+          color,
+          book: bookId,
+          chapter,
+          verses: verseNumbers,
+          bible: versionId,
+        })
+        toast.success("Destaque criado")
+      }
     } catch {
-      toast.error("Falha ao criar destaque.")
+      toast.error("Falha ao atualizar destaque.")
     }
   }
 
   return (
-    <>
-      {!showColors && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowColors(true)}
-          className="flex-1 text-muted-foreground hover:text-foreground"
-        >
-          <IconHighlight data-icon="inline-start" />
-          Destaque
-        </Button>
-      )}
-
-      {showColors && (
-        <div className="flex flex-col gap-2 p-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Escolha uma cor</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => setShowColors(false)}
-            >
-              ✕
-            </Button>
-          </div>
-          <HighlightColorPicker
-            value="amber"
-            onChange={handleColorSelect}
-            showCustom={false}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              onClose()
-              onOpenEditor()
-            }}
-            className="text-xs text-muted-foreground"
-          >
-            Mais opções →
-          </Button>
-        </div>
-      )}
-    </>
+    <div className="flex items-center justify-between w-full gap-4">
+      <HighlightColorPicker
+        value={activeHighlight?.highlight.color ?? ""}
+        onChange={handleColorSelect}
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size={isMobile ? "icon-xs" : "sm"}
+        onClick={onOpenEditor}
+        className="text-muted-foreground hover:text-foreground shrink-0 font-medium text-xs gap-1.5"
+        aria-label="Mais informações"
+      >
+        <IconPencil data-icon="inline-start" />
+        {!isMobile && <span>Mais informações</span>}
+      </Button>
+    </div>
   )
 }
