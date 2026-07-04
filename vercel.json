@@ -1,5 +1,4 @@
 {
   "installCommand": "bun install",
-  "buildCommand": "bun build",
-  "nodeVersion": "24"
+  "buildCommand": "bun build"
 }
