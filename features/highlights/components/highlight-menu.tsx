@@ -14,6 +14,7 @@ interface HighlightMenuProps {
   bookId: string
   chapter: number
   versionId: string
+  isMobile: boolean
   onCreateHighlight: (input: {
     color: string
     book: string
@@ -34,6 +35,7 @@ export function HighlightMenu({
   bookId,
   chapter,
   versionId,
+  isMobile,
   onCreateHighlight,
   onUpdateHighlight,
   onDeleteHighlight,
@@ -90,7 +92,7 @@ export function HighlightMenu({
   }
 
   return (
-    <div className="flex items-center justify-between w-full">
+    <div className="flex items-center justify-between w-full gap-4">
       <HighlightColorPicker
         value={activeHighlight?.highlight.color ?? ""}
         onChange={handleColorSelect}
@@ -98,12 +100,13 @@ export function HighlightMenu({
       <Button
         type="button"
         variant="ghost"
-        size="icon-xs"
+        size={isMobile ? "icon-xs" : "sm"}
         onClick={onOpenEditor}
-        className="text-muted-foreground hover:text-foreground shrink-0"
-        aria-label="Editar destaque"
+        className="text-muted-foreground hover:text-foreground shrink-0 font-medium text-xs gap-1.5"
+        aria-label="Mais informações"
       >
-        <IconPencil />
+        <IconPencil data-icon="inline-start" />
+        {!isMobile && <span>Mais informações</span>}
       </Button>
     </div>
   )

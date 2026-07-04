@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { IconColorPicker } from "@tabler/icons-react"
 import { cn } from "@/lib/utils"
 import { PREDEFINED_COLORS, getColorValue, isPredefinedColor, type HighlightColor } from "../utils/highlight-colors"
 
@@ -18,7 +19,6 @@ export function HighlightColorPicker({
   const [customColor, setCustomColor] = useState(
     isPredefinedColor(value) ? "#000000" : value
   )
-  const [showPicker, setShowPicker] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
@@ -44,14 +44,16 @@ export function HighlightColorPicker({
             type="button"
             onClick={() => inputRef.current?.click()}
             className={cn(
-              "size-6 rounded-full border border-border transition-all focus:outline-none",
+              "size-6 rounded-full border border-border transition-all focus:outline-none flex items-center justify-center text-muted-foreground hover:text-foreground",
               !isPredefinedColor(value) && value
-                ? "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110"
-                : "bg-gradient-to-br from-red-500 via-green-500 to-blue-500 hover:scale-105"
+                ? "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110 text-foreground"
+                : "bg-muted hover:scale-105"
             )}
             style={!isPredefinedColor(value) && value ? { backgroundColor: value } : undefined}
             aria-label="Cor personalizada"
-          />
+          >
+            <IconColorPicker className="size-3.5 pointer-events-none" />
+          </button>
           <input
             ref={inputRef}
             type="color"

@@ -104,12 +104,10 @@ export function VerseSelectionPopover({
     }) || null;
   }, [selectedVerses, highlightsByVerse]);
 
-  const hasHighlight = activeHighlight !== null;
-
-  // Auto-show/hide toolbar when highlight status changes
+  // Reset toolbar state to closed when selection changes
   useEffect(() => {
-    setShowToolbar(hasHighlight);
-  }, [hasHighlight]);
+    setShowToolbar(false);
+  }, [selectedVerses]);
 
   async function handleCopy(kind: CopiedKind) {
     const text =
@@ -136,6 +134,19 @@ export function VerseSelectionPopover({
         isMobile ? "bottom-24" : "bottom-4",
       )}
     >
+      <style>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(12px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+      
       <div className="flex flex-col gap-2 w-full max-w-sm md:max-w-4xl pointer-events-auto items-stretch">
         {/* --- Toolbar / Highlight Menu --- */}
         {showToolbar && (
@@ -144,12 +155,16 @@ export function VerseSelectionPopover({
               "flex overflow-hidden rounded-2xl bg-background/95 backdrop-blur-sm border border-border shadow-lg px-4 py-2.5 transition-all duration-200",
               isMobile ? "w-full" : "self-end min-w-[280px]"
             )}
+            style={{
+              animation: "slideUp 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
+            }}
           >
             <HighlightMenu
               selectedVerseIds={selectedVerses.map((v) => v.id)}
               bookId={book.id}
               chapter={chapter}
               versionId={versionId}
+              isMobile={isMobile}
               onCreateHighlight={createHighlight}
               onUpdateHighlight={updateHighlight}
               onDeleteHighlight={deleteHighlight}
