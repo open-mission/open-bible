@@ -1,0 +1,26 @@
+# Normalize line endings to LF
+* text=auto eol=lf
+
+# Binary files (no line ending normalization)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg binary
+*.wasm binary
+*.sqlite binary
+*.db binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.mp3 binary
+*.mp4 binary
+
+# Generated/auto-merged files
+CHANGELOG.md merge=union
+package-lock.json merge=union
+pnpm-lock.yaml merge=union
+yarn.lock merge=union
