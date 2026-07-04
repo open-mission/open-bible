@@ -350,7 +350,18 @@ function ReaderContent({
           onSave={async (patch) => {
             await updateHighlight(editingHighlight.highlight.id, patch);
           }}
-          onCreate={async () => {}}
+          onCreate={async (patch) => {
+            const verseNums = editingHighlight.verses.map((v) => v.verse);
+            await createHighlight({
+              color: patch.color,
+              content: patch.content,
+              categoryId: patch.categoryId,
+              book: editingHighlight.verses[0].book,
+              chapter: editingHighlight.verses[0].chapter,
+              verses: verseNums,
+              bible: editingHighlight.verses[0].bible,
+            });
+          }}
           onDelete={deleteHighlight}
           listCategories={listCategories}
           createCategory={createCategory}
@@ -371,6 +382,7 @@ function ReaderContent({
             await createHighlight({
               color: patch.color,
               content: patch.content,
+              categoryId: patch.categoryId,
               book: bookId,
               chapter,
               verses: createEditorVerses,
