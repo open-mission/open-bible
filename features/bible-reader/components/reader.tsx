@@ -50,7 +50,9 @@ export function Reader({
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
     new Set(),
   );
-  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
+  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(
+    null,
+  );
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -76,15 +78,15 @@ export function Reader({
       else next.add(verseId);
       return next;
     });
-  }, [])
+  }, []);
 
   const handleArticleClick = useCallback((e: React.MouseEvent) => {
-    const target = e.target as HTMLElement | null
-    const verseRow = target?.closest<HTMLElement>("[data-verse-id]")
+    const target = e.target as HTMLElement | null;
+    const verseRow = target?.closest<HTMLElement>("[data-verse-id]");
     if (verseRow?.dataset.verseId) {
-      handleVerseClick(verseRow.dataset.verseId)
+      handleVerseClick(verseRow.dataset.verseId);
     }
-  }, [])
+  }, []);
 
   const open = selectedVerseIds.size > 0;
   const selectedVerses = verses.filter((v) => selectedVerseIds.has(v.id));
@@ -225,7 +227,7 @@ export function Reader({
 
       <div
         className={cn(
-          "w-full bg-linear-to-t z-10 from-black to-transparent absolute bottom-0",
+          "w-full bg-linear-to-t z-10 from-background to-transparent absolute bottom-0",
           open ? "h-50" : "h-30",
         )}
       ></div>

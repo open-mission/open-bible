@@ -1,7 +1,6 @@
 "use client"
 
 import { toast } from "sonner"
-import { IconLoader } from "@tabler/icons-react"
 
 interface DownloadToastProps {
   name: string
@@ -12,34 +11,41 @@ interface DownloadToastProps {
 function DownloadToast({ name, progress, status = "loading" }: DownloadToastProps) {
   const pct = progress ? Math.round((progress.current / progress.total) * 100) : 0
 
+  if (status === "success") {
+    return (
+      <div className="flex items-center justify-between gap-4 bg-background rounded-xl px-4 py-3 shadow-lg border border-border">
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <p className="text-sm font-semibold text-foreground truncate">{name}</p>
+          <p className="text-xs text-muted-foreground">disponível offline</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === "error") {
+    return (
+      <div className="flex items-center justify-between gap-4 bg-background rounded-xl px-4 py-3 shadow-lg border border-border">
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <p className="text-sm font-semibold text-destructive">Falha ao baixar</p>
+          <p className="text-xs text-muted-foreground truncate">{name}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex items-start gap-3 bg-popover text-popover-foreground">
-      {status === "loading" && (
-        <IconLoader className="size-4 shrink-0 mt-0.5 animate-spin" />
-      )}
-      <div className="flex-1 min-w-0">
-        {status === "loading" && (
-          <p className="text-sm font-medium">Baixando {name}...</p>
-        )}
-        {status === "success" && (
-          <p className="text-sm font-medium">{name} disponível offline</p>
-        )}
-        {status === "error" && (
-          <p className="text-sm font-medium">Falha ao baixar {name}</p>
-        )}
-        {status === "loading" && progress && (
-          <div className="mt-2">
-            <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-              <div
-                className="h-full rounded-full bg-primary transition-all duration-300"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1 text-right">
-              {pct}%
-            </p>
+    <div className="flex items-center justify-between gap-4 bg-background rounded-xl px-4 py-3 shadow-lg border border-border">
+      <div className="flex flex-col gap-1 min-w-0 flex-1">
+        <p className="text-sm font-semibold text-foreground truncate">Baixando {name}</p>
+        <div className="flex items-center gap-2">
+          <div className="relative h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-300"
+              style={{ width: `${pct}%` }}
+            />
           </div>
-        )}
+          <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">{pct}%</span>
+        </div>
       </div>
     </div>
   )

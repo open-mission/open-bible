@@ -64,14 +64,17 @@ class Database {
     try {
       const bible = await this.openBible(name)
       const displayName = await bible.name()
-      const db = this.requireUserDb()
-      
+
+      // Use raw SQL via manager.exec instead of Drizzle to avoid
+      // abstraction that masks the underlying SQLite error.
+      const path = this.manager.userDbPath
+
       // Verify installed_bibles table exists, create if missing
-      const tableExists = await this.manager.tableExists(this.manager.userDbPath, "installed_bibles")
+      const tableExists = await this.manager.tableExists(path, "installed_bibles")
       if (!tableExists) {
         console.warn("[Database] installed_bibles table missing, creating it now")
         await this.manager.exec(
-          this.manager.userDbPath,
+          path,
           `CREATE TABLE IF NOT EXISTS \`installed_bibles\` (
             \`id\` text PRIMARY KEY NOT NULL,
             \`name\` text NOT NULL,
@@ -83,23 +86,28 @@ class Database {
         )
       }
 
-      const exists = await db
-        .select()
-        .from(schema.installedBibles)
-        .where(eq(schema.installedBibles.id, name))
+      // Check if already installed
+      const existing = await this.manager.exec(
+        path,
+        `SELECT id FROM installed_bibles WHERE id = ?`,
+        [name],
+        "all"
+      )
 
-      if (exists.length > 0) {
-        await db
-          .update(schema.installedBibles)
-          .set({ name: displayName, installedAt: new Date() })
-          .where(eq(schema.installedBibles.id, name))
+      if (existing.length > 0) {
+        await this.manager.exec(
+          path,
+          `UPDATE installed_bibles SET name = ?, installed_at = ?, version_code = 1 WHERE id = ?`,
+          [displayName, Date.now(), name],
+          "run"
+        )
       } else {
-        await db.insert(schema.installedBibles).values({
-          id: name,
-          name: displayName,
-          installedAt: new Date(),
-          versionCode: 1,
-        })
+        await this.manager.exec(
+          path,
+          `INSERT INTO installed_bibles (id, name, installed_at, version_code) VALUES (?, ?, ?, 1)`,
+          [name, displayName, Date.now()],
+          "run"
+        )
       }
     } catch (e) {
       console.error("Failed to register installed Bible in app.db:", e)
@@ -111,8 +119,13 @@ class Database {
     await this.manager.removeBible(name)
 
     try {
-      const db = this.requireUserDb()
-      await db.delete(schema.installedBibles).where(eq(schema.installedBibles.id, name))
+      const path = this.manager.userDbPath
+      await this.manager.exec(
+        path,
+        `DELETE FROM installed_bibles WHERE id = ?`,
+        [name],
+        "run"
+      )
     } catch (e) {
       console.error("Failed to remove Bible registration from app.db:", e)
     }
