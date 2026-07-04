@@ -91,8 +91,13 @@ export function HighlightsProvider({
   )
 }
 
+const DEFAULT_CONTEXT: HighlightsContextValue = {
+  highlightsByVerse: new Map(),
+  loading: false,
+  refresh: async () => {},
+}
+
 export function useHighlightsContext() {
   const ctx = useContext(HighlightsContext)
-  if (!ctx) throw new Error("useHighlightsContext must be used within HighlightsProvider")
-  return ctx
+  return ctx ?? DEFAULT_CONTEXT
 }
