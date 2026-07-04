@@ -45,7 +45,7 @@ function runCmd(cmd, dryRun = false) {
   try {
     const output = execSync(cmd, { stdio: 'inherit' });
     return output ? output.toString() : '';
-  } catch (error) {
+  } catch {
     console.error(`\x1b[31mError executing: ${cmd}\x1b[0m`);
     process.exit(1);
   }
@@ -66,7 +66,7 @@ async function main() {
   let statusOutput = '';
   try {
     statusOutput = execSync('git status --porcelain').toString().trim();
-  } catch (e) {
+  } catch {
     console.error('Failed to run git status. Is git installed?');
     process.exit(1);
   }
@@ -215,7 +215,7 @@ ${sectionName}
   let currentBranch = 'develop';
   try {
     currentBranch = execSync('git branch --show-current').toString().trim();
-  } catch (e) {
+  } catch {
     // Fallback if git command fails or is detached
   }
   runCmd(`git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml CHANGELOG.md`, dryRun);

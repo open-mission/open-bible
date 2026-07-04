@@ -39,7 +39,8 @@ export function HighlightMenu({
   onCreateHighlight,
   onUpdateHighlight,
   onDeleteHighlight,
-  onClose,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onClose: _onClose, // forwarded by parent — reserved for future use
   onOpenEditor,
 }: HighlightMenuProps) {
   const { highlightsByVerse } = useHighlightsContext()

@@ -49,6 +49,7 @@ app.use("*", async (c, next) => {
 
 // ─── Type helper for handlers with multiple response statuses ────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function h(fn: (...args: any[]) => any) {
   return fn;
 }
@@ -425,7 +426,7 @@ app.get("/api/bibles/download/:version", async (c) => {
     if (!upstream.ok) {
       return c.text(
         `Erro ao obter arquivo da origem: ${upstream.statusText}`,
-        upstream.status as any,
+        upstream.status as 200,
       );
     }
 
@@ -440,7 +441,7 @@ app.get("/api/bibles/download/:version", async (c) => {
     c.header("Content-Length", String(compressed.length));
     c.header("Cache-Control", "no-store");
 
-    return c.body(compressed as any);
+    return c.body(compressed as Uint8Array);
   } catch (e) {
     console.error(`Falha no proxy de download para ${version}:`, e);
     return c.text("Erro interno no servidor de proxy de download", 500);

@@ -31,11 +31,14 @@ export function AllHighlightsSheet({
   const { entries, loading, deleteHighlight } = useAllHighlights(open)
 
   useEffect(() => {
-    if (open) {
-      setQuery(initialQuery)
-    } else {
-      setQuery("")
-    }
+    const timer = setTimeout(() => {
+      if (open) {
+        setQuery(initialQuery)
+      } else {
+        setQuery("")
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [open, initialQuery])
 
   const filtered = useMemo(() => {

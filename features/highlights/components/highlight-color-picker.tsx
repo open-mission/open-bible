@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { defaultNeonColors, neonColors, type HighlightColor } from "../utils/highlight-colors"

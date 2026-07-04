@@ -80,11 +80,12 @@ export function HighlightsProvider({
       setLoading(false)
     }
   }, [bookId, chapter, versionId])
-
   useEffect(() => {
-    loadHighlights()
+    const timer = setTimeout(() => {
+      loadHighlights()
+    }, 0)
+    return () => clearTimeout(timer)
   }, [loadHighlights])
-
   return (
     <HighlightsContext.Provider value={{ highlightsByVerse, loading, refresh: loadHighlights }}>
       {children}

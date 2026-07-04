@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { IconX, IconPlus } from "@tabler/icons-react"
 import type { HighlightCategory } from "@/lib/database/user/schema"
-import { cn } from "@/lib/utils"
+
 import { InputGroup, InputGroupButton } from "@/components/ui/input-group"
 
 interface HighlightCategoryInputProps {
