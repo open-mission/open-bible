@@ -100,6 +100,11 @@ export class DatabaseManager {
     await this.rpc({ type: "removeDb", path: name })
   }
 
+  /** Close a Bible connection (but keep the file). */
+  async closeBible(name: string): Promise<void> {
+    await this.rpc({ type: "close", path: name })
+  }
+
   /** Names (without .db) of installed Bibles, excluding app.db. */
   async listInstalledBibles(): Promise<string[]> {
     const res = await this.rpc({ type: "listFiles" })

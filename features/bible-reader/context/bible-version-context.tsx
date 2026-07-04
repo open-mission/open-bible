@@ -166,6 +166,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
           const bible = await database.openBible(id)
           const name = await bible.name()
           const books = await bible.getBooks()
+          database.manager.closeBible(id).catch(() => {})
           installed.push({
             id,
             name,
