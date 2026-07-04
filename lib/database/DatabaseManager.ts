@@ -107,4 +107,16 @@ export class DatabaseManager {
       .map((f) => String(f).replace(/^.*\//, "").replace(/\.db$/, ""))
       .filter((n) => n && n !== "app")
   }
+
+  /** Check if a table exists in the given database. */
+  async tableExists(dbPath: string, tableName: string): Promise<boolean> {
+    const res = await this.rpc({
+      type: "exec",
+      dbPath,
+      sql: `SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
+      params: [tableName],
+      method: "all"
+    })
+    return (res.rows?.length ?? 0) > 0
+  }
 }

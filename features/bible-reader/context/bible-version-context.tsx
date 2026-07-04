@@ -35,11 +35,9 @@ export interface LocalAvailableVersion {
 
 export const AVAILABLE_VERSIONS: LocalAvailableVersion[] = [
   { id: "acf", name: "Almeida Corrigida Fiel", filename: "ACF.sqlite" },
-  { id: "alm1911", name: "Almeida 1911", filename: "ALM1911.sqlite" },
   { id: "ara", name: "Almeida Revista e Atualizada", filename: "ARA.sqlite" },
   { id: "arc", name: "Almeida Revista e Corrigida", filename: "ARC.sqlite" },
   { id: "as21", name: "Almeida Século 21", filename: "AS21.sqlite" },
-  { id: "blivre", name: "Bíblia Livre", filename: "BLIVRE.sqlite" },
   { id: "jfaa", name: "João Ferreira de Almeida Atualizada", filename: "JFAA.sqlite" },
   { id: "kja", name: "King James Atualizada", filename: "KJA.sqlite" },
   { id: "kjf", name: "King James Fiel", filename: "KJF.sqlite" },

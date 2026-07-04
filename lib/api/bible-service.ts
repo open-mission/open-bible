@@ -58,17 +58,26 @@ export async function getVersionDetail(versionId: string): Promise<VersionDetail
       [versionId]
     )
 
+    const totalBooks = verResult.rows[0][2] as number
+    const books = booksResult.rows.map((row) => ({
+      id: row[0] as string,
+      name: row[1] as string,
+      abbreviation: row[2] as string,
+      testament: row[3] as "old" | "new",
+      chapters: row[4] as number,
+    }))
+
+    // Warn when version exists but has no books in bible_books table
+    const warning = books.length === 0 && totalBooks > 0
+      ? `Version ${versionId} exists in bible_versions (${totalBooks} books) but has no books in bible_books table. Data may need to be re-imported.`
+      : undefined
+
     return {
       id: verResult.rows[0][0] as string,
       name: verResult.rows[0][1] as string,
-      totalBooks: verResult.rows[0][2] as number,
-      books: booksResult.rows.map((row) => ({
-        id: row[0] as string,
-        name: row[1] as string,
-        abbreviation: row[2] as string,
-        testament: row[3] as "old" | "new",
-        chapters: row[4] as number,
-      })),
+      totalBooks,
+      books,
+      warning,
     }
   })
 }

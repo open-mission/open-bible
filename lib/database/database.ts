@@ -65,6 +65,24 @@ class Database {
       const bible = await this.openBible(name)
       const displayName = await bible.name()
       const db = this.requireUserDb()
+      
+      // Verify installed_bibles table exists, create if missing
+      const tableExists = await this.manager.tableExists(this.manager.userDbPath, "installed_bibles")
+      if (!tableExists) {
+        console.warn("[Database] installed_bibles table missing, creating it now")
+        await this.manager.exec(
+          this.manager.userDbPath,
+          `CREATE TABLE IF NOT EXISTS \`installed_bibles\` (
+            \`id\` text PRIMARY KEY NOT NULL,
+            \`name\` text NOT NULL,
+            \`installed_at\` integer NOT NULL,
+            \`version_code\` integer DEFAULT 1 NOT NULL
+          )`,
+          [],
+          "run"
+        )
+      }
+
       const exists = await db
         .select()
         .from(schema.installedBibles)

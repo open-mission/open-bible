@@ -21,6 +21,7 @@ interface APIVersionDetail extends APIVersion {
     testament: "old" | "new"
     chapters: number
   }[]
+  warning?: string
 }
 
 interface APICompactVersionDetail {
@@ -32,6 +33,7 @@ interface APICompactVersionDetail {
     abbreviation: string
     testament: "old" | "new"
   }[]
+  warning?: string
 }
 
 interface APIVerse {
