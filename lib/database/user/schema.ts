@@ -61,3 +61,82 @@ export const installedBibles = sqliteTable("installed_bibles", {
 export type InstalledBible = typeof installedBibles.$inferSelect
 export type NewInstalledBible = typeof installedBibles.$inferInsert
 
+/**
+ * highlight_categories — user-defined tags for organizing highlights.
+ * Global (not tied to Bible version). Created on-demand via autocomplete.
+ */
+export const highlightCategories = sqliteTable("highlight_categories", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+})
+
+/**
+ * highlights — a colored highlight applied to one or more verses.
+ */
+export const highlights = sqliteTable("highlights", {
+  id: text("id").primaryKey(),
+  color: text("color").notNull(),
+  categoryId: text("category_id")
+    .references(() => highlightCategories.id, { onDelete: "set null" }),
+  noteId: text("note_id")
+    .references(() => notes.id, { onDelete: "set null" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+})
+
+/**
+ * highlight_verses — maps a highlight to specific verses (N:N).
+ */
+export const highlightVerses = sqliteTable(
+  "highlight_verses",
+  {
+    id: text("id").primaryKey(),
+    highlightId: text("highlight_id")
+      .notNull()
+      .references(() => highlights.id, { onDelete: "cascade" }),
+    book: text("book").notNull(),
+    chapter: integer("chapter").notNull(),
+    verse: integer("verse").notNull(),
+    bible: text("bible").notNull(),
+  },
+  (t) => [
+    index("idx_highlight_verses_lookup").on(t.book, t.chapter, t.verse, t.bible),
+    index("idx_highlight_verses_highlight_id").on(t.highlightId),
+  ]
+)
+
+// --- Relations ---
+
+export const highlightCategoriesRelations = relations(highlightCategories, ({ many }) => ({
+  highlights: many(highlights),
+}))
+
+export const highlightsRelations = relations(highlights, ({ one, many }) => ({
+  category: one(highlightCategories, {
+    fields: [highlights.categoryId],
+    references: [highlightCategories.id],
+  }),
+  note: one(notes, {
+    fields: [highlights.noteId],
+    references: [notes.id],
+  }),
+  verses: many(highlightVerses),
+}))
+
+export const highlightVersesRelations = relations(highlightVerses, ({ one }) => ({
+  highlight: one(highlights, {
+    fields: [highlightVerses.highlightId],
+    references: [highlights.id],
+  }),
+}))
+
+// --- Types ---
+
+export type HighlightCategory = typeof highlightCategories.$inferSelect
+export type NewHighlightCategory = typeof highlightCategories.$inferInsert
+export type Highlight = typeof highlights.$inferSelect
+export type NewHighlight = typeof highlights.$inferInsert
+export type HighlightVerse = typeof highlightVerses.$inferSelect
+export type NewHighlightVerse = typeof highlightVerses.$inferInsert
+
