@@ -42,7 +42,7 @@ export function HighlightSidebar({
             e.stopPropagation()
             handleClick(h.highlight.id)
           }}
-          className="w-1 rounded-full transition-opacity hover:opacity-80 cursor-pointer"
+          className="h-4 w-1 rounded-full transition-opacity hover:opacity-80 cursor-pointer"
           style={{ backgroundColor: getColorValue(h.highlight.color) }}
           aria-label={`Destaque ${h.highlight.color}${h.category ? ` (${h.category.name})` : ""}`}
         />
