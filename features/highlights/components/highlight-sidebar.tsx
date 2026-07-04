@@ -13,13 +13,14 @@ interface HighlightSidebarProps {
 export function HighlightSidebar({
   highlights,
   onShowAll,
+  isSelected,
 }: HighlightSidebarProps) {
   if (!highlights || highlights.length === 0) return null
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
       {highlights.map((h) => {
-        const hasCategory = !!h.category?.name
+        const showLabel = isSelected && !!h.category?.name
         return (
           <button
             key={h.highlight.id}
@@ -30,7 +31,7 @@ export function HighlightSidebar({
             }}
             className={cn(
               "cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none shrink-0",
-              hasCategory
+              showLabel
                 ? "px-2 py-0.5 text-[9px] font-bold text-white rounded-full flex items-center justify-center min-h-[18px]"
                 : "w-8 h-2 rounded-full"
             )}
@@ -38,7 +39,7 @@ export function HighlightSidebar({
             aria-label={h.category?.name ?? "Destaque"}
             title={h.category?.name ?? "Destaque"}
           >
-            {hasCategory && h.category.name}
+            {showLabel && h.category.name}
           </button>
         )
       })}
