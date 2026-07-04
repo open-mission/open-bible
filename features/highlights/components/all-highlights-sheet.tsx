@@ -26,22 +26,31 @@ interface AllHighlightsSheetProps {
   open: boolean
   onClose: () => void
   onEdit: (highlightId: string) => void
+  initialQuery?: string
 }
 
 export function AllHighlightsSheet({
   open,
   onClose,
   onEdit,
+  initialQuery = "",
 }: AllHighlightsSheetProps) {
   const [entries, setEntries] = useState<AllHighlightEntry[]>([])
   const [loading, setLoading] = useState(false)
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState(initialQuery)
   const isMobile = useIsMobile()
   const { refresh: refreshContext } = useHighlightsContext()
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      setQuery(initialQuery)
+    } else {
       setQuery("")
+    }
+  }, [open, initialQuery])
+
+  useEffect(() => {
+    if (!open) {
       return
     }
 
@@ -69,7 +78,7 @@ export function AllHighlightsSheet({
                 const targetVerseNums = verses.map((v) => v.verse)
                 text = chapterVerses
                   .filter((v) => targetVerseNums.includes(v.verse))
-                  .map((v) => v.text)
+                  .map((v) => `${v.verse}. ${v.text}`)
                   .join(" ")
               } catch (e) {
                 console.error("Failed to load verse text inside list:", e)
