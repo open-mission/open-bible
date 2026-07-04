@@ -12,6 +12,7 @@ import { useKeyboardNavigation } from "../hooks/use-keyboard-navigation";
 import { useSwipeNavigation } from "../hooks/use-swipe-navigation";
 import { ReaderHeader } from "./reader-header";
 import { cn } from "@/lib/utils";
+import { HighlightsProvider } from "@/features/highlights/context/highlights-context";
 
 interface ReaderProps {
   bookId: string;
@@ -137,8 +138,9 @@ export function Reader({
         : "font-serif";
 
   return (
-    <div className="flex flex-col min-w-0 h-full">
-      <ReaderHeader
+    <HighlightsProvider bookId={bookId} chapter={chapter} versionId={versionId}>
+      <div className="flex flex-col min-w-0 h-full">
+        <ReaderHeader
         book={book}
         chapter={chapter}
         readerMode={readerMode}
@@ -286,6 +288,7 @@ export function Reader({
           onClose={() => setSelectedVerseIds(new Set())}
         />
       )}
-    </div>
+      </div>
+    </HighlightsProvider>
   );
 }
