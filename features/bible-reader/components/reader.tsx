@@ -169,6 +169,7 @@ function ReaderContent({
         onChangeVerseSpacing={onChangeVerseSpacing}
         readerFont={readerFont}
         onChangeReaderFont={onChangeReaderFont}
+        onShowAllHighlights={() => setShowAllHighlights(true)}
       />
 
       <div
