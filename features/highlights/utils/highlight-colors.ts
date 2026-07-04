@@ -93,3 +93,15 @@ export function getColorName(hex: string): string {
   const match = neonColors.find((c) => c.hex.toLowerCase() === hex.toLowerCase())
   return match ? match.name : "Destaque"
 }
+
+export function getContrastColor(hex: string): "#ffffff" | "#000000" {
+  let cleanHex = hex.replace("#", "")
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split("").map((c) => c + c).join("")
+  }
+  const r = parseInt(cleanHex.substring(0, 2), 16)
+  const g = parseInt(cleanHex.substring(2, 4), 16)
+  const b = parseInt(cleanHex.substring(4, 6), 16)
+  const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b))
+  return hsp > 175 ? "#000000" : "#ffffff"
+}

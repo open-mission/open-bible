@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { getNeonStyle } from "../utils/highlight-colors"
+import { getNeonStyle, getContrastColor } from "../utils/highlight-colors"
 import type { HighlightData } from "../context/highlights-context"
 
 interface HighlightSidebarProps {
@@ -33,9 +33,9 @@ export function HighlightSidebar({
             }}
             className="cursor-pointer focus:outline-none shrink-0 rounded-full flex items-center justify-center overflow-hidden hover:scale-105 active:scale-95 border"
             style={{
-              backgroundColor: showLabel ? style.pillBg : style.hex,
-              borderColor: showLabel ? `${style.hex}33` : "transparent",
-              boxShadow: showLabel ? style.pillRing : style.glow,
+              backgroundColor: style.hex,
+              borderColor: "transparent",
+              boxShadow: style.glow,
               transition: "all 300ms cubic-bezier(0.16, 1, 0.3, 1)",
               height: showLabel ? "18px" : "8px",
               paddingLeft: showLabel ? "8px" : "0px",
@@ -50,7 +50,7 @@ export function HighlightSidebar({
               <span
                 className="truncate font-bold text-[9px] font-sans"
                 style={{
-                  color: style.pillText,
+                  color: getContrastColor(style.hex),
                   transition: "all 200ms ease-out",
                   transitionDelay: showLabel ? "100ms" : "0ms",
                   opacity: showLabel ? 1 : 0,
