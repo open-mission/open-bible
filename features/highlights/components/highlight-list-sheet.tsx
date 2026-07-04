@@ -31,39 +31,46 @@ export function HighlightListSheet({
         <div className="max-h-[60vh] overflow-y-auto">
           {highlights.map((h) => (
             <div key={h.highlight.id}>
-              <div className="flex items-center gap-3 px-4 py-3">
-                <div
-                  className="size-4 rounded-full shrink-0"
-                  style={{ backgroundColor: getColorValue(h.highlight.color) }}
-                />
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm">
-                    {h.category?.name ?? h.highlight.color}
-                  </span>
+              <div className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="size-4 rounded-full shrink-0"
+                    style={{ backgroundColor: getColorValue(h.highlight.color) }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium capitalize">
+                      {h.category?.name ?? h.highlight.color}
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      onEdit(h)
+                      onClose()
+                    }}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive"
+                    onClick={() => {
+                      onDelete(h.highlight.id)
+                      onClose()
+                    }}
+                  >
+                    Excluir
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    onEdit(h)
-                    onClose()
-                  }}
-                >
-                  Editar
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive"
-                  onClick={() => {
-                    onDelete(h.highlight.id)
-                    onClose()
-                  }}
-                >
-                  Excluir
-                </Button>
+                {h.highlight.content && (
+                  <p className="text-sm text-muted-foreground mt-2 ml-7 leading-relaxed whitespace-pre-wrap">
+                    {h.highlight.content}
+                  </p>
+                )}
               </div>
               <Separator />
             </div>

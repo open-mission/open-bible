@@ -237,14 +237,6 @@ function ReaderContent({
                 isActive={verse.id === activeVerseId}
                 isSelected={selectedVerseIds.has(verse.id)}
                 highlights={highlightsByVerse.get(verse.id)}
-                onHighlightClick={(id) => {
-                  const verseHighlights = highlightsByVerse.get(verse.id) ?? [];
-                  const target = verseHighlights.find((h) => h.highlight.id === id);
-                  if (target) {
-                    setEditingHighlight(target);
-                    setShowHighlightEditor(true);
-                  }
-                }}
                 onShowAll={(highlights) => {
                   setListSheetHighlights(highlights);
                   setShowHighlightList(true);

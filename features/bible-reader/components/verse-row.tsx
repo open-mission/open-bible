@@ -8,13 +8,12 @@ interface VerseRowProps {
   isActive: boolean
   isSelected?: boolean
   highlights?: HighlightData[]
-  onHighlightClick?: (highlightId: string) => void
   onShowAll?: (highlights: HighlightData[]) => void
   verseSpacing?: "small" | "medium" | "large"
 }
 
 export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function VerseRow(
-  { verse, isActive, isSelected, highlights, onHighlightClick, onShowAll, verseSpacing = "medium" },
+  { verse, isActive, isSelected, highlights, onShowAll, verseSpacing = "medium" },
   ref,
 ) {
   const spacingClasses = {
@@ -44,10 +43,9 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
       aria-pressed={isActive}
     >
       {highlights && highlights.length > 0 && (
-        <div className="absolute left-0 top-0 bottom-0 flex items-start pl-0.5 pt-[3px]">
+        <div className="absolute left-0 top-0 bottom-0 flex items-start pl-1 pt-[3px]">
           <HighlightSidebar
             highlights={highlights}
-            onHighlightClick={onHighlightClick ?? (() => {})}
             onShowAll={onShowAll ?? (() => {})}
           />
         </div>
