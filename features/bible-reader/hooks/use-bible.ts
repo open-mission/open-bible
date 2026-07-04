@@ -12,12 +12,14 @@ export function useBibleVerses(bookId: string | null, chapter: number | null) {
 
   useEffect(() => {
     if (!bookId || !chapter) {
-      setVerses([])
-      return
+      const timer = setTimeout(() => {
+        setVerses([])
+      }, 0)
+      return () => clearTimeout(timer)
     }
 
     const key = `${versionId}-${bookId}-${chapter}`
-    if (key === lastKey.current && verses.length > 0) return
+    if (key === lastKey.current) return
     lastKey.current = key
 
     setLoading(true)

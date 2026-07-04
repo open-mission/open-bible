@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { IconTextSize } from "@tabler/icons-react";
+import { IconTextSize, IconHighlight } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -40,6 +40,7 @@ interface ReaderHeaderProps {
   onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void;
   readerFont: "sans" | "serif" | "mono";
   onChangeReaderFont: (font: "sans" | "serif" | "mono") => void;
+  onShowAllHighlights?: () => void;
 }
 
 export function ReaderHeader({
@@ -54,6 +55,7 @@ export function ReaderHeader({
   onChangeVerseSpacing,
   readerFont,
   onChangeReaderFont,
+  onShowAllHighlights,
 }: ReaderHeaderProps) {
   const [themeDialogOpen, setThemeDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -141,6 +143,17 @@ export function ReaderHeader({
                 {displaySettings}
               </PopoverContent>
             </Popover>
+            {onShowAllHighlights && (
+              <Button
+                onClick={onShowAllHighlights}
+                variant="ghost"
+                className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs flex items-center gap-1.5"
+                title="Todos os destaques"
+              >
+                <IconHighlight data-icon="inline-start" />
+                <span className="hidden lg:inline">Destaques</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>

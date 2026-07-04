@@ -34,7 +34,7 @@ export function InstalledVersionsTab({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-1 gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-1 gap-2 md:mx-6">
       {filtered.map((v) => {
         const isActive = v.id === versionId;
         return (

@@ -3,9 +3,11 @@ import { createUserDb, type UserDb } from "./user/drizzle"
 import { runUserMigrations } from "./user/migrator"
 import { notesRepository } from "./user/repositories/notesRepository"
 import { noteReferencesRepository } from "./user/repositories/noteReferencesRepository"
+import { highlightCategoriesRepository } from "./user/repositories/highlightCategoriesRepository"
+import { highlightsRepository } from "./user/repositories/highlightsRepository"
+import { highlightVersesRepository } from "./user/repositories/highlightVersesRepository"
 import { BibleDatabase } from "./bible/BibleDatabase"
 import * as schema from "./user/schema"
-import { eq } from "drizzle-orm"
 
 /**
  * Single entry point for the whole app. React imports only from here (plus the
@@ -25,7 +27,11 @@ class Database {
       await this.manager.initialize()
       await runUserMigrations(this.manager)
       this.userDb = createUserDb(this.manager)
-    })()
+    })().catch((e) => {
+      // Allow retry on next call — the error is logged by the caller.
+      this.ready = null
+      throw e
+    })
     return this.ready
   }
 
@@ -47,6 +53,18 @@ class Database {
     return noteReferencesRepository(this.requireUserDb())
   }
 
+  get highlightCategories() {
+    return highlightCategoriesRepository(this.requireUserDb())
+  }
+
+  get highlights() {
+    return highlightsRepository(this.requireUserDb())
+  }
+
+  get highlightVerses() {
+    return highlightVersesRepository(this.requireUserDb())
+  }
+
   /** Open (caching) a BibleDatabase for an installed version. */
   async openBible(name: string): Promise<BibleDatabase> {
     const cached = this.bibles.get(name)
@@ -64,24 +82,50 @@ class Database {
     try {
       const bible = await this.openBible(name)
       const displayName = await bible.name()
-      const db = this.requireUserDb()
-      const exists = await db
-        .select()
-        .from(schema.installedBibles)
-        .where(eq(schema.installedBibles.id, name))
 
-      if (exists.length > 0) {
-        await db
-          .update(schema.installedBibles)
-          .set({ name: displayName, installedAt: new Date() })
-          .where(eq(schema.installedBibles.id, name))
+      // Use raw SQL via manager.exec instead of Drizzle to avoid
+      // abstraction that masks the underlying SQLite error.
+      const path = this.manager.userDbPath
+
+      // Verify installed_bibles table exists, create if missing
+      const tableExists = await this.manager.tableExists(path, "installed_bibles")
+      if (!tableExists) {
+        console.warn("[Database] installed_bibles table missing, creating it now")
+        await this.manager.exec(
+          path,
+          `CREATE TABLE IF NOT EXISTS \`installed_bibles\` (
+            \`id\` text PRIMARY KEY NOT NULL,
+            \`name\` text NOT NULL,
+            \`installed_at\` integer NOT NULL,
+            \`version_code\` integer DEFAULT 1 NOT NULL
+          )`,
+          [],
+          "run"
+        )
+      }
+
+      // Check if already installed
+      const existing = await this.manager.exec(
+        path,
+        `SELECT id FROM installed_bibles WHERE id = ?`,
+        [name],
+        "all"
+      )
+
+      if (existing.length > 0) {
+        await this.manager.exec(
+          path,
+          `UPDATE installed_bibles SET name = ?, installed_at = ?, version_code = 1 WHERE id = ?`,
+          [displayName, Date.now(), name],
+          "run"
+        )
       } else {
-        await db.insert(schema.installedBibles).values({
-          id: name,
-          name: displayName,
-          installedAt: new Date(),
-          versionCode: 1,
-        })
+        await this.manager.exec(
+          path,
+          `INSERT INTO installed_bibles (id, name, installed_at, version_code) VALUES (?, ?, ?, 1)`,
+          [name, displayName, Date.now()],
+          "run"
+        )
       }
     } catch (e) {
       console.error("Failed to register installed Bible in app.db:", e)
@@ -93,8 +137,13 @@ class Database {
     await this.manager.removeBible(name)
 
     try {
-      const db = this.requireUserDb()
-      await db.delete(schema.installedBibles).where(eq(schema.installedBibles.id, name))
+      const path = this.manager.userDbPath
+      await this.manager.exec(
+        path,
+        `DELETE FROM installed_bibles WHERE id = ?`,
+        [name],
+        "run"
+      )
     } catch (e) {
       console.error("Failed to remove Bible registration from app.db:", e)
     }
