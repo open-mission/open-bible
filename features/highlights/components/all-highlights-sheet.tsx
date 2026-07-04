@@ -349,7 +349,7 @@ export function AllHighlightsSheet({
                       <span
                         aria-hidden="true"
                         className={cn(
-                          "pointer-events-none absolute -right-2 -top-6 select-none font-serif text-[7.5rem] leading-none",
+                          "pointer-events-none absolute -right-2 -top-6 select-none font-serif text-[7.5rem] leading-none z-0",
                           !isHex && theme.shapeText
                         )}
                         style={isHex ? { color: theme.shapeText } : undefined}
@@ -361,17 +361,17 @@ export function AllHighlightsSheet({
                       <div
                         aria-hidden="true"
                         className={cn(
-                          "pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full blur-3xl opacity-[0.05]",
+                          "pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full blur-3xl opacity-[0.05] z-0",
                           !isHex && theme.dotBg
                         )}
                         style={isHex ? { backgroundColor: theme.dotBg } : undefined}
                       />
 
                       {/* Stacked verses list */}
-                      <div className="relative flex flex-col gap-3">
+                      <div className="relative z-10 flex flex-col gap-3">
                         {e.verseItems.map((v, idx) => (
                           <div key={idx} className="flex flex-col gap-1">
-                            <p className="font-serif text-sm italic leading-relaxed text-foreground/90">
+                            <p className="font-serif text-sm italic leading-relaxed text-foreground/90 break-words text-pretty">
                               {v.text}
                             </p>
                             <span
