@@ -16,6 +16,7 @@ interface HighlightEditorProps {
   onClose: () => void
   highlight: HighlightData | null
   onSave: (patch: { color: string; categoryId: string | null }) => Promise<void>
+  onCreate: (patch: { color: string; categoryId: string | null }) => Promise<void>
   onDelete: (id: string) => Promise<void>
   listCategories: () => Promise<any[]>
   createCategory: (name: string) => Promise<any>
@@ -24,35 +25,47 @@ interface HighlightEditorProps {
 function HighlightEditorContent({
   highlight,
   onSave,
+  onCreate,
   onDelete,
   listCategories,
   createCategory,
   onClose,
 }: {
-  highlight: HighlightData
+  highlight: HighlightData | null
   onSave: (patch: { color: string; categoryId: string | null }) => Promise<void>
+  onCreate: (patch: { color: string; categoryId: string | null }) => Promise<void>
   onDelete: (id: string) => Promise<void>
   listCategories: () => Promise<any[]>
   createCategory: (name: string) => Promise<any>
   onClose: () => void
 }) {
-  const [color, setColor] = useState<HighlightColor>(highlight.highlight.color)
-  const [categoryId, setCategoryId] = useState<string | null>(highlight.category?.id ?? null)
+  const isCreateMode = highlight === null
+  const [color, setColor] = useState<HighlightColor>(
+    isCreateMode ? "amber" : highlight.highlight.color,
+  )
+  const [categoryId, setCategoryId] = useState<string | null>(
+    isCreateMode ? null : highlight.category?.id ?? null,
+  )
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
     setSaving(true)
     try {
-      await onSave({ color, categoryId })
+      if (isCreateMode) {
+        await onCreate({ color, categoryId })
+      } else {
+        await onSave({ color, categoryId })
+      }
       onClose()
     } catch {
-      toast.error("Falha ao salvar o destaque.")
+      toast.error(isCreateMode ? "Falha ao criar o destaque." : "Falha ao salvar o destaque.")
     } finally {
       setSaving(false)
     }
   }
 
   async function handleDelete() {
+    if (!highlight) return
     try {
       await onDelete(highlight.highlight.id)
       onClose()
@@ -64,7 +77,9 @@ function HighlightEditorContent({
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between px-4 py-3">
-        <h3 className="text-base font-semibold">Editar Destaque</h3>
+        <h3 className="text-base font-semibold">
+          {isCreateMode ? "Novo Destaque" : "Editar Destaque"}
+        </h3>
         <Button type="button" variant="ghost" size="icon-xs" onClick={onClose}>
           <IconX />
         </Button>
@@ -88,18 +103,22 @@ function HighlightEditorContent({
       </div>
       <Separator />
 
-      <div className="px-4 py-3">
-        <Button
-          type="button"
-          variant="ghost"
-          className="w-full justify-start text-destructive hover:text-destructive"
-          onClick={handleDelete}
-        >
-          <IconTrash />
-          Excluir Destaque
-        </Button>
-      </div>
-      <Separator />
+      {!isCreateMode && (
+        <>
+          <div className="px-4 py-3">
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full justify-start text-destructive hover:text-destructive"
+              onClick={handleDelete}
+            >
+              <IconTrash />
+              Excluir Destaque
+            </Button>
+          </div>
+          <Separator />
+        </>
+      )}
 
       <div className="px-4 py-3">
         <Button
@@ -120,17 +139,17 @@ export function HighlightEditor({
   onClose,
   highlight,
   onSave,
+  onCreate,
   onDelete,
   listCategories,
   createCategory,
 }: HighlightEditorProps) {
-  if (!highlight) return null
-
   return (
     <BottomSheet open={open} onClose={onClose}>
       <HighlightEditorContent
         highlight={highlight}
         onSave={onSave}
+        onCreate={onCreate}
         onDelete={onDelete}
         listCategories={listCategories}
         createCategory={createCategory}

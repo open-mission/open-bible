@@ -115,8 +115,19 @@ export function HighlightMenu({
             onClose()
           }}
           highlight={null}
-          onSave={async (patch) => {
-            // No editing support yet; this path is for future use
+          onSave={async () => {}}
+          onCreate={async (patch) => {
+            const verseNumbers = selectedVerseIds.map((id) => {
+              const parts = id.split("-")
+              return parseInt(parts[parts.length - 1], 10)
+            })
+            await onCreateHighlight({
+              color: patch.color,
+              book: bookId,
+              chapter,
+              verses: verseNumbers,
+              bible: versionId,
+            })
           }}
           onDelete={onDeleteHighlight}
           listCategories={listCategories}
