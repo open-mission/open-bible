@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   IconCopy,
   IconClipboardText,
   IconCheck,
   IconX,
+  IconHighlight,
 } from "@tabler/icons-react";
 import type { Book, Verse } from "@/lib/types";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { HighlightMenu } from "@/features/highlights/components/highlight-menu";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
+import { useHighlightsContext } from "@/features/highlights/context/highlights-context";
 
 interface VerseSelectionPopoverProps {
   book: Book;
@@ -67,8 +69,19 @@ export function VerseSelectionPopover({
   onOpenHighlightEditor,
 }: VerseSelectionPopoverProps) {
   const [copied, setCopied] = useState<CopiedKind>(null);
+  const [showToolbar, setShowToolbar] = useState(false);
   const isMobile = useIsMobile();
-  const { createHighlight, deleteHighlight, createCategory, listCategories } = useHighlightMutations();
+  
+  const {
+    createHighlight,
+    updateHighlight,
+    deleteHighlight,
+    createCategory,
+    listCategories,
+  } = useHighlightMutations();
+
+  const { highlightsByVerse } = useHighlightsContext();
+
   const reference = formatVerseReference(
     book,
     chapter,
@@ -76,6 +89,27 @@ export function VerseSelectionPopover({
     versionAbbr,
   );
   const count = selectedVerses.length;
+
+  // Find if there is an active highlight for the selected verses
+  const activeHighlight = useMemo(() => {
+    if (selectedVerses.length === 0) return null;
+    const firstVerseId = selectedVerses[0].id;
+    const verseHighlights = highlightsByVerse.get(firstVerseId) ?? [];
+    return verseHighlights.find((h) => {
+      const hVerses = h.verses.map((v) => v.verse);
+      return selectedVerses.every((sv) => {
+        const num = parseInt(sv.id.split("-").pop()!, 10);
+        return hVerses.includes(num);
+      });
+    }) || null;
+  }, [selectedVerses, highlightsByVerse]);
+
+  const hasHighlight = activeHighlight !== null;
+
+  // Auto-show/hide toolbar when highlight status changes
+  useEffect(() => {
+    setShowToolbar(hasHighlight);
+  }, [hasHighlight]);
 
   async function handleCopy(kind: CopiedKind) {
     const text =
@@ -98,115 +132,198 @@ export function VerseSelectionPopover({
     <div
       data-verse-selection-bar=""
       className={cn(
-        "fixed inset-x-0 z-50 flex justify-center p-4",
+        "fixed inset-x-0 z-50 flex justify-center p-4 transition-all duration-200 pointer-events-none",
         isMobile ? "bottom-24" : "bottom-4",
       )}
     >
-      <div
-        className={cn(
-          "flex overflow-hidden rounded-2xl bg-background/95 backdrop-blur-sm border border-border shadow-lg",
-          isMobile
-            ? "w-full max-w-sm flex-col"
-            : "inline-flex items-center gap-1.5 px-4 py-2 text-sm",
+      <div className="flex flex-col gap-2 w-full max-w-sm md:max-w-4xl pointer-events-auto items-stretch">
+        {/* --- Toolbar / Highlight Menu --- */}
+        {showToolbar && (
+          <div
+            className={cn(
+              "flex overflow-hidden rounded-2xl bg-background/95 backdrop-blur-sm border border-border shadow-lg px-4 py-2.5 transition-all duration-200",
+              isMobile ? "w-full" : "self-end min-w-[280px]"
+            )}
+          >
+            <HighlightMenu
+              selectedVerseIds={selectedVerses.map((v) => v.id)}
+              bookId={book.id}
+              chapter={chapter}
+              versionId={versionId}
+              onCreateHighlight={createHighlight}
+              onUpdateHighlight={updateHighlight}
+              onDeleteHighlight={deleteHighlight}
+              listCategories={listCategories}
+              createCategory={createCategory}
+              onClose={onClose}
+              onOpenEditor={onOpenHighlightEditor}
+            />
+          </div>
         )}
-      >
-        {/* --- Row 1: Reference + close --- */}
+
+        {/* --- Card / Popover --- */}
         <div
           className={cn(
-            "items-center",
-            isMobile
-              ? "relative flex justify-center px-4 pt-3 pb-1.5"
-              : "inline-flex gap-2",
+            "flex overflow-hidden rounded-2xl bg-background/95 backdrop-blur-sm border border-border shadow-lg transition-all duration-200",
+            isMobile ? "w-full flex-col" : "w-full flex-row items-center gap-3 px-4 py-2 text-sm"
           )}
         >
-          <span className="flex items-center gap-2 truncate">
-            <span
-              className={cn(
-                "font-medium text-foreground truncate",
-                isMobile ? "text-sm" : "max-w-50 sm:max-w-70",
-              )}
-            >
-              {reference}
-            </span>
-            <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-              {count > 1 ? `${count} versículos` : `${count} versículo`}
-            </span>
-          </span>
-          <Button
-            type="button"
-            onClick={onClose}
-            variant="ghost"
-            size="icon-xs"
-            className={cn(
-              "shrink-0 text-muted-foreground hover:text-foreground",
-              isMobile
-                ? "absolute right-3 top-1/2 -translate-y-1/2"
-                : "ml-auto",
-            )}
-            aria-label="Limpar seleção"
-          >
-            <IconX />
-          </Button>
-        </div>
+          {isMobile ? (
+            // Mobile View
+            <>
+              {/* Header */}
+              <div className="relative flex items-center justify-between px-4 pt-3 pb-1.5 w-full">
+                <div className="flex items-center gap-2 truncate">
+                  <span className="font-semibold text-foreground text-sm truncate">
+                    {reference}
+                  </span>
+                  <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {count > 1 ? `${count} versículos` : `${count} versículo`}
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  onClick={onClose}
+                  variant="ghost"
+                  size="icon-xs"
+                  className="shrink-0 text-muted-foreground hover:text-foreground"
+                  aria-label="Limpar seleção"
+                >
+                  <IconX />
+                </Button>
+              </div>
 
-        {/* Separator between rows on mobile */}
-        {isMobile && <Separator />}
+              <Separator />
 
-        {/* --- Row 2: Actions --- */}
-        <div
-          className={cn(
-            "flex items-center gap-1",
-            isMobile ? "px-3 pb-3 pt-1.5" : "inline-flex",
+              {/* Actions */}
+              <div className="flex items-center gap-1 px-3 pb-3 pt-1.5 w-full">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleCopy("reference")}
+                  className={cn(
+                    "flex-1 text-muted-foreground hover:text-foreground",
+                    copied === "reference" && "text-primary hover:text-primary"
+                  )}
+                >
+                  {copied === "reference" ? (
+                    <IconCheck data-icon="inline-start" />
+                  ) : (
+                    <IconCopy data-icon="inline-start" />
+                  )}
+                  {copied === "reference" ? "Copiado!" : "Referência"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleCopy("text")}
+                  className={cn(
+                    "flex-1 text-muted-foreground hover:text-foreground",
+                    copied === "text" && "text-primary hover:text-primary"
+                  )}
+                >
+                  {copied === "text" ? (
+                    <IconCheck data-icon="inline-start" />
+                  ) : (
+                    <IconClipboardText data-icon="inline-start" />
+                  )}
+                  {copied === "text" ? "Copiado!" : "Texto"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowToolbar(!showToolbar)}
+                  className={cn(
+                    "flex-1 text-muted-foreground hover:text-foreground",
+                    showToolbar && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  )}
+                >
+                  <IconHighlight data-icon="inline-start" />
+                  Destaque
+                </Button>
+              </div>
+            </>
+          ) : (
+            // Desktop View
+            <>
+              <span className="font-semibold text-foreground truncate max-w-[200px] sm:max-w-[280px]">
+                {reference}
+              </span>
+              <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                {count > 1 ? `${count} versículos` : `${count} versículo`}
+              </span>
+
+              {/* Spacer */}
+              <div className="flex-grow" />
+
+              {/* Actions */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => handleCopy("reference")}
+                className={cn(
+                  "text-muted-foreground hover:text-foreground",
+                  copied === "reference" && "text-primary hover:text-primary"
+                )}
+              >
+                {copied === "reference" ? (
+                  <IconCheck data-icon="inline-start" />
+                ) : (
+                  <IconCopy data-icon="inline-start" />
+                )}
+                {copied === "reference" ? "Copiado!" : "Referência"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => handleCopy("text")}
+                className={cn(
+                  "text-muted-foreground hover:text-foreground",
+                  copied === "text" && "text-primary hover:text-primary"
+                )}
+              >
+                {copied === "text" ? (
+                  <IconCheck data-icon="inline-start" />
+                ) : (
+                  <IconClipboardText data-icon="inline-start" />
+                )}
+                {copied === "text" ? "Copiado!" : "Texto"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowToolbar(!showToolbar)}
+                className={cn(
+                  "text-muted-foreground hover:text-foreground",
+                  showToolbar && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                )}
+              >
+                <IconHighlight data-icon="inline-start" />
+                Destaque
+              </Button>
+
+              <Button
+                type="button"
+                onClick={onClose}
+                variant="ghost"
+                size="icon-xs"
+                className="shrink-0 text-muted-foreground hover:text-foreground ml-1"
+                aria-label="Limpar seleção"
+              >
+                <IconX />
+              </Button>
+            </>
           )}
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size={isMobile ? "sm" : "sm"}
-            onClick={() => handleCopy("reference")}
-            className={cn(
-              "flex-1 text-muted-foreground hover:text-foreground",
-              copied === "reference" && "text-primary hover:text-primary",
-            )}
-          >
-            {copied === "reference" ? (
-              <IconCheck data-icon="inline-start" />
-            ) : (
-              <IconCopy data-icon="inline-start" />
-            )}
-            {copied === "reference" ? "Copiado!" : "Referência"}
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size={isMobile ? "sm" : "sm"}
-            onClick={() => handleCopy("text")}
-            className={cn(
-              "flex-1 text-muted-foreground hover:text-foreground",
-              copied === "text" && "text-primary hover:text-primary",
-            )}
-          >
-            {copied === "text" ? (
-              <IconCheck data-icon="inline-start" />
-            ) : (
-              <IconClipboardText data-icon="inline-start" />
-            )}
-            {copied === "text" ? "Copiado!" : "Texto"}
-          </Button>
-
-          <HighlightMenu
-            selectedVerseIds={selectedVerses.map((v) => v.id)}
-            bookId={book.id}
-            chapter={chapter}
-            versionId={versionId}
-            onCreateHighlight={createHighlight}
-            onDeleteHighlight={deleteHighlight}
-            listCategories={listCategories}
-            createCategory={createCategory}
-            onClose={onClose}
-            onOpenEditor={onOpenHighlightEditor}
-          />
         </div>
       </div>
     </div>
