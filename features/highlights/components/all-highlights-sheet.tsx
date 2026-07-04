@@ -248,7 +248,7 @@ export function AllHighlightsSheet({
 
   return (
     <Sheet open={open} onOpenChange={(val) => !val && onClose()}>
-      <SheetContent side="right" className="p-0 flex flex-col gap-0 h-full border-l border-border">
+      <SheetContent side="right" showCloseButton={false} className="p-0 flex flex-col gap-0 h-full border-l border-border">
         {content}
       </SheetContent>
     </Sheet>

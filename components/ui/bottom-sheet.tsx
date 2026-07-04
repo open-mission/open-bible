@@ -49,7 +49,7 @@ export function BottomSheet({
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden border border-border shadow-xl">
+      <DialogContent showCloseButton={false} className="max-w-lg p-0 gap-0 overflow-hidden border border-border shadow-xl">
         <div className="overflow-y-auto max-h-[85vh] no-scrollbar">
           {children}
         </div>
