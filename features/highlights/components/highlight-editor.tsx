@@ -1,26 +1,33 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { IconX, IconTrash, IconDeviceFloppy } from "@tabler/icons-react"
-import { toast } from "sonner"
-import { BottomSheet } from "@/components/ui/bottom-sheet"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { HighlightColorPicker } from "./highlight-color-picker"
-import { HighlightCategoryInput } from "./highlight-category-input"
-import type { HighlightData } from "../context/highlights-context"
-import { getNeonStyle, type HighlightColor } from "../utils/highlight-colors"
-import type { HighlightCategory } from "@/lib/database/user/schema"
+import { useState, useEffect } from "react";
+import { IconX, IconTrash, IconDeviceFloppy } from "@tabler/icons-react";
+import { toast } from "sonner";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Button } from "@/components/ui/button";
+import { HighlightColorPicker } from "./highlight-color-picker";
+import { HighlightCategoryInput } from "./highlight-category-input";
+import type { HighlightData } from "../context/highlights-context";
+import { getNeonStyle, type HighlightColor } from "../utils/highlight-colors";
+import type { HighlightCategory } from "@/lib/database/user/schema";
 
 interface HighlightEditorProps {
-  open: boolean
-  onClose: () => void
-  highlight: HighlightData | null
-  onSave: (patch: { color: string; categoryId: string | null; content: string }) => Promise<void>
-  onCreate: (patch: { color: string; categoryId: string | null; content: string }) => Promise<void>
-  onDelete: (id: string) => Promise<void>
-  listCategories: () => Promise<HighlightCategory[]>
-  createCategory: (name: string) => Promise<HighlightCategory>
+  open: boolean;
+  onClose: () => void;
+  highlight: HighlightData | null;
+  onSave: (patch: {
+    color: string;
+    categoryId: string | null;
+    content: string;
+  }) => Promise<void>;
+  onCreate: (patch: {
+    color: string;
+    categoryId: string | null;
+    content: string;
+  }) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  listCategories: () => Promise<HighlightCategory[]>;
+  createCategory: (name: string) => Promise<HighlightCategory>;
 }
 
 function HighlightEditorContent({
@@ -32,75 +39,88 @@ function HighlightEditorContent({
   createCategory,
   onClose,
 }: {
-  highlight: HighlightData | null
-  onSave: (patch: { color: string; categoryId: string | null; content: string }) => Promise<void>
-  onCreate: (patch: { color: string; categoryId: string | null; content: string }) => Promise<void>
-  onDelete: (id: string) => Promise<void>
-  listCategories: () => Promise<HighlightCategory[]>
-  createCategory: (name: string) => Promise<HighlightCategory>
-  onClose: () => void
+  highlight: HighlightData | null;
+  onSave: (patch: {
+    color: string;
+    categoryId: string | null;
+    content: string;
+  }) => Promise<void>;
+  onCreate: (patch: {
+    color: string;
+    categoryId: string | null;
+    content: string;
+  }) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  listCategories: () => Promise<HighlightCategory[]>;
+  createCategory: (name: string) => Promise<HighlightCategory>;
+  onClose: () => void;
 }) {
-  const isCreateMode = highlight === null
+  const isCreateMode = highlight === null;
   const [color, setColor] = useState<HighlightColor>(() => {
-    const raw = isCreateMode ? "#34d399" : highlight.highlight.color
-    return getNeonStyle(raw).hex
-  })
-  const [categoryIds, setCategoryIds] = useState<string[]>([])
+    const raw = isCreateMode ? "#34d399" : highlight.highlight.color;
+    return getNeonStyle(raw).hex;
+  });
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [content, setContent] = useState<string>(
-    isCreateMode ? "" : highlight.highlight.content ?? "",
-  )
-  const [saving, setSaving] = useState(false)
+    isCreateMode ? "" : (highlight.highlight.content ?? ""),
+  );
+  const [saving, setSaving] = useState(false);
 
   // Initialize selected category IDs
   useEffect(() => {
     if (!isCreateMode && highlight.category) {
-      setCategoryIds([highlight.category.id])
+      setCategoryIds([highlight.category.id]);
     } else {
-      setCategoryIds([])
+      setCategoryIds([]);
     }
-  }, [isCreateMode, highlight])
+  }, [isCreateMode, highlight]);
 
   async function handleSave() {
-    setSaving(true)
+    setSaving(true);
     try {
       if (isCreateMode) {
         if (categoryIds.length === 0) {
-          await onCreate({ color, categoryId: null, content })
+          await onCreate({ color, categoryId: null, content });
         } else {
           for (const catId of categoryIds) {
-            await onCreate({ color, categoryId: catId, content })
+            await onCreate({ color, categoryId: catId, content });
           }
         }
       } else {
         // Edit mode
         if (categoryIds.length === 0) {
-          await onSave({ color, categoryId: null, content })
+          await onSave({ color, categoryId: null, content });
         } else {
           // Update original highlight with the first tag
-          await onSave({ color, categoryId: categoryIds[0], content })
-          
+          await onSave({ color, categoryId: categoryIds[0], content });
+
           // Create additional highlights for the other tags
           for (let i = 1; i < categoryIds.length; i++) {
-            await onCreate({ color, categoryId: categoryIds[i], content })
+            await onCreate({ color, categoryId: categoryIds[i], content });
           }
         }
       }
-      onClose()
+      onClose();
     } catch {
-      toast.error(isCreateMode ? "Falha ao criar o destaque." : "Falha ao salvar o destaque.")
+      toast.error(
+        isCreateMode
+          ? "Falha ao criar o destaque."
+          : "Falha ao salvar o destaque.",
+      );
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   async function handleDelete() {
-    if (!highlight) return
-    if (!window.confirm("Tem certeza que deseja excluir este destaque?")) return
+    if (!highlight) return;
+    if (!window.confirm("Tem certeza que deseja excluir este destaque?"))
+      return;
     try {
-      await onDelete(highlight.highlight.id)
-      onClose()
+      await onDelete(highlight.highlight.id);
+      onClose();
     } catch {
-      toast.error("Falha ao excluir o destaque.")
+      toast.error("Falha ao excluir o destaque.");
     }
   }
 
@@ -113,7 +133,9 @@ function HighlightEditorContent({
             {isCreateMode ? "Criar Destaque" : "Editar Destaque"}
           </h3>
           <p className="text-xs text-muted-foreground">
-            {isCreateMode ? "Destaque e organize versículos na Bíblia." : "Ajuste as opções do destaque selecionado."}
+            {isCreateMode
+              ? "Destaque e organize versículos na Bíblia."
+              : "Ajuste as opções do destaque selecionado."}
           </p>
         </div>
         <Button
@@ -150,7 +172,8 @@ function HighlightEditorContent({
             createCategory={createCategory}
           />
           <p className="text-[10px] text-muted-foreground/80 leading-normal pl-1">
-            Digite e pressione Enter ou clique em Adicionar para criar várias categorias.
+            Digite e pressione Enter ou clique em Adicionar para criar várias
+            categorias.
           </p>
         </div>
 
@@ -164,7 +187,7 @@ function HighlightEditorContent({
             onChange={(e) => setContent(e.target.value)}
             placeholder="Adicione reflexões, notas ou comentários sobre o versículo..."
             rows={4}
-            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm placeholder:text-muted-foreground/50 text-foreground shadow-xs focus-visible:outline-hidden focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-all resize-none min-h-[90px]"
+            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm placeholder:text-muted-foreground/50 text-foreground shadow-xs focus-visible:outline-hidden focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 transition-all resize-none min-h-22.5"
           />
         </div>
       </div>
@@ -203,7 +226,7 @@ function HighlightEditorContent({
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 export function HighlightEditor({
@@ -228,5 +251,5 @@ export function HighlightEditor({
         onClose={onClose}
       />
     </BottomSheet>
-  )
+  );
 }
