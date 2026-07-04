@@ -49,26 +49,28 @@ export function HighlightColorPicker({
       
       {showCustom && (
         <Popover>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                "size-6 rounded-full border border-dashed border-muted-foreground/60 transition-all focus:outline-none flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground hover:scale-105 active:scale-95 bg-muted/20 cursor-pointer",
-                isExtraColorSelected && "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110 border-solid"
-              )}
-              style={isExtraColorSelected ? {
-                backgroundColor: value,
-                boxShadow: `0 0 12px 3px ${value}66`,
-              } : undefined}
-              title="Mais cores"
-              aria-label="Mais cores"
-            >
-              {isExtraColorSelected ? (
-                <span className="size-1.5 rounded-full bg-foreground" />
-              ) : (
-                <span className="text-xs font-bold leading-none -mt-0.5">+</span>
-              )}
-            </button>
+          <PopoverTrigger
+            render={
+              <button
+                type="button"
+                className={cn(
+                  "size-6 rounded-full border border-dashed border-muted-foreground/60 transition-all focus:outline-none flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground hover:scale-105 active:scale-95 bg-muted/20 cursor-pointer",
+                  isExtraColorSelected && "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110 border-solid"
+                )}
+                style={isExtraColorSelected ? {
+                  backgroundColor: value,
+                  boxShadow: `0 0 12px 3px ${value}66`,
+                } : undefined}
+                title="Mais cores"
+                aria-label="Mais cores"
+              />
+            }
+          >
+            {isExtraColorSelected ? (
+              <span className="size-1.5 rounded-full bg-foreground" />
+            ) : (
+              <span className="text-xs font-bold leading-none -mt-0.5">+</span>
+            )}
           </PopoverTrigger>
           <PopoverContent align="center" side="top" className="w-[280px] p-3 flex flex-col gap-2">
             <h4 className="text-xs font-semibold text-muted-foreground pl-1 py-1">Selecione uma cor neon</h4>
