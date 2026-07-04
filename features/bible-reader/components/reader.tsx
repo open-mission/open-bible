@@ -13,6 +13,10 @@ import { useSwipeNavigation } from "../hooks/use-swipe-navigation";
 import { ReaderHeader } from "./reader-header";
 import { cn } from "@/lib/utils";
 import { HighlightsProvider, useHighlightsContext } from "@/features/highlights/context/highlights-context";
+import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
+import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
+import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
+import type { HighlightData } from "@/features/highlights/context/highlights-context";
 
 interface ReaderProps {
   bookId: string;
@@ -55,6 +59,13 @@ export function Reader({
   const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(
     null,
   );
+
+  const [editingHighlight, setEditingHighlight] = useState<HighlightData | null>(null);
+  const [showHighlightEditor, setShowHighlightEditor] = useState(false);
+  const [showHighlightList, setShowHighlightList] = useState(false);
+  const [listSheetHighlights, setListSheetHighlights] = useState<HighlightData[]>([]);
+
+  const { updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -225,8 +236,17 @@ export function Reader({
                 isActive={verse.id === activeVerseId}
                 isSelected={selectedVerseIds.has(verse.id)}
                 highlights={highlightsByVerse.get(verse.id)}
-                onHighlightClick={(_id) => {
-                  // Will be wired in Task 15
+                onHighlightClick={(id) => {
+                  const verseHighlights = highlightsByVerse.get(verse.id) ?? [];
+                  const target = verseHighlights.find((h) => h.highlight.id === id);
+                  if (target) {
+                    setEditingHighlight(target);
+                    setShowHighlightEditor(true);
+                  }
+                }}
+                onShowAll={(highlights) => {
+                  setListSheetHighlights(highlights);
+                  setShowHighlightList(true);
                 }}
                 verseSpacing={verseSpacing}
               />
@@ -292,6 +312,42 @@ export function Reader({
           versionAbbr={versionAbbr}
           versionId={versionId}
           onClose={() => setSelectedVerseIds(new Set())}
+        />
+      )}
+
+      {/* Highlight Editor */}
+      {showHighlightEditor && editingHighlight && (
+        <HighlightEditor
+          open={showHighlightEditor}
+          onClose={() => {
+            setShowHighlightEditor(false);
+            setEditingHighlight(null);
+          }}
+          highlight={editingHighlight}
+          onSave={async (patch) => {
+            await updateHighlight(editingHighlight.highlight.id, patch);
+          }}
+          onCreate={async () => {}}
+          onDelete={deleteHighlight}
+          listCategories={listCategories}
+          createCategory={createCategory}
+        />
+      )}
+
+      {/* Highlight List Sheet (>4 highlights) */}
+      {showHighlightList && (
+        <HighlightListSheet
+          open={showHighlightList}
+          onClose={() => {
+            setShowHighlightList(false);
+            setListSheetHighlights([]);
+          }}
+          highlights={listSheetHighlights}
+          onEdit={(h) => {
+            setEditingHighlight(h);
+            setShowHighlightEditor(true);
+          }}
+          onDelete={deleteHighlight}
         />
       )}
       </div>

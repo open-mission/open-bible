@@ -9,11 +9,12 @@ interface VerseRowProps {
   isSelected?: boolean
   highlights?: HighlightData[]
   onHighlightClick?: (highlightId: string) => void
+  onShowAll?: (highlights: HighlightData[]) => void
   verseSpacing?: "small" | "medium" | "large"
 }
 
 export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function VerseRow(
-  { verse, isActive, isSelected, highlights, onHighlightClick, verseSpacing = "medium" },
+  { verse, isActive, isSelected, highlights, onHighlightClick, onShowAll, verseSpacing = "medium" },
   ref,
 ) {
   const spacingClasses = {
@@ -46,7 +47,7 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
         <HighlightSidebar
           highlights={highlights ?? []}
           onHighlightClick={onHighlightClick ?? (() => {})}
-          onShowAll={() => {}}
+          onShowAll={onShowAll ?? (() => {})}
         />
         <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
           {verse.verse}
