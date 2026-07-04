@@ -4,7 +4,7 @@ import { OpfsStatusGate } from "@/features/layout/components/opfs-status-gate";
 import { Inter, Lora, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/features/theme/components/theme-provider";
 import { BibleVersionProvider } from "@/features/bible-reader/context/bible-version-context";
-import { ToastProvider } from "@/features/layout/hooks/use-toast";
+import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
 import { UpdateBanner } from "@/features/service-worker/components/update-banner";
 import { VersionLabel } from "@/features/layout/components/version-label";
@@ -57,6 +57,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
@@ -75,10 +76,9 @@ export default function RootLayout({
         <ThemeProvider>
           <BibleVersionProvider>
             <TooltipProvider>
-              <ToastProvider>
-                {children}
-                <OpfsStatusGate />
-              </ToastProvider>
+              {children}
+              <OpfsStatusGate />
+              <Toaster position="top-center" />
             </TooltipProvider>
           </BibleVersionProvider>
         </ThemeProvider>

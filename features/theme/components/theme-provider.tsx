@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react"
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from "react"
 import {
   type ThemeColor,
   type ThemeMode,
@@ -192,11 +192,14 @@ function ThemeModeProvider({ children }: { children: React.ReactNode }) {
     const stored = (() => {
       try { return localStorage.getItem(STORAGE_KEY) || "system" } catch { return "system" }
     })()
-    setThemeState(stored)
-    const resolved = stored === "system" ? getSystemTheme() : stored
-    setResolvedTheme(resolved)
-    applyTheme(stored)
-    initialized.current = true
+    const timer = setTimeout(() => {
+      setThemeState(stored)
+      const resolved = stored === "system" ? getSystemTheme() : stored
+      setResolvedTheme(resolved)
+      applyTheme(stored)
+      initialized.current = true
+    }, 0)
+    return () => clearTimeout(timer)
   }, [])
 
   // Re-apply when theme changes (after initial mount)
@@ -225,7 +228,7 @@ function ThemeModeProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <ThemeModeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
+    <ThemeModeContext.Provider value={useMemo(() => ({ theme, setTheme, resolvedTheme }), [theme, setTheme, resolvedTheme])}>
       {children}
     </ThemeModeContext.Provider>
   )
@@ -290,8 +293,11 @@ function PaletteColorProvider({ children }: { children: React.ReactNode }) {
   // Load saved theme config on mount
   useEffect(() => {
     const saved = loadThemeConfig()
-    setPaletteState(saved.palette)
-    setColorState(saved.color)
+    const timer = setTimeout(() => {
+      setPaletteState(saved.palette)
+      setColorState(saved.color)
+    }, 0)
+    return () => clearTimeout(timer)
   }, [])
 
   // Apply CSS vars to <html> whenever palette, color, or resolvedTheme changes
@@ -343,9 +349,12 @@ function PaletteColorProvider({ children }: { children: React.ReactNode }) {
     saveThemeConfig({ ...saved, color: c })
   }, [])
 
+  const paletteValue = useMemo(() => ({ palette, setPalette }), [palette, setPalette])
+  const colorValue = useMemo(() => ({ color, setColor }), [color, setColor])
+
   return (
-    <PaletteContext.Provider value={{ palette, setPalette }}>
-      <ColorContext.Provider value={{ color, setColor }}>
+    <PaletteContext.Provider value={paletteValue}>
+      <ColorContext.Provider value={colorValue}>
         {children}
       </ColorContext.Provider>
     </PaletteContext.Provider>

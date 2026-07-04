@@ -50,6 +50,10 @@ export class DatabaseManager {
       reject(err)
     }
     this.pending.clear()
+    // Allow re-initialization after a crash so the next RPC call boots a fresh worker.
+    this.worker = null
+    this.initialized = false
+    this.initPromise = null
   }
 
   /** Idempotent. Boots the worker + SAHPool VFS and ensures app.db exists. */
@@ -96,11 +100,28 @@ export class DatabaseManager {
     await this.rpc({ type: "removeDb", path: name })
   }
 
+  /** Close a Bible connection (but keep the file). */
+  async closeBible(name: string): Promise<void> {
+    await this.rpc({ type: "close", path: name })
+  }
+
   /** Names (without .db) of installed Bibles, excluding app.db. */
   async listInstalledBibles(): Promise<string[]> {
     const res = await this.rpc({ type: "listFiles" })
     return (res.files ?? [])
       .map((f) => String(f).replace(/^.*\//, "").replace(/\.db$/, ""))
       .filter((n) => n && n !== "app")
+  }
+
+  /** Check if a table exists in the given database. */
+  async tableExists(dbPath: string, tableName: string): Promise<boolean> {
+    const res = await this.rpc({
+      type: "exec",
+      dbPath,
+      sql: `SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
+      params: [tableName],
+      method: "all"
+    })
+    return (res.rows?.length ?? 0) > 0
   }
 }

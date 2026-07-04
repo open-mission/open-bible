@@ -25,20 +25,24 @@ export function useReaderPosition() {
       const storedFontSize = localStorage.getItem(FONT_SIZE_KEY)
       const storedSpacing = localStorage.getItem(VERSE_SPACING_KEY)
       const storedFont = localStorage.getItem(READER_FONT_KEY)
-      if (book) setSelectedBookId(book)
-      if (chapter) setSelectedChapter(Number(chapter))
-      if (mode === "narrow" || mode === "medium" || mode === "wide") {
-        setReaderMode(mode)
-      } else if (mode === "readable") {
-        setReaderMode("narrow")
-      }
-      if (storedFontSize) setFontSize(Number(storedFontSize))
-      if (storedSpacing === "small" || storedSpacing === "medium" || storedSpacing === "large") {
-        setVerseSpacing(storedSpacing)
-      }
-      if (storedFont === "sans" || storedFont === "serif" || storedFont === "mono") {
-        setReaderFont(storedFont)
-      }
+
+      const timer = setTimeout(() => {
+        if (book) setSelectedBookId(book)
+        if (chapter) setSelectedChapter(Number(chapter))
+        if (mode === "narrow" || mode === "medium" || mode === "wide") {
+          setReaderMode(mode)
+        } else if (mode === "readable") {
+          setReaderMode("narrow")
+        }
+        if (storedFontSize) setFontSize(Number(storedFontSize))
+        if (storedSpacing === "small" || storedSpacing === "medium" || storedSpacing === "large") {
+          setVerseSpacing(storedSpacing)
+        }
+        if (storedFont === "sans" || storedFont === "serif" || storedFont === "mono") {
+          setReaderFont(storedFont)
+        }
+      }, 0)
+      return () => clearTimeout(timer)
     } catch { /* ignore */ }
   }, [])
 

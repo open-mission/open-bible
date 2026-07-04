@@ -1,14 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Reader } from "@/features/bible-reader/components/reader";
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty";
 import { PanelLayout } from "@/features/layout/components/panel-layout";
 import { InspectorPanel } from "@/features/bible-reader/components/inspector-panel";
 import { BookChapterDialog } from "@/features/bible-reader/components/book-chapter-dialog";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
-import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context";
-import { useToast } from "@/features/layout/hooks/use-toast";
+import { useBibleVersion, useDownloadProgress } from "@/features/bible-reader/context/bible-version-context";
+import {
+  showDownloadStart,
+  showDownloadProgress,
+  showDownloadSuccess,
+  showDownloadError,
+} from "@/features/bible-reader/lib/download-toast";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { useReaderPosition } from "@/features/bible-reader/hooks/use-reader-position";
 import { usePanelState } from "@/features/layout/hooks/use-panel-state";
@@ -35,13 +40,11 @@ export default function Home() {
     versionId,
     installedVersions,
     installVersion,
-    isInstalling,
-    downloadProgress,
     setVersionId,
     isVersionsLoaded,
   } = useBibleVersion();
-  const { addToast, updateToast, removeToast } = useToast();
-  const [activeToastId, setActiveToastId] = useState<string | null>(null);
+  const { isInstalling, downloadProgress } = useDownloadProgress();
+  const activeToastIdRef = useRef<string | number | null>(null);
 
   // Auto-download ARA on first visit if no version is installed
   useEffect(() => {
@@ -50,39 +53,26 @@ export default function Home() {
       installedVersions !== undefined &&
       installedVersions.length === 0 &&
       !isInstalling &&
-      !activeToastId
+      !activeToastIdRef.current
     ) {
-      const id = addToast({
-        message:
-          "Primeiro acesso: baixando Bíblia Almeida Revista e Atualizada (ARA)...",
-        type: "loading",
-      });
-      setActiveToastId(id);
+      activeToastIdRef.current = showDownloadStart(
+        "Bíblia Almeida Revista e Atualizada (ARA)"
+      );
 
       installVersion("ara")
         .then(() => {
-          updateToast(id, {
-            message: "Bíblia ARA configurada com sucesso!",
-            type: "success",
-            progress: undefined,
-          });
+          if (activeToastIdRef.current) {
+            showDownloadSuccess(activeToastIdRef.current, "Bíblia ARA");
+            activeToastIdRef.current = null;
+          }
           setVersionId("ara");
-          setTimeout(() => {
-            removeToast(id);
-            setActiveToastId(null);
-          }, 4000);
         })
         .catch((e) => {
           console.error("Auto download failed:", e);
-          updateToast(id, {
-            message: "Falha ao baixar Bíblia ARA.",
-            type: "error",
-            progress: undefined,
-          });
-          setTimeout(() => {
-            removeToast(id);
-            setActiveToastId(null);
-          }, 4000);
+          if (activeToastIdRef.current) {
+            showDownloadError(activeToastIdRef.current, "Bíblia ARA");
+            activeToastIdRef.current = null;
+          }
         });
     }
   }, [
@@ -90,21 +80,19 @@ export default function Home() {
     installedVersions,
     isInstalling,
     installVersion,
-    addToast,
-    updateToast,
-    removeToast,
     setVersionId,
-    activeToastId,
   ]);
 
   // Sync progress bar to the auto-download toast
   useEffect(() => {
-    if (activeToastId && isInstalling && downloadProgress) {
-      updateToast(activeToastId, {
-        progress: downloadProgress,
-      });
+    if (activeToastIdRef.current && isInstalling && downloadProgress) {
+      showDownloadProgress(
+        activeToastIdRef.current,
+        "Bíblia ARA",
+        downloadProgress
+      );
     }
-  }, [activeToastId, isInstalling, downloadProgress, updateToast]);
+  }, [isInstalling, downloadProgress]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -119,14 +107,14 @@ export default function Home() {
 
   const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(false);
 
-  function handleSelectBook(bookId: string) {
+  const handleSelectBook = useCallback((bookId: string) => {
     setSelectedBookId(bookId);
     setSelectedChapter(null);
-  }
+  }, [setSelectedBookId, setSelectedChapter]);
 
-  function handleSelectChapter(chapter: number) {
+  const handleSelectChapter = useCallback((chapter: number) => {
     setSelectedChapter(chapter);
-  }
+  }, [setSelectedChapter]);
 
   const currentBook = selectedBookId ? getBook(selectedBookId) : null;
   const verseReference =

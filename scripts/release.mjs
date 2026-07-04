@@ -45,7 +45,7 @@ function runCmd(cmd, dryRun = false) {
   try {
     const output = execSync(cmd, { stdio: 'inherit' });
     return output ? output.toString() : '';
-  } catch (error) {
+  } catch {
     console.error(`\x1b[31mError executing: ${cmd}\x1b[0m`);
     process.exit(1);
   }
@@ -66,7 +66,7 @@ async function main() {
   let statusOutput = '';
   try {
     statusOutput = execSync('git status --porcelain').toString().trim();
-  } catch (e) {
+  } catch {
     console.error('Failed to run git status. Is git installed?');
     process.exit(1);
   }
@@ -140,18 +140,37 @@ async function main() {
     process.exit(0);
   }
 
-  // 4. Update package.json
+  // 4. Update package.json, tauri.conf.json, and Cargo.toml
   pkg.version = nextVersion;
+  const tauriConfigPath = path.resolve(__dirname, '../src-tauri/tauri.conf.json');
+  const cargoPath = path.resolve(__dirname, '../src-tauri/Cargo.toml');
+
   if (!dryRun) {
     fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
     console.log('Updated package.json');
+
+    if (fs.existsSync(tauriConfigPath)) {
+      const tauriConfig = JSON.parse(fs.readFileSync(tauriConfigPath, 'utf8'));
+      tauriConfig.version = nextVersion;
+      fs.writeFileSync(tauriConfigPath, JSON.stringify(tauriConfig, null, 2) + '\n', 'utf8');
+      console.log('Updated src-tauri/tauri.conf.json');
+    }
+
+    if (fs.existsSync(cargoPath)) {
+      let cargoContent = fs.readFileSync(cargoPath, 'utf8');
+      cargoContent = cargoContent.replace(/^version = "[^"]*"/m, `version = "${nextVersion}"`);
+      fs.writeFileSync(cargoPath, cargoContent, 'utf8');
+      console.log('Updated src-tauri/Cargo.toml');
+    }
   } else {
     console.log(`[Dry Run] Would write to package.json: version = ${nextVersion}`);
+    console.log(`[Dry Run] Would write to src-tauri/tauri.conf.json: version = ${nextVersion}`);
+    console.log(`[Dry Run] Would write to src-tauri/Cargo.toml: version = ${nextVersion}`);
   }
 
   // 5. Git commit & tag
   const tag = `v${nextVersion}`;
-  runCmd(`git add package.json`, dryRun);
+  runCmd(`git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml`, dryRun);
   runCmd(`git commit -m "chore(release): ${tag}"`, dryRun);
   runCmd(`git tag -a ${tag} -m "${tag}"`, dryRun);
 
@@ -196,10 +215,10 @@ ${sectionName}
   let currentBranch = 'develop';
   try {
     currentBranch = execSync('git branch --show-current').toString().trim();
-  } catch (e) {
+  } catch {
     // Fallback if git command fails or is detached
   }
-  runCmd(`git add package.json CHANGELOG.md`, dryRun);
+  runCmd(`git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml CHANGELOG.md`, dryRun);
   runCmd(`git commit -m "docs(changelog): ${tag}"`, dryRun);
   runCmd(`git push origin ${currentBranch}`, dryRun);
   runCmd(`git push origin ${tag}`, dryRun);

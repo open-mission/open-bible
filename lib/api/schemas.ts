@@ -16,6 +16,7 @@ export const BookSchema = z.object({
 
 export const VersionDetailSchema = VersionSchema.extend({
   books: z.array(BookSchema),
+  warning: z.string().optional(),
 })
 
 export const VerseSchema = z.object({
