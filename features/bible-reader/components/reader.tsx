@@ -15,8 +15,12 @@ import { cn } from "@/lib/utils";
 import { HighlightsProvider, useHighlightsContext } from "@/features/highlights/context/highlights-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
 import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
+import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
+import { database } from "@/lib/database/database";
+import { IconHighlight } from "@tabler/icons-react";
 import type { HighlightData } from "@/features/highlights/context/highlights-context";
+import type { HighlightCategory } from "@/lib/database/user/schema";
 
 interface ReaderProps {
   bookId: string;
@@ -66,6 +70,7 @@ function ReaderContent({
   const [listSheetHighlights, setListSheetHighlights] = useState<HighlightData[]>([]);
   const [showCreateEditor, setShowCreateEditor] = useState(false);
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
+  const [showAllHighlights, setShowAllHighlights] = useState(false);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
@@ -267,6 +272,13 @@ function ReaderContent({
             <ChevronLeft className="size-5" />
           </button>
           <button
+            onClick={() => setShowAllHighlights(true)}
+            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+            aria-label="Todos os destaques"
+          >
+            <IconHighlight className="size-5" />
+          </button>
+          <button
             onClick={nextChapter}
             disabled={book && chapter >= book.chapters}
             className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
@@ -360,7 +372,7 @@ function ReaderContent({
         />
       )}
 
-      {/* Highlight List Sheet (>4 highlights) */}
+      {/* Highlight List Sheet */}
       {showHighlightList && (
         <HighlightListSheet
           open={showHighlightList}
@@ -374,6 +386,26 @@ function ReaderContent({
             setShowHighlightEditor(true);
           }}
           onDelete={deleteHighlight}
+        />
+      )}
+
+      {/* All Highlights Sheet */}
+      {showAllHighlights && (
+        <AllHighlightsSheet
+          open={showAllHighlights}
+          onClose={() => setShowAllHighlights(false)}
+          onEdit={async (highlightId) => {
+            await database.initialize();
+            const h = await database.highlights.findById(highlightId);
+            if (!h) return;
+            let category: HighlightCategory | null = null;
+            if (h.categoryId) {
+              category = await database.highlightCategories.findById(h.categoryId);
+            }
+            const verses = await database.highlightVerses.findByHighlightId(highlightId);
+            setEditingHighlight({ highlight: h, category, verses });
+            setShowHighlightEditor(true);
+          }}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 import type { UserDb } from "../drizzle"
 import { highlights, type Highlight, type NewHighlight } from "../schema"
 
@@ -40,6 +40,13 @@ export function highlightsRepository(db: UserDb) {
         .from(highlights)
         .where(eq(highlights.id, id))
       return rows[0] ?? null
+    },
+
+    async findAll(): Promise<Highlight[]> {
+      return db
+        .select()
+        .from(highlights)
+        .orderBy(desc(highlights.updatedAt))
     },
 
   }

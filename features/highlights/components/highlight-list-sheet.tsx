@@ -1,5 +1,6 @@
 "use client"
 
+import { IconPencil, IconTrash } from "@tabler/icons-react"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -23,7 +24,7 @@ export function HighlightListSheet({
 }: HighlightListSheetProps) {
   return (
     <BottomSheet open={open} onClose={onClose}>
-      <div className="flex flex-col">
+      <div className="flex flex-col pb-6 sm:pb-4">
         <div className="px-4 py-3">
           <h3 className="text-base font-semibold">Destaques deste verso</h3>
         </div>
@@ -45,25 +46,27 @@ export function HighlightListSheet({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    size="icon-sm"
                     onClick={() => {
                       onEdit(h)
                       onClose()
                     }}
+                    aria-label="Editar"
                   >
-                    Editar
+                    <IconPencil data-icon />
                   </Button>
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    size="icon-sm"
                     className="text-destructive"
                     onClick={() => {
                       onDelete(h.highlight.id)
                       onClose()
                     }}
+                    aria-label="Excluir"
                   >
-                    Excluir
+                    <IconTrash data-icon />
                   </Button>
                 </div>
                 {h.highlight.content && (
