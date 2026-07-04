@@ -6,7 +6,6 @@ import {
   IconClipboardText,
   IconCheck,
   IconX,
-  IconHighlight,
 } from "@tabler/icons-react";
 import type { Book, Verse } from "@/lib/types";
 import { toast } from "sonner";
@@ -18,13 +17,17 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/lib/use-media-query";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { HighlightMenu } from "@/features/highlights/components/highlight-menu";
+import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 
 interface VerseSelectionPopoverProps {
   book: Book;
   chapter: number;
   selectedVerses: Verse[];
   versionAbbr: string;
+  versionId: string;
   onClose: () => void;
+  onOpenHighlightEditor: () => void;
 }
 
 type CopiedKind = "reference" | "text" | null;
@@ -59,10 +62,13 @@ export function VerseSelectionPopover({
   chapter,
   selectedVerses,
   versionAbbr,
+  versionId,
   onClose,
+  onOpenHighlightEditor,
 }: VerseSelectionPopoverProps) {
   const [copied, setCopied] = useState<CopiedKind>(null);
   const isMobile = useIsMobile();
+  const { createHighlight, deleteHighlight, createCategory, listCategories } = useHighlightMutations();
   const reference = formatVerseReference(
     book,
     chapter,
@@ -189,17 +195,18 @@ export function VerseSelectionPopover({
             {copied === "text" ? "Copiado!" : "Texto"}
           </Button>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size={isMobile ? "sm" : "sm"}
-            disabled
-            className="flex-1 text-muted-foreground/40"
-            aria-label="Destacar versículos (em breve)"
-          >
-            <IconHighlight data-icon="inline-start" />
-            Destaque
-          </Button>
+          <HighlightMenu
+            selectedVerseIds={selectedVerses.map((v) => v.id)}
+            bookId={book.id}
+            chapter={chapter}
+            versionId={versionId}
+            onCreateHighlight={createHighlight}
+            onDeleteHighlight={deleteHighlight}
+            listCategories={listCategories}
+            createCategory={createCategory}
+            onClose={onClose}
+            onOpenEditor={onOpenHighlightEditor}
+          />
         </div>
       </div>
     </div>

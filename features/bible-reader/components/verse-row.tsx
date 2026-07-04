@@ -1,15 +1,19 @@
 import { forwardRef, memo } from "react"
 import type { Verse } from "@/lib/types"
+import { HighlightSidebar } from "@/features/highlights/components/highlight-sidebar"
+import type { HighlightData } from "@/features/highlights/context/highlights-context"
 
 interface VerseRowProps {
   verse: Verse
   isActive: boolean
   isSelected?: boolean
+  highlights?: HighlightData[]
+  onShowAll?: (highlights: HighlightData[]) => void
   verseSpacing?: "small" | "medium" | "large"
 }
 
 export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function VerseRow(
-  { verse, isActive, isSelected, verseSpacing = "medium" },
+  { verse, isActive, isSelected, highlights, onShowAll, verseSpacing = "medium" },
   ref,
 ) {
   const spacingClasses = {
@@ -30,7 +34,7 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
           ? { backgroundColor: "color-mix(in srgb, var(--color-primary) 12%, transparent)" }
           : undefined
       }
-      className={`group relative flex gap-4 px-4 sm:px-6 ${spacingClasses[verseSpacing]} cursor-pointer rounded-md transition-colors select-text ${isActive
+      className={`group px-4 sm:px-6 ${spacingClasses[verseSpacing]} cursor-pointer rounded-md transition-colors select-text ${isActive
           ? "bg-accent/60"
           : isSelected
             ? "ring-1 ring-inset ring-primary/30"
@@ -38,12 +42,23 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
         }`}
       aria-pressed={isActive}
     >
-      <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
-        {verse.verse}
-      </sup>
-      <p className="flex-1 leading-[1.8] text-foreground">
-        {verse.text}
-      </p>
+      <div className="flex items-start">
+        <span className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0 leading-[1.8] mr-1.5">
+          {verse.verse}
+        </span>
+        <p className="flex-1 leading-[1.8] text-foreground">
+          {verse.text}
+        </p>
+      </div>
+      {highlights && highlights.length > 0 && (
+        <div className="mt-1">
+          <HighlightSidebar
+            highlights={highlights}
+            onShowAll={onShowAll ?? (() => {})}
+            isSelected={isSelected}
+          />
+        </div>
+      )}
     </div>
   )
 }))

@@ -12,6 +12,11 @@ import { useKeyboardNavigation } from "../hooks/use-keyboard-navigation";
 import { useSwipeNavigation } from "../hooks/use-swipe-navigation";
 import { ReaderHeader } from "./reader-header";
 import { cn } from "@/lib/utils";
+import { HighlightsProvider, useHighlightsContext } from "@/features/highlights/context/highlights-context";
+import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
+import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
+import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
+import type { HighlightData } from "@/features/highlights/context/highlights-context";
 
 interface ReaderProps {
   bookId: string;
@@ -28,7 +33,7 @@ interface ReaderProps {
   onChangeReaderFont: (font: "sans" | "serif" | "mono") => void;
 }
 
-export function Reader({
+function ReaderContent({
   bookId,
   chapter,
   onChapterChange,
@@ -41,10 +46,11 @@ export function Reader({
   onChangeVerseSpacing,
   readerFont,
   onChangeReaderFont,
-}: ReaderProps) {
+  versionId,
+}: ReaderProps & { versionId: string }) {
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
-  const { versionId } = useBibleVersion();
+  const { highlightsByVerse } = useHighlightsContext();
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
@@ -53,6 +59,15 @@ export function Reader({
   const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(
     null,
   );
+
+  const [editingHighlight, setEditingHighlight] = useState<HighlightData | null>(null);
+  const [showHighlightEditor, setShowHighlightEditor] = useState(false);
+  const [showHighlightList, setShowHighlightList] = useState(false);
+  const [listSheetHighlights, setListSheetHighlights] = useState<HighlightData[]>([]);
+  const [showCreateEditor, setShowCreateEditor] = useState(false);
+  const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
+
+  const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -221,6 +236,11 @@ export function Reader({
                 verse={verse}
                 isActive={verse.id === activeVerseId}
                 isSelected={selectedVerseIds.has(verse.id)}
+                highlights={highlightsByVerse.get(verse.id)}
+                onShowAll={(highlights) => {
+                  setListSheetHighlights(highlights);
+                  setShowHighlightList(true);
+                }}
                 verseSpacing={verseSpacing}
               />
             ))
@@ -283,9 +303,90 @@ export function Reader({
           chapter={chapter}
           selectedVerses={selectedVerses}
           versionAbbr={versionAbbr}
+          versionId={versionId}
           onClose={() => setSelectedVerseIds(new Set())}
+          onOpenHighlightEditor={() => {
+            const verseNums = selectedVerses.map((v) =>
+              parseInt(v.id.split("-").pop()!, 10)
+            );
+            setCreateEditorVerses(verseNums);
+            setShowCreateEditor(true);
+          }}
+        />
+      )}
+
+      {/* Highlight Editor — edit mode (from sidebar) */}
+      {showHighlightEditor && editingHighlight && (
+        <HighlightEditor
+          open={showHighlightEditor}
+          onClose={() => {
+            setShowHighlightEditor(false);
+            setEditingHighlight(null);
+          }}
+          highlight={editingHighlight}
+          onSave={async (patch) => {
+            await updateHighlight(editingHighlight.highlight.id, patch);
+          }}
+          onCreate={async () => {}}
+          onDelete={deleteHighlight}
+          listCategories={listCategories}
+          createCategory={createCategory}
+        />
+      )}
+
+      {/* Highlight Editor — create mode (from selection popover) */}
+      {showCreateEditor && createEditorVerses.length > 0 && (
+        <HighlightEditor
+          open={showCreateEditor}
+          onClose={() => {
+            setShowCreateEditor(false);
+            setCreateEditorVerses([]);
+          }}
+          highlight={null}
+          onSave={async () => {}}
+          onCreate={async (patch) => {
+            await createHighlight({
+              color: patch.color,
+              content: patch.content,
+              book: bookId,
+              chapter,
+              verses: createEditorVerses,
+              bible: versionId,
+            });
+          }}
+          onDelete={deleteHighlight}
+          listCategories={listCategories}
+          createCategory={createCategory}
+        />
+      )}
+
+      {/* Highlight List Sheet (>4 highlights) */}
+      {showHighlightList && (
+        <HighlightListSheet
+          open={showHighlightList}
+          onClose={() => {
+            setShowHighlightList(false);
+            setListSheetHighlights([]);
+          }}
+          highlights={listSheetHighlights}
+          onEdit={(h) => {
+            setEditingHighlight(h);
+            setShowHighlightEditor(true);
+          }}
+          onDelete={deleteHighlight}
         />
       )}
     </div>
+  );
+}
+
+export function Reader(props: ReaderProps) {
+  const { bookId, chapter } = props;
+  const { versionId } = useBibleVersion();
+
+  return (
+    <HighlightsProvider bookId={bookId} chapter={chapter} versionId={versionId}>
+      <ReaderContent {...props} versionId={versionId} />
+    </HighlightsProvider>
   );
 }

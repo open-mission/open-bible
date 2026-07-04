@@ -3,9 +3,11 @@ import { createUserDb, type UserDb } from "./user/drizzle"
 import { runUserMigrations } from "./user/migrator"
 import { notesRepository } from "./user/repositories/notesRepository"
 import { noteReferencesRepository } from "./user/repositories/noteReferencesRepository"
+import { highlightCategoriesRepository } from "./user/repositories/highlightCategoriesRepository"
+import { highlightsRepository } from "./user/repositories/highlightsRepository"
+import { highlightVersesRepository } from "./user/repositories/highlightVersesRepository"
 import { BibleDatabase } from "./bible/BibleDatabase"
 import * as schema from "./user/schema"
-import { eq } from "drizzle-orm"
 
 /**
  * Single entry point for the whole app. React imports only from here (plus the
@@ -25,7 +27,11 @@ class Database {
       await this.manager.initialize()
       await runUserMigrations(this.manager)
       this.userDb = createUserDb(this.manager)
-    })()
+    })().catch((e) => {
+      // Allow retry on next call — the error is logged by the caller.
+      this.ready = null
+      throw e
+    })
     return this.ready
   }
 
@@ -45,6 +51,18 @@ class Database {
 
   get noteReferences() {
     return noteReferencesRepository(this.requireUserDb())
+  }
+
+  get highlightCategories() {
+    return highlightCategoriesRepository(this.requireUserDb())
+  }
+
+  get highlights() {
+    return highlightsRepository(this.requireUserDb())
+  }
+
+  get highlightVerses() {
+    return highlightVersesRepository(this.requireUserDb())
   }
 
   /** Open (caching) a BibleDatabase for an installed version. */
