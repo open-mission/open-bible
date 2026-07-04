@@ -46,19 +46,19 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
         <span className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0 leading-[1.8] mr-1.5">
           {verse.verse}
         </span>
-        <p className="flex-1 leading-[1.8] text-foreground">
-          {verse.text}
-        </p>
-      </div>
-      {highlights && highlights.length > 0 && (
-        <div className="mt-1">
-          <HighlightSidebar
-            highlights={highlights}
-            onShowAll={onShowAll ?? (() => {})}
-            isSelected={isSelected}
-          />
+        <div className="flex-1 flex flex-col gap-1">
+          <p className="leading-[1.8] text-foreground">
+            {verse.text}
+          </p>
+          {highlights && highlights.length > 0 && (
+            <HighlightSidebar
+              highlights={highlights}
+              onShowAll={onShowAll ?? (() => {})}
+              isSelected={isSelected}
+            />
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }))
