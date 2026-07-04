@@ -1,5 +1,7 @@
 "use client"
 
+import { badgeVariants } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import { getColorValue } from "../utils/highlight-colors"
 import type { HighlightData } from "../context/highlights-context"
 
@@ -30,7 +32,7 @@ export function HighlightSidebar({
         e.stopPropagation()
         onShowAll(highlights)
       }}
-      className="inline-flex items-center gap-1 rounded-full bg-accent/60 px-2 py-0.5 text-xs text-muted-foreground cursor-pointer hover:bg-accent transition-colors"
+      className={cn(badgeVariants({ variant: "outline" }), "gap-1 cursor-pointer")}
       aria-label={label}
     >
       <span
@@ -46,7 +48,7 @@ export function HighlightSidebar({
         e.stopPropagation()
         onShowAll(highlights)
       }}
-      className="size-3 rounded-full cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+      className="size-2.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity shrink-0"
       style={{ backgroundColor: firstColor }}
       aria-label={label}
       title={label}

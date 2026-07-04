@@ -43,7 +43,7 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
       aria-pressed={isActive}
     >
       {highlights && highlights.length > 0 && (
-        <div className="absolute left-4 sm:left-6 top-0 pt-1.5 z-10">
+        <div className="absolute left-0 top-0 pt-1.5 pl-2 z-10">
           <HighlightSidebar
             highlights={highlights}
             onShowAll={onShowAll ?? (() => {})}
