@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { cn } from "@/lib/utils"
-import { PREDEFINED_COLORS, getColorValue, type HighlightColor } from "../utils/highlight-colors"
+import { PREDEFINED_COLORS, getColorValue, isPredefinedColor, type HighlightColor } from "../utils/highlight-colors"
 
 interface HighlightColorPickerProps {
   value: HighlightColor
@@ -16,7 +16,7 @@ export function HighlightColorPicker({
   showCustom = true,
 }: HighlightColorPickerProps) {
   const [customColor, setCustomColor] = useState(
-    PREDEFINED_COLORS.includes(value as any) ? "#000000" : value
+    isPredefinedColor(value) ? "#000000" : value
   )
   const [showPicker, setShowPicker] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -44,13 +44,13 @@ export function HighlightColorPicker({
             type="button"
             onClick={() => {
               setShowPicker(!showPicker)
-              if (!PREDEFINED_COLORS.includes(value as any)) {
+              if (!isPredefinedColor(value)) {
                 setCustomColor(value)
               }
             }}
             className={cn(
               "size-8 rounded-full border-2 transition-all bg-gradient-to-br from-red-500 via-green-500 to-blue-500",
-              !PREDEFINED_COLORS.includes(value as any)
+              !isPredefinedColor(value)
                 ? "border-foreground scale-110"
                 : "border-transparent hover:scale-105"
             )}
