@@ -25,7 +25,7 @@ export function HighlightCategoryInput({
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    listCategories().then(setCategories)
+    listCategories().then(setCategories).catch(() => {})
   }, [listCategories])
 
   useEffect(() => {

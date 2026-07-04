@@ -27,6 +27,7 @@ interface VerseSelectionPopoverProps {
   versionAbbr: string;
   versionId: string;
   onClose: () => void;
+  onOpenHighlightEditor: () => void;
 }
 
 type CopiedKind = "reference" | "text" | null;
@@ -63,10 +64,11 @@ export function VerseSelectionPopover({
   versionAbbr,
   versionId,
   onClose,
+  onOpenHighlightEditor,
 }: VerseSelectionPopoverProps) {
   const [copied, setCopied] = useState<CopiedKind>(null);
   const isMobile = useIsMobile();
-  const { createHighlight, updateHighlight, deleteHighlight, createCategory, listCategories } = useHighlightMutations();
+  const { createHighlight, deleteHighlight, createCategory, listCategories } = useHighlightMutations();
   const reference = formatVerseReference(
     book,
     chapter,
@@ -203,6 +205,7 @@ export function VerseSelectionPopover({
             listCategories={listCategories}
             createCategory={createCategory}
             onClose={onClose}
+            onOpenEditor={onOpenHighlightEditor}
           />
         </div>
       </div>

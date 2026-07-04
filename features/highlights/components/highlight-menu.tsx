@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { IconHighlight } from "@tabler/icons-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { HighlightColorPicker } from "./highlight-color-picker"
-import { HighlightEditor } from "./highlight-editor"
 import type { HighlightColor } from "../utils/highlight-colors"
 import type { HighlightCategory } from "@/lib/database/user/schema"
 
@@ -26,6 +26,7 @@ interface HighlightMenuProps {
   listCategories: () => Promise<HighlightCategory[]>
   createCategory: (name: string) => Promise<HighlightCategory>
   onClose: () => void
+  onOpenEditor: () => void
 }
 
 export function HighlightMenu({
@@ -38,29 +39,33 @@ export function HighlightMenu({
   listCategories,
   createCategory,
   onClose,
+  onOpenEditor,
 }: HighlightMenuProps) {
   const [showColors, setShowColors] = useState(false)
-  const [showEditor, setShowEditor] = useState(false)
 
   async function handleColorSelect(color: HighlightColor) {
-    const verseNumbers = selectedVerseIds.map((id) => {
-      const parts = id.split("-")
-      return parseInt(parts[parts.length - 1], 10)
-    })
+    try {
+      const verseNumbers = selectedVerseIds.map((id) => {
+        const parts = id.split("-")
+        return parseInt(parts[parts.length - 1], 10)
+      })
 
-    await onCreateHighlight({
-      color,
-      book: bookId,
-      chapter,
-      verses: verseNumbers,
-      bible: versionId,
-    })
-    onClose()
+      await onCreateHighlight({
+        color,
+        book: bookId,
+        chapter,
+        verses: verseNumbers,
+        bible: versionId,
+      })
+      onClose()
+    } catch {
+      toast.error("Falha ao criar destaque.")
+    }
   }
 
   return (
     <>
-      {!showColors && !showEditor && (
+      {!showColors && (
         <Button
           type="button"
           variant="ghost"
@@ -96,42 +101,14 @@ export function HighlightMenu({
             variant="ghost"
             size="sm"
             onClick={() => {
-              setShowColors(false)
-              setShowEditor(true)
+              onClose()
+              onOpenEditor()
             }}
             className="text-xs text-muted-foreground"
           >
             Mais opções →
           </Button>
         </div>
-      )}
-
-      {showEditor && (
-        <HighlightEditor
-          open={showEditor}
-          onClose={() => {
-            setShowEditor(false)
-            onClose()
-          }}
-          highlight={null}
-          onSave={async () => {}}
-          onCreate={async (patch) => {
-            const verseNumbers = selectedVerseIds.map((id) => {
-              const parts = id.split("-")
-              return parseInt(parts[parts.length - 1], 10)
-            })
-            await onCreateHighlight({
-              color: patch.color,
-              book: bookId,
-              chapter,
-              verses: verseNumbers,
-              bible: versionId,
-            })
-          }}
-          onDelete={onDeleteHighlight}
-          listCategories={listCategories}
-          createCategory={createCategory}
-        />
       )}
     </>
   )

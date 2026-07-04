@@ -35,6 +35,7 @@ export function HighlightsProvider({
   const loadHighlights = useCallback(async () => {
     setLoading(true)
     try {
+      await database.initialize()
       const hvRepo = database.highlightVerses
       const hRepo = database.highlights
       const catRepo = database.highlightCategories

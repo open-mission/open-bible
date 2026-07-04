@@ -17,6 +17,7 @@ export function useHighlightMutations() {
       categoryId?: string | null
       noteId?: string | null
     }) => {
+      await database.initialize()
       const h = await database.highlights.create({
         color: input.color,
         categoryId: input.categoryId ?? null,
@@ -41,6 +42,7 @@ export function useHighlightMutations() {
 
   const updateHighlight = useCallback(
     async (id: string, patch: { color?: string; categoryId?: string | null }) => {
+      await database.initialize()
       await database.highlights.update(id, patch)
       await refresh()
     },
@@ -49,6 +51,7 @@ export function useHighlightMutations() {
 
   const deleteHighlight = useCallback(
     async (id: string) => {
+      await database.initialize()
       await database.highlights.delete(id)
       await refresh()
     },
@@ -56,10 +59,12 @@ export function useHighlightMutations() {
   )
 
   const createCategory = useCallback(async (name: string) => {
+    await database.initialize()
     return database.highlightCategories.create(name)
   }, [])
 
   const listCategories = useCallback(async () => {
+    await database.initialize()
     return database.highlightCategories.list()
   }, [])
 

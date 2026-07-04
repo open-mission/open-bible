@@ -64,8 +64,10 @@ export function Reader({
   const [showHighlightEditor, setShowHighlightEditor] = useState(false);
   const [showHighlightList, setShowHighlightList] = useState(false);
   const [listSheetHighlights, setListSheetHighlights] = useState<HighlightData[]>([]);
+  const [showCreateEditor, setShowCreateEditor] = useState(false);
+  const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
 
-  const { updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
+  const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -312,10 +314,17 @@ export function Reader({
           versionAbbr={versionAbbr}
           versionId={versionId}
           onClose={() => setSelectedVerseIds(new Set())}
+          onOpenHighlightEditor={() => {
+            const verseNums = selectedVerses.map((v) =>
+              parseInt(v.id.split("-").pop()!, 10)
+            );
+            setCreateEditorVerses(verseNums);
+            setShowCreateEditor(true);
+          }}
         />
       )}
 
-      {/* Highlight Editor */}
+      {/* Highlight Editor — edit mode (from sidebar) */}
       {showHighlightEditor && editingHighlight && (
         <HighlightEditor
           open={showHighlightEditor}
@@ -328,6 +337,31 @@ export function Reader({
             await updateHighlight(editingHighlight.highlight.id, patch);
           }}
           onCreate={async () => {}}
+          onDelete={deleteHighlight}
+          listCategories={listCategories}
+          createCategory={createCategory}
+        />
+      )}
+
+      {/* Highlight Editor — create mode (from selection popover) */}
+      {showCreateEditor && createEditorVerses.length > 0 && (
+        <HighlightEditor
+          open={showCreateEditor}
+          onClose={() => {
+            setShowCreateEditor(false);
+            setCreateEditorVerses([]);
+          }}
+          highlight={null}
+          onSave={async () => {}}
+          onCreate={async (patch) => {
+            await createHighlight({
+              color: patch.color,
+              book: bookId,
+              chapter,
+              verses: createEditorVerses,
+              bible: versionId,
+            });
+          }}
           onDelete={deleteHighlight}
           listCategories={listCategories}
           createCategory={createCategory}
