@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { IconX, IconTrash } from "@tabler/icons-react"
+import { toast } from "sonner"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -44,14 +45,20 @@ function HighlightEditorContent({
     try {
       await onSave({ color, categoryId })
       onClose()
+    } catch {
+      toast.error("Falha ao salvar o destaque.")
     } finally {
       setSaving(false)
     }
   }
 
   async function handleDelete() {
-    await onDelete(highlight.highlight.id)
-    onClose()
+    try {
+      await onDelete(highlight.highlight.id)
+      onClose()
+    } catch {
+      toast.error("Falha ao excluir o destaque.")
+    }
   }
 
   return (
@@ -88,7 +95,7 @@ function HighlightEditorContent({
           className="w-full justify-start text-destructive hover:text-destructive"
           onClick={handleDelete}
         >
-          <IconTrash data-icon="inline-start" />
+          <IconTrash />
           Excluir Destaque
         </Button>
       </div>
@@ -132,17 +139,3 @@ export function HighlightEditor({
     </BottomSheet>
   )
 }
-
-HighlightEditor.Header = function HighlightEditorHeader({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  return (
-    <div className="flex items-center justify-between px-4 py-3">
-      <h3 className="text-base font-semibold">{children}</h3>
-      <Button type="button" variant="ghost" size="icon-xs" onClick={onClose}>
-        <IconX />
-      </Button>
-    </div>
-  )
-}
-
-HighlightEditor.ColorPicker = HighlightColorPicker
-HighlightEditor.CategoryInput = HighlightCategoryInput
