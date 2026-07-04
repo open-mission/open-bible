@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { HighlightColorPicker } from "./highlight-color-picker"
 import { HighlightEditor } from "./highlight-editor"
 import type { HighlightColor } from "../utils/highlight-colors"
+import type { HighlightCategory } from "@/lib/database/user/schema"
 
 
 
@@ -21,10 +22,9 @@ interface HighlightMenuProps {
     verses: number[]
     bible: string
   }) => Promise<void>
-  onUpdateHighlight: (id: string, patch: { color: string; categoryId: string | null }) => Promise<void>
   onDeleteHighlight: (id: string) => Promise<void>
-  listCategories: () => Promise<any[]>
-  createCategory: (name: string) => Promise<any>
+  listCategories: () => Promise<HighlightCategory[]>
+  createCategory: (name: string) => Promise<HighlightCategory>
   onClose: () => void
 }
 
@@ -34,7 +34,6 @@ export function HighlightMenu({
   chapter,
   versionId,
   onCreateHighlight,
-  onUpdateHighlight,
   onDeleteHighlight,
   listCategories,
   createCategory,

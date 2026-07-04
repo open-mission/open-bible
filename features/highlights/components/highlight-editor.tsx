@@ -10,6 +10,7 @@ import { HighlightColorPicker } from "./highlight-color-picker"
 import { HighlightCategoryInput } from "./highlight-category-input"
 import type { HighlightData } from "../context/highlights-context"
 import type { HighlightColor } from "../utils/highlight-colors"
+import type { HighlightCategory } from "@/lib/database/user/schema"
 
 interface HighlightEditorProps {
   open: boolean
@@ -18,8 +19,8 @@ interface HighlightEditorProps {
   onSave: (patch: { color: string; categoryId: string | null }) => Promise<void>
   onCreate: (patch: { color: string; categoryId: string | null }) => Promise<void>
   onDelete: (id: string) => Promise<void>
-  listCategories: () => Promise<any[]>
-  createCategory: (name: string) => Promise<any>
+  listCategories: () => Promise<HighlightCategory[]>
+  createCategory: (name: string) => Promise<HighlightCategory>
 }
 
 function HighlightEditorContent({
@@ -35,8 +36,8 @@ function HighlightEditorContent({
   onSave: (patch: { color: string; categoryId: string | null }) => Promise<void>
   onCreate: (patch: { color: string; categoryId: string | null }) => Promise<void>
   onDelete: (id: string) => Promise<void>
-  listCategories: () => Promise<any[]>
-  createCategory: (name: string) => Promise<any>
+  listCategories: () => Promise<HighlightCategory[]>
+  createCategory: (name: string) => Promise<HighlightCategory>
   onClose: () => void
 }) {
   const isCreateMode = highlight === null
@@ -66,6 +67,7 @@ function HighlightEditorContent({
 
   async function handleDelete() {
     if (!highlight) return
+    if (!window.confirm("Tem certeza que deseja excluir este destaque?")) return
     try {
       await onDelete(highlight.highlight.id)
       onClose()

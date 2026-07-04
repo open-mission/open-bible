@@ -41,9 +41,5 @@ export function highlightsRepository(db: UserDb) {
       return rows[0] ?? null
     },
 
-    /** TODO: implement via raw SQL in Task 5 (useHighlights hook) — requires JOIN through highlightVerses. */
-    async listByVerse(_book: string, _chapter: number, _verse: number, _bible: string): Promise<Highlight[]> {
-      return []
-    },
   }
 }

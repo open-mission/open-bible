@@ -199,7 +199,6 @@ export function VerseSelectionPopover({
             chapter={chapter}
             versionId={versionId}
             onCreateHighlight={createHighlight}
-            onUpdateHighlight={updateHighlight}
             onDeleteHighlight={deleteHighlight}
             listCategories={listCategories}
             createCategory={createCategory}
