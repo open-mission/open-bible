@@ -34,7 +34,7 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
           ? { backgroundColor: "color-mix(in srgb, var(--color-primary) 12%, transparent)" }
           : undefined
       }
-      className={`group relative flex gap-4 px-4 sm:px-6 ${spacingClasses[verseSpacing]} cursor-pointer rounded-md transition-colors select-text ${isActive
+      className={`group relative flex px-4 sm:px-6 ${spacingClasses[verseSpacing]} cursor-pointer rounded-md transition-colors select-text ${isActive
           ? "bg-accent/60"
           : isSelected
             ? "ring-1 ring-inset ring-primary/30"
@@ -42,18 +42,16 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
         }`}
       aria-pressed={isActive}
     >
-      {highlights && highlights.length > 0 && (
-        <div className="absolute left-0 top-0 bottom-0 flex items-start pl-1 pt-[3px]">
+      <div className="flex items-start gap-1 sm:gap-2">
+        <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
+          {verse.verse}
+        </sup>
+        {highlights && highlights.length > 0 && (
           <HighlightSidebar
             highlights={highlights}
             onShowAll={onShowAll ?? (() => {})}
           />
-        </div>
-      )}
-      <div className="flex items-start">
-        <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0">
-          {verse.verse}
-        </sup>
+        )}
         <p className="flex-1 leading-[1.8] text-foreground">
           {verse.text}
         </p>
