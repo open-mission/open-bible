@@ -290,6 +290,7 @@ export function Reader({
           chapter={chapter}
           selectedVerses={selectedVerses}
           versionAbbr={versionAbbr}
+          versionId={versionId}
           onClose={() => setSelectedVerseIds(new Set())}
         />
       )}
