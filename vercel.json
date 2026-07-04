@@ -1,5 +1,5 @@
 {
-  "installCommand": "pnpm install",
-  "buildCommand": "pnpm build",
-  "nodeVersion": "22"
+  "installCommand": "bun install",
+  "buildCommand": "bun build",
+  "nodeVersion": "24"
 }
