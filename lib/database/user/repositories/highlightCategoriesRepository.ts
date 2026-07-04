@@ -18,6 +18,14 @@ export function highlightCategoriesRepository(db: UserDb) {
       return row as HighlightCategory
     },
 
+    async findById(id: string): Promise<HighlightCategory | null> {
+      const rows = await db
+        .select()
+        .from(highlightCategories)
+        .where(eq(highlightCategories.id, id))
+      return rows[0] ?? null
+    },
+
     async findByName(name: string): Promise<HighlightCategory | null> {
       const rows = await db
         .select()
