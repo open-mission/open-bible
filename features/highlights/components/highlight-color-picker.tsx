@@ -22,44 +22,36 @@ export function HighlightColorPicker({
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        {PREDEFINED_COLORS.map((colorKey) => (
+    <div className="flex items-center gap-2">
+      {PREDEFINED_COLORS.map((colorKey) => (
+        <button
+          key={colorKey}
+          type="button"
+          onClick={() => onChange(colorKey)}
+          className={cn(
+            "size-6 rounded-full border border-border transition-all focus:outline-none",
+            value === colorKey
+              ? "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110"
+              : "hover:scale-105"
+          )}
+          style={{ backgroundColor: getColorValue(colorKey) }}
+          aria-label={`Cor: ${colorKey}`}
+        />
+      ))}
+      {showCustom && (
+        <div className="relative">
           <button
-            key={colorKey}
             type="button"
-            onClick={() => onChange(colorKey)}
+            onClick={() => inputRef.current?.click()}
             className={cn(
-              "size-8 rounded-full border-2 transition-all",
-              value === colorKey
-                ? "border-foreground scale-110"
-                : "border-transparent hover:scale-105"
+              "size-6 rounded-full border border-border transition-all focus:outline-none",
+              !isPredefinedColor(value) && value
+                ? "ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110"
+                : "bg-gradient-to-br from-red-500 via-green-500 to-blue-500 hover:scale-105"
             )}
-            style={{ backgroundColor: getColorValue(colorKey) }}
-            aria-label={`Cor: ${colorKey}`}
-          />
-        ))}
-        {showCustom && (
-          <button
-            type="button"
-            onClick={() => {
-              setShowPicker(!showPicker)
-              if (!isPredefinedColor(value)) {
-                setCustomColor(value)
-              }
-            }}
-            className={cn(
-              "size-8 rounded-full border-2 transition-all bg-gradient-to-br from-red-500 via-green-500 to-blue-500",
-              !isPredefinedColor(value)
-                ? "border-foreground scale-110"
-                : "border-transparent hover:scale-105"
-            )}
+            style={!isPredefinedColor(value) && value ? { backgroundColor: value } : undefined}
             aria-label="Cor personalizada"
           />
-        )}
-      </div>
-      {showPicker && showCustom && (
-        <div className="flex items-center gap-2">
           <input
             ref={inputRef}
             type="color"
@@ -68,9 +60,8 @@ export function HighlightColorPicker({
               setCustomColor(e.target.value)
               onChange(e.target.value)
             }}
-            className="size-8 cursor-pointer rounded border-0 p-0"
+            className="sr-only"
           />
-          <span className="text-xs text-muted-foreground">{customColor}</span>
         </div>
       )}
     </div>
