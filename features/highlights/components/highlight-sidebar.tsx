@@ -8,50 +8,39 @@ import type { HighlightData } from "../context/highlights-context"
 interface HighlightSidebarProps {
   highlights: HighlightData[]
   onShowAll: (highlights: HighlightData[]) => void
-  isSelected?: boolean
 }
 
 export function HighlightSidebar({
   highlights,
   onShowAll,
-  isSelected,
 }: HighlightSidebarProps) {
   if (!highlights || highlights.length === 0) return null
 
-  const label =
-    highlights.length === 1
-      ? (highlights[0].category?.name ?? highlights[0].highlight.color)
-      : `${highlights.length} destaques`
-
-  const firstColor = getColorValue(highlights[0].highlight.color)
-
-  return isSelected ? (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation()
-        onShowAll(highlights)
-      }}
-      className={cn(badgeVariants({ variant: "outline" }), "gap-1 cursor-pointer")}
-      aria-label={label}
-    >
-      <span
-        className="size-2 rounded-full shrink-0"
-        style={{ backgroundColor: firstColor }}
-      />
-      <span className="truncate max-w-[16ch]">{label}</span>
-    </button>
-  ) : (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation()
-        onShowAll(highlights)
-      }}
-      className="size-2.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity shrink-0"
-      style={{ backgroundColor: firstColor }}
-      aria-label={label}
-      title={label}
-    />
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {highlights.map((h) => (
+        <button
+          key={h.highlight.id}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onShowAll(highlights)
+          }}
+          className={cn(
+            badgeVariants({ variant: "outline" }),
+            "gap-1 cursor-pointer",
+          )}
+          aria-label={h.category?.name ?? h.highlight.color}
+        >
+          <span
+            className="size-2 rounded-full shrink-0"
+            style={{ backgroundColor: getColorValue(h.highlight.color) }}
+          />
+          <span className="truncate max-w-[16ch]">
+            {h.category?.name ?? h.highlight.color}
+          </span>
+        </button>
+      ))}
+    </div>
   )
 }
