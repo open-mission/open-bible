@@ -15,12 +15,8 @@ import { cn } from "@/lib/utils";
 import { HighlightsProvider, useHighlightsContext } from "@/features/highlights/context/highlights-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
 import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
-import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
-import { database } from "@/lib/database/database";
-import { IconHighlight } from "@tabler/icons-react";
 import type { HighlightData } from "@/features/highlights/context/highlights-context";
-import type { HighlightCategory } from "@/lib/database/user/schema";
 
 interface ReaderProps {
   bookId: string;
