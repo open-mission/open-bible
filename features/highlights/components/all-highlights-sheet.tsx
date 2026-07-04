@@ -217,7 +217,7 @@ export function AllHighlightsSheet({
 
                     {/* Color pill / category badge */}
                     <span
-                      className="rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide select-none capitalize border border-transparent"
+                      className="rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide select-none capitalize border border-transparent font-sans"
                       style={{
                         backgroundColor: style.pillBg,
                         color: style.pillText,
@@ -228,7 +228,7 @@ export function AllHighlightsSheet({
                     </span>
 
                     {/* Reference Range */}
-                    <span className="text-xs font-semibold text-muted-foreground truncate max-w-[150px]">
+                    <span className="text-xs font-semibold text-muted-foreground truncate max-w-[150px] font-sans">
                       {reference(e.verses)}
                     </span>
 
@@ -294,7 +294,7 @@ export function AllHighlightsSheet({
                               {v.text}
                             </p>
                             <span
-                              className="text-[9px] font-bold uppercase tracking-wider mt-0.5"
+                              className="text-[9px] font-bold uppercase tracking-wider mt-0.5 font-sans"
                               style={{ color: `${style.hex}b3` }}
                             >
                               {v.reference}

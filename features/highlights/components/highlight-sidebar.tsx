@@ -48,7 +48,7 @@ export function HighlightSidebar({
           >
             {h.category?.name && (
               <span
-                className="truncate font-bold text-[9px]"
+                className="truncate font-bold text-[9px] font-sans"
                 style={{
                   color: style.pillText,
                   transition: "all 200ms ease-out",

@@ -75,16 +75,17 @@ export function getNeonStyle(hex: string): NeonStyle {
     else cleanHex = "#34d399" // fallback to emerald
   }
 
-  // Derive opacity-based variants:
+  // Combine inset border shadow and outer glow shadow for the pill:
   // 1a = 10% alpha (background)
-  // 33 = 20% alpha (ring border)
-  // 66 = 40% alpha (glow shadow)
+  // 33 = 20% alpha (inset border ring)
+  // 40 = 25% alpha (glow shadow for pill)
+  // 66 = 40% alpha (glow shadow for solid dot)
   return {
     hex: cleanHex,
-    glow: `0 0 12px 2px ${cleanHex}66`,
+    glow: `0 0 12px 2.5px ${cleanHex}66`,
     pillBg: `${cleanHex}1a`,
     pillText: cleanHex,
-    pillRing: `inset 0 0 0 1px ${cleanHex}33`,
+    pillRing: `inset 0 0 0 1px ${cleanHex}33, 0 0 8px 1px ${cleanHex}40`,
   }
 }
 
