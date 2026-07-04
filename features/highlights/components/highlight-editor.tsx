@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { HighlightColorPicker } from "./highlight-color-picker"
 import { HighlightCategoryInput } from "./highlight-category-input"
 import type { HighlightData } from "../context/highlights-context"
-import type { HighlightColor } from "../utils/highlight-colors"
+import { getNeonStyle, type HighlightColor } from "../utils/highlight-colors"
 import type { HighlightCategory } from "@/lib/database/user/schema"
 
 interface HighlightEditorProps {
@@ -41,9 +41,10 @@ function HighlightEditorContent({
   onClose: () => void
 }) {
   const isCreateMode = highlight === null
-  const [color, setColor] = useState<HighlightColor>(
-    isCreateMode ? "amber" : highlight.highlight.color,
-  )
+  const [color, setColor] = useState<HighlightColor>(() => {
+    const raw = isCreateMode ? "#34d399" : highlight.highlight.color
+    return getNeonStyle(raw).hex
+  })
   const [categoryIds, setCategoryIds] = useState<string[]>([])
   const [content, setContent] = useState<string>(
     isCreateMode ? "" : highlight.highlight.content ?? "",

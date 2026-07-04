@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
-import { getColorValue, PREDEFINED_COLORS, isPredefinedColor } from "../utils/highlight-colors"
+import { getNeonStyle, getColorName, neonColors } from "../utils/highlight-colors"
 import { getBookName } from "@/lib/books"
 import type { Highlight, HighlightVerse } from "@/lib/database/user/schema"
 import type { HighlightCategory } from "@/lib/database/user/schema"
@@ -33,75 +33,6 @@ interface AllHighlightsSheetProps {
   onClose: () => void
   onEdit: (highlightId: string) => void
   initialQuery?: string
-}
-
-interface CardColorStyle {
-  dotBg: string
-  glow: string
-  pillBg: string
-  pillText: string
-  pillBorder: string
-  shapeText: string
-  markerText: string
-}
-
-function getCardColorStyle(color: string): CardColorStyle {
-  const isPredefined = isPredefinedColor(color)
-  
-  const mapping: Record<string, CardColorStyle> = {
-    amber: {
-      dotBg: "bg-amber-400 dark:bg-amber-400",
-      glow: "shadow-amber-400/40 dark:shadow-amber-400/20",
-      pillBg: "bg-amber-400/10 dark:bg-amber-400/15",
-      pillText: "text-amber-600 dark:text-amber-300",
-      pillBorder: "border-amber-400/20 dark:border-amber-400/30",
-      shapeText: "text-amber-600/10 dark:text-amber-400/10",
-      markerText: "text-amber-600/70 dark:text-amber-300/70",
-    },
-    green: {
-      dotBg: "bg-emerald-400 dark:bg-emerald-400",
-      glow: "shadow-emerald-400/40 dark:shadow-emerald-400/20",
-      pillBg: "bg-emerald-400/10 dark:bg-emerald-400/15",
-      pillText: "text-emerald-600 dark:text-emerald-300",
-      pillBorder: "border-emerald-400/20 dark:border-emerald-400/30",
-      shapeText: "text-emerald-600/10 dark:text-emerald-400/10",
-      markerText: "text-emerald-600/70 dark:text-emerald-300/70",
-    },
-    blue: {
-      dotBg: "bg-sky-400 dark:bg-sky-400",
-      glow: "shadow-sky-400/40 dark:shadow-sky-400/20",
-      pillBg: "bg-sky-400/10 dark:bg-sky-400/15",
-      pillText: "text-sky-600 dark:text-sky-300",
-      pillBorder: "border-sky-400/20 dark:border-sky-400/30",
-      shapeText: "text-sky-600/10 dark:text-sky-400/10",
-      markerText: "text-sky-600/70 dark:text-sky-300/70",
-    },
-    rose: {
-      dotBg: "bg-rose-400 dark:bg-rose-400",
-      glow: "shadow-rose-400/40 dark:shadow-rose-400/20",
-      pillBg: "bg-rose-400/10 dark:bg-rose-400/15",
-      pillText: "text-rose-600 dark:text-rose-300",
-      pillBorder: "border-rose-400/20 dark:border-rose-400/30",
-      shapeText: "text-rose-600/10 dark:text-rose-400/10",
-      markerText: "text-rose-600/70 dark:text-rose-300/70",
-    },
-  }
-  
-  if (isPredefined) {
-    return mapping[color]
-  }
-  
-  // Custom hex color dynamic matching
-  const hex = getColorValue(color)
-  return {
-    dotBg: hex,
-    glow: "shadow-primary/20",
-    pillBg: `color-mix(in srgb, ${hex} 10%, transparent)`,
-    pillText: `color-mix(in srgb, ${hex} 80%, var(--color-foreground))`,
-    pillBorder: `color-mix(in srgb, ${hex} 25%, transparent)`,
-    shapeText: `color-mix(in srgb, ${hex} 10%, transparent)`,
-    markerText: `color-mix(in srgb, ${hex} 75%, transparent)`,
-  }
 }
 
 export function AllHighlightsSheet({
@@ -183,7 +114,11 @@ export function AllHighlightsSheet({
     if (!query.trim()) return entries
     const q = query.toLowerCase()
     return entries.filter((e) => {
-      if (PREDEFINED_COLORS.includes(q as typeof PREDEFINED_COLORS[number]) && e.highlight.color === q) return true
+      // Search matching neon color name or hex
+      const colorMatch = neonColors.find(
+        (c) => c.name.toLowerCase() === q || c.hex.toLowerCase() === q
+      )
+      if (colorMatch && e.highlight.color.toLowerCase() === colorMatch.hex.toLowerCase()) return true
       if (e.category?.name.toLowerCase().includes(q)) return true
       if (e.highlight.content?.toLowerCase().includes(q)) return true
       if (e.verseItems.some((vi) => vi.text.toLowerCase().includes(q))) return true
@@ -261,8 +196,7 @@ export function AllHighlightsSheet({
           </p>
         ) : (
           filtered.map((e) => {
-            const isHex = !isPredefinedColor(e.highlight.color)
-            const theme = getCardColorStyle(e.highlight.color)
+            const style = getNeonStyle(e.highlight.color)
 
             return (
               <article
@@ -274,32 +208,23 @@ export function AllHighlightsSheet({
                   <header className="flex items-center gap-2.5">
                     {/* Glowing color dot */}
                     <div
-                      className={cn(
-                        "h-2.5 w-2.5 shrink-0 rounded-full shadow-[0_0_12px_2px]",
-                        !isHex && theme.dotBg,
-                        !isHex && theme.glow
-                      )}
-                      style={isHex ? {
-                        backgroundColor: theme.dotBg,
-                        boxShadow: `0 0 12px 2px color-mix(in srgb, ${theme.dotBg} 40%, transparent)`
-                      } : undefined}
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{
+                        backgroundColor: style.hex,
+                        boxShadow: style.glow,
+                      }}
                     />
 
                     {/* Color pill / category badge */}
                     <span
-                      className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide border select-none capitalize",
-                        !isHex && theme.pillBg,
-                        !isHex && theme.pillText,
-                        !isHex && theme.pillBorder
-                      )}
-                      style={isHex ? {
-                        backgroundColor: theme.pillBg,
-                        color: theme.pillText,
-                        borderColor: theme.pillBorder
-                      } : undefined}
+                      className="rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide select-none capitalize border border-transparent"
+                      style={{
+                        backgroundColor: style.pillBg,
+                        color: style.pillText,
+                        boxShadow: style.pillRing,
+                      }}
                     >
-                      {e.category?.name ?? e.highlight.color}
+                      {e.category?.name ?? getColorName(style.hex)}
                     </span>
 
                     {/* Reference Range */}
@@ -348,11 +273,8 @@ export function AllHighlightsSheet({
                       {/* Big decorative quotation mark */}
                       <span
                         aria-hidden="true"
-                        className={cn(
-                          "pointer-events-none absolute -right-2 -top-6 select-none font-serif text-[7.5rem] leading-none z-0",
-                          !isHex && theme.shapeText
-                        )}
-                        style={isHex ? { color: theme.shapeText } : undefined}
+                        className="pointer-events-none absolute -right-2 -top-6 select-none font-serif text-[7.5rem] leading-none z-0"
+                        style={{ color: `${style.hex}1a` }}
                       >
                         &rdquo;
                       </span>
@@ -360,11 +282,8 @@ export function AllHighlightsSheet({
                       {/* Soft radial glow shape */}
                       <div
                         aria-hidden="true"
-                        className={cn(
-                          "pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full blur-3xl opacity-[0.05] z-0",
-                          !isHex && theme.dotBg
-                        )}
-                        style={isHex ? { backgroundColor: theme.dotBg } : undefined}
+                        className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full blur-3xl opacity-[0.07] z-0"
+                        style={{ backgroundColor: style.hex }}
                       />
 
                       {/* Stacked verses list */}
@@ -375,11 +294,8 @@ export function AllHighlightsSheet({
                               {v.text}
                             </p>
                             <span
-                              className={cn(
-                                "text-[9px] font-bold uppercase tracking-wider",
-                                !isHex && theme.markerText
-                              )}
-                              style={isHex ? { color: theme.markerText } : undefined}
+                              className="text-[9px] font-bold uppercase tracking-wider mt-0.5"
+                              style={{ color: `${style.hex}b3` }}
                             >
                               {v.reference}
                             </span>

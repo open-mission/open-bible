@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { getColorValue } from "../utils/highlight-colors"
+import { getNeonStyle } from "../utils/highlight-colors"
 import type { HighlightData } from "../context/highlights-context"
 
 interface HighlightSidebarProps {
@@ -18,9 +18,11 @@ export function HighlightSidebar({
   if (!highlights || highlights.length === 0) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+    <div className="flex flex-wrap items-center gap-1.5 mt-1 select-none">
       {highlights.map((h) => {
+        const style = getNeonStyle(h.highlight.color)
         const showLabel = isSelected && !!h.category?.name
+        
         return (
           <button
             key={h.highlight.id}
@@ -29,9 +31,11 @@ export function HighlightSidebar({
               e.stopPropagation()
               onShowAll([h])
             }}
-            className="cursor-pointer focus:outline-none shrink-0 rounded-full flex items-center justify-center overflow-hidden hover:scale-105 active:scale-95 border border-border/10"
+            className="cursor-pointer focus:outline-none shrink-0 rounded-full flex items-center justify-center overflow-hidden hover:scale-105 active:scale-95 border"
             style={{
-              backgroundColor: getColorValue(h.highlight.color),
+              backgroundColor: showLabel ? style.pillBg : style.hex,
+              borderColor: showLabel ? `${style.hex}33` : "transparent",
+              boxShadow: showLabel ? style.pillRing : style.glow,
               transition: "all 300ms cubic-bezier(0.16, 1, 0.3, 1)",
               height: showLabel ? "18px" : "8px",
               paddingLeft: showLabel ? "8px" : "0px",
@@ -44,8 +48,9 @@ export function HighlightSidebar({
           >
             {h.category?.name && (
               <span
-                className="truncate font-bold text-[9px] text-white"
+                className="truncate font-bold text-[9px]"
                 style={{
+                  color: style.pillText,
                   transition: "all 200ms ease-out",
                   transitionDelay: showLabel ? "100ms" : "0ms",
                   opacity: showLabel ? 1 : 0,

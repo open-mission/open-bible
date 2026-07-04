@@ -4,7 +4,7 @@ import { IconPencil, IconTrash } from "@tabler/icons-react"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { getColorValue } from "../utils/highlight-colors"
+import { getNeonStyle } from "../utils/highlight-colors"
 import type { HighlightData } from "../context/highlights-context"
 
 interface HighlightListSheetProps {
@@ -30,19 +30,24 @@ export function HighlightListSheet({
         </div>
         <Separator />
         <div className="max-h-[60vh] overflow-y-auto">
-          {highlights.map((h) => (
-            <div key={h.highlight.id}>
-              <div className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="size-4 rounded-full shrink-0"
-                    style={{ backgroundColor: getColorValue(h.highlight.color) }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium capitalize">
-                      {h.category?.name ?? h.highlight.color}
-                    </span>
-                  </div>
+          {highlights.map((h) => {
+            const style = getNeonStyle(h.highlight.color)
+            return (
+              <div key={h.highlight.id}>
+                <div className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="size-4 rounded-full shrink-0"
+                      style={{
+                        backgroundColor: style.hex,
+                        boxShadow: style.glow,
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium capitalize">
+                        {h.category?.name ?? h.highlight.color}
+                      </span>
+                    </div>
                   <Button
                     type="button"
                     variant="ghost"
@@ -77,7 +82,7 @@ export function HighlightListSheet({
               </div>
               <Separator />
             </div>
-          ))}
+          )})}
         </div>
       </div>
     </BottomSheet>
