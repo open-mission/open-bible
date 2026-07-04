@@ -267,7 +267,7 @@ export function AllHighlightsSheet({
             return (
               <article
                 key={e.highlight.id}
-                className="group relative w-full overflow-hidden rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xs shadow-xs transition-all duration-300 hover:border-border/80 hover:shadow-md"
+                className="group relative w-full shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xs shadow-xs transition-all duration-300 hover:border-border/80 hover:shadow-md"
               >
                 <div className="flex flex-col gap-3.5 p-4.5">
                   {/* Header */}
