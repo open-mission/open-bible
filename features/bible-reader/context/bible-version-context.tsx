@@ -2,8 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react"
 import type { Verse } from "@/lib/types"
-import { getVerses as getMockVerses } from "@/features/bible-reader/utils/bible-data"
-import { fetchChapterVerses as apiFetchChapterVerses } from "@/lib/api-client"
 import { API_ORIGIN } from "@/lib/api-base"
 import { database } from "@/lib/database/database"
 
@@ -138,10 +136,9 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
   const [defaultVersionId, setDefaultVersionIdState] = useState(loadDefaultVersionId)
   const [versionId, setVersionIdState] = useState<string>("")
   const [installedVersions, setInstalledVersions] = useState<VersionMeta[]>([])
-  const [availableVersions, setAvailableVersions] = useState<AvailableVersion[]>(AVAILABLE_VERSIONS_LIST)
+  const availableVersions: AvailableVersion[] = AVAILABLE_VERSIONS_LIST
   const [isInstalling, setIsInstalling] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null)
-  const [versionMetaCache, setVersionMetaCache] = useState<Record<string, VersionMeta>>({})
   const [isVersionsLoaded, setIsVersionsLoaded] = useState(false)
 
   // Ref to keep installedVersions stable for getVerses callback (Fix 7)
@@ -200,7 +197,10 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
 
   // Load available versions and refresh installed on mount
   useEffect(() => {
-    refreshInstalled()
+    const timer = setTimeout(() => {
+      refreshInstalled()
+    }, 0)
+    return () => clearTimeout(timer)
   }, [refreshInstalled])
 
   // Boot the local SQLite layer once on mount (client-only).
@@ -213,11 +213,14 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     if (isVersionsLoaded && installedVersions.length > 0) {
       const saved = loadVersionId(defaultVersionId)
       const isSavedInstalled = installedVersions.some((v) => v.id === saved)
-      if (isSavedInstalled) {
-        setVersionIdState(saved)
-      } else {
-        setVersionIdState(installedVersions[0].id)
-      }
+      const timer = setTimeout(() => {
+        if (isSavedInstalled) {
+          setVersionIdState(saved)
+        } else {
+          setVersionIdState(installedVersions[0].id)
+        }
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [defaultVersionId, installedVersions, isVersionsLoaded])
 
@@ -225,8 +228,11 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (installedVersions.length === 1 && !hasDefaultVersionBeenSet()) {
       const only = installedVersions[0]
-      setDefaultVersionIdState(only.id)
-      saveDefaultVersionId(only.id)
+      const timer = setTimeout(() => {
+        setDefaultVersionIdState(only.id)
+        saveDefaultVersionId(only.id)
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [installedVersions])
 

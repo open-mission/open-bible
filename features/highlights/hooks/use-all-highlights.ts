@@ -87,7 +87,10 @@ export function useAllHighlights(open: boolean) {
 
   useEffect(() => {
     if (open) {
-      loadEntries()
+      const timer = setTimeout(() => {
+        loadEntries()
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [open, loadEntries])
 

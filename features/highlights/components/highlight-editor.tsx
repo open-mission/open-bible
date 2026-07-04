@@ -68,11 +68,14 @@ function HighlightEditorContent({
 
   // Initialize selected category IDs
   useEffect(() => {
-    if (!isCreateMode && highlight.category) {
-      setCategoryIds([highlight.category.id]);
-    } else {
-      setCategoryIds([]);
-    }
+    const timer = setTimeout(() => {
+      if (!isCreateMode && highlight.category) {
+        setCategoryIds([highlight.category.id]);
+      } else {
+        setCategoryIds([]);
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [isCreateMode, highlight]);
 
   async function handleSave() {

@@ -1,6 +1,6 @@
 "use client"
 
-import { cn } from "@/lib/utils"
+
 import { getNeonStyle, getContrastColor } from "../utils/highlight-colors"
 import type { HighlightData } from "../context/highlights-context"
 

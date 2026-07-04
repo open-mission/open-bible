@@ -19,14 +19,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 interface NavItem {
   id: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
 }
 
@@ -35,8 +34,6 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
   onNavClick: (navId: string) => void;
   activeNav: string | null;
   sidebarCollapsed?: boolean;
@@ -44,8 +41,6 @@ interface SidebarProps {
 }
 
 export function AppSidebar({
-  isOpen,
-  onClose,
   onNavClick,
   activeNav,
   sidebarCollapsed,

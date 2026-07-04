@@ -26,27 +26,30 @@ export default function ConfigPage() {
   const [versions, setVersions] = useState<{ id: string; name: string }[]>([])
   const [isDesktop, setIsDesktop] = useState(false)
   
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  const handleNavClick = (navId: string) => {
-    router.push(`/?nav=${navId}`)
-  }
 
   useEffect(() => {
     const installed = installedVersions.map((v) => ({ id: v.id, name: v.name }))
     const available = availableVersions
       .filter((av) => !installedVersions.find((iv) => iv.id === av.id))
       .map((v) => ({ id: v.id, name: v.name }))
-    setVersions([...installed, ...available])
+    const timer = setTimeout(() => {
+      setVersions([...installed, ...available])
+    }, 0)
+    return () => clearTimeout(timer)
   }, [availableVersions, installedVersions])
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 768px)")
-    setIsDesktop(media.matches)
+    const timer = setTimeout(() => {
+      setIsDesktop(media.matches)
+    }, 0)
     const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
     media.addEventListener("change", listener)
-    return () => media.removeEventListener("change", listener)
+    return () => {
+      media.removeEventListener("change", listener)
+      clearTimeout(timer)
+    }
   }, [])
 
   return (

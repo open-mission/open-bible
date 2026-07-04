@@ -6,6 +6,7 @@ import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { getBook, OLD_TESTAMENT, NEW_TESTAMENT } from "@/features/bible-reader/utils/bible-data"
 import { useIsMobile } from "@/lib/use-media-query"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
+import type { VersionMeta } from "@/features/bible-reader/context/bible-version-context"
 import { BookChapterDialogOverlay } from "./book-chapter-dialog-overlay"
 import { BookChapterDialogSearchHeader } from "./book-chapter-dialog-search-header"
 import { BookChapterDialogBookList } from "./book-chapter-dialog-book-list"
@@ -46,9 +47,12 @@ export function BookChapterDialog({
 
   useEffect(() => {
     if (open) {
-      setActiveBookId(selectedBookId)
-      setShowChapters(false)
-      setQuery("")
+      const timer = setTimeout(() => {
+        setActiveBookId(selectedBookId)
+        setShowChapters(false)
+        setQuery("")
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [open, selectedBookId])
 
@@ -72,7 +76,7 @@ export function BookChapterDialog({
           id: av.id,
           name: av.name,
           books: [],
-        } as any)
+        } as VersionMeta)
       }
     })
     return list

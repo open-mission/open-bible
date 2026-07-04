@@ -90,8 +90,9 @@ export function VerseSelectionPopover({
   );
   const count = selectedVerses.length;
 
-  // Find if there is an active highlight for the selected verses
-  const activeHighlight = useMemo(() => {
+  // Find if there is an active highlight for the selected verses (reserved for future UI use)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _activeHighlight = useMemo(() => {
     if (selectedVerses.length === 0) return null;
     const firstVerseId = selectedVerses[0].id;
     const verseHighlights = highlightsByVerse.get(firstVerseId) ?? [];
@@ -106,7 +107,10 @@ export function VerseSelectionPopover({
 
   // Reset toolbar state to closed when selection changes
   useEffect(() => {
-    setShowToolbar(false);
+    const timer = setTimeout(() => {
+      setShowToolbar(false);
+    }, 0)
+    return () => clearTimeout(timer)
   }, [selectedVerses]);
 
   async function handleCopy(kind: CopiedKind) {

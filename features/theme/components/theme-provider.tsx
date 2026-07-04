@@ -192,11 +192,14 @@ function ThemeModeProvider({ children }: { children: React.ReactNode }) {
     const stored = (() => {
       try { return localStorage.getItem(STORAGE_KEY) || "system" } catch { return "system" }
     })()
-    setThemeState(stored)
-    const resolved = stored === "system" ? getSystemTheme() : stored
-    setResolvedTheme(resolved)
-    applyTheme(stored)
-    initialized.current = true
+    const timer = setTimeout(() => {
+      setThemeState(stored)
+      const resolved = stored === "system" ? getSystemTheme() : stored
+      setResolvedTheme(resolved)
+      applyTheme(stored)
+      initialized.current = true
+    }, 0)
+    return () => clearTimeout(timer)
   }, [])
 
   // Re-apply when theme changes (after initial mount)
@@ -290,8 +293,11 @@ function PaletteColorProvider({ children }: { children: React.ReactNode }) {
   // Load saved theme config on mount
   useEffect(() => {
     const saved = loadThemeConfig()
-    setPaletteState(saved.palette)
-    setColorState(saved.color)
+    const timer = setTimeout(() => {
+      setPaletteState(saved.palette)
+      setColorState(saved.color)
+    }, 0)
+    return () => clearTimeout(timer)
   }, [])
 
   // Apply CSS vars to <html> whenever palette, color, or resolvedTheme changes
