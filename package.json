@@ -69,7 +69,7 @@
     "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.1.0",
     "@ducanh2912/next-pwa": "^10.2.9",
-    "@tailwindcss/postcss": "^4.2.0",
+    "@tailwindcss/postcss": "^4.3.2",
     "@tauri-apps/cli": "^2.11.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24",
