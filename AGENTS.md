@@ -64,6 +64,9 @@ improve: better dark mode toggle UX
 > Nunca use `--no-verify`. Os hooks (`commit-msg` valida o commitlint, `pre-commit` roda lint-staged)
 > e o CI de PR aplicam essas regras tanto para pessoas quanto para agentes.
 
+### Idioma no GitHub
+Commits, PRs e issues devem ser escritos em **ingles**, mesmo que a comunicação interna seja em portugues. Mantém o historico padronizado e acessivel.
+
 ### GitHub Project
 - Projeto: **Open Bible** (nº 2) na organização `open-mission`
 - URL: `https://github.com/orgs/open-mission/projects/2`
