@@ -4,11 +4,6 @@ import { useState, useEffect } from "react";
 import { IconTextSize, IconHighlight } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { ReaderDisplaySettings } from "./reader-display-settings";
 import { ReaderThemeConfig } from "./reader-theme-config";
 import {
@@ -26,6 +21,13 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { BibleVersionSelector } from "./bible-version-selector";
 
 interface ReaderHeaderProps {
@@ -115,34 +117,15 @@ export function ReaderHeader({
               variant="ghost"
               className="h-8 rounded-full px-3"
             />
-            <Popover>
-              <PopoverTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs"
-                    title="Ajustes de visualização"
-                  />
-                }
-              >
-                <IconTextSize data-icon="inline-start" />
-                <span className="hidden lg:inline">Exibição</span>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-80 p-5 flex flex-col gap-5"
-                align="start"
-              >
-                <div className="flex flex-col gap-1">
-                  <h4 className="font-semibold text-sm leading-none">
-                    Ajustes de exibição
-                  </h4>
-                  <p className="text-xs text-muted-foreground">
-                    Personalize sua experiência de leitura.
-                  </p>
-                </div>
-                {displaySettings}
-              </PopoverContent>
-            </Popover>
+            <Button
+              onClick={() => setSettingsOpen(true)}
+              variant="ghost"
+              className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs"
+              title="Ajustes de visualização"
+            >
+              <IconTextSize data-icon="inline-start" />
+              <span className="hidden lg:inline">Exibição</span>
+            </Button>
             {onShowAllHighlights && (
               <Button
                 onClick={onShowAllHighlights}
@@ -158,16 +141,34 @@ export function ReaderHeader({
         </div>
       </div>
 
-      {/* Mobile Display Settings Drawer/Bottom Sheet */}
+      {/* Mobile Display Settings Bottom Sheet */}
       {settingsOpen && !isDesktop && (
         <BottomSheet open={settingsOpen} onClose={() => setSettingsOpen(false)}>
           <div className="px-4 py-3 border-b border-border">
             <p className="text-sm font-semibold text-foreground">
               Ajustes de exibição
             </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Personalize sua experiência de leitura.
+            </p>
           </div>
           <div className="p-5">{displaySettings}</div>
         </BottomSheet>
+      )}
+
+      {/* Desktop Display Settings Side Drawer */}
+      {settingsOpen && isDesktop && (
+        <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
+          <SheetContent side="right" className="p-0">
+            <SheetHeader className="border-b border-border">
+              <SheetTitle>Ajustes de exibição</SheetTitle>
+              <SheetDescription>
+                Personalize sua experiência de leitura.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-5">{displaySettings}</div>
+          </SheetContent>
+        </Sheet>
       )}
 
       {/* Modal/Drawer de configuração de tema */}
