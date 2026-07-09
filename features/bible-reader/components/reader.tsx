@@ -117,7 +117,18 @@ function ReaderContent({
 
   useEffect(() => {
     if (!open) return;
+    let pointerDownX = 0;
+    let pointerDownY = 0;
     function handlePointerDown(e: PointerEvent) {
+      pointerDownX = e.clientX;
+      pointerDownY = e.clientY;
+    }
+    // Only clear selection on a genuine tap outside a verse, not when the
+    // user is scrolling/dragging the screen (which also emits pointer events).
+    function handlePointerUp(e: PointerEvent) {
+      const dx = Math.abs(e.clientX - pointerDownX);
+      const dy = Math.abs(e.clientY - pointerDownY);
+      if (dx > 10 || dy > 10) return;
       const target = e.target as HTMLElement | null;
       if (!target) return;
       if (
@@ -131,9 +142,11 @@ function ReaderContent({
       if (e.key === "Escape") setSelectedVerseIds(new Set());
     }
     document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("pointerup", handlePointerUp);
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("pointerup", handlePointerUp);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);

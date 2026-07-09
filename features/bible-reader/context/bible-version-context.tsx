@@ -184,11 +184,6 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
         }
       }
       setInstalledVersions(installed)
-      const cache: Record<string, VersionMeta> = {}
-      for (const v of installed) {
-        cache[v.id] = v
-      }
-      setVersionMetaCache((prev) => ({ ...prev, ...cache }))
       setIsVersionsLoaded(true)
     } catch (e) {
       console.error("Failed to load installed SQLite bibles:", e)
@@ -355,11 +350,6 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
 
   const uninstallVersion = useCallback(async (id: string) => {
     await database.removeBible(id)
-    setVersionMetaCache((prev) => {
-      const next = { ...prev }
-      delete next[id]
-      return next
-    })
     await refreshInstalled()
     if (versionId === id) {
       setVersionId(defaultVersionId)

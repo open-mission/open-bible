@@ -1,6 +1,6 @@
 {
   "name": "open-bible",
-  "version": "0.4.0",
+  "version": "0.4.5",
   "private": false,
   "packageManager": "pnpm@10.22.0",
   "scripts": {
@@ -42,7 +42,7 @@
     "@tabler/icons-react": "^3.44.0",
     "@tursodatabase/serverless": "^1.2.3",
     "@vercel/analytics": "2.0.1",
-    "better-auth": "^1.6.22",
+    "better-auth": "^1.6.23",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -69,7 +69,7 @@
     "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.1.0",
     "@ducanh2912/next-pwa": "^10.2.9",
-    "@tailwindcss/postcss": "^4.2.0",
+    "@tailwindcss/postcss": "^4.3.2",
     "@tauri-apps/cli": "^2.11.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24",
@@ -80,14 +80,14 @@
     "cz-conventional-changelog": "^3.3.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.4",
-    "eslint-config-next": "16.2.9",
+    "eslint-config-next": "16.2.10",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
     "postcss": "^8.5",
     "shadcn": "^4.12.0",
     "tailwindcss": "^4.2.0",
-    "typescript": "5.7.3",
-    "vitest": "^4.1.9"
+    "typescript": "6.0.3",
+    "vitest": "^4.1.10"
   },
   "pnpm": {
     "overrides": {
