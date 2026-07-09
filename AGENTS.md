@@ -1,22 +1,24 @@
 # Open Bible
 
-Portuguese Bible PWA — Next.js 16, TursoDB (Server), SQLite WASM + OPFS + Drizzle ORM (Local), Tailwind v4, shadcn/ui (base-nova).
+Portuguese Bible PWA — Next.js 16, TursoDB (Server), SQLite WASM + OPFS + Drizzle ORM (Local), Tailwind v4, shadcn/ui (base-vega).
 
 ## Commands
 
 | Command | Purpose |
 |---------|---------|
 | `pnpm dev` | Dev server (port 3000) — runs `predev` to copy sqlite-wasm assets |
-| `pnpm build` | Production build — ignores TS errors, runs `prebuild` to copy sqlite-wasm assets |
+| `pnpm build` | Production build (`next build --webpack`) — ignores TS errors, runs `prebuild` |
+| `pnpm test` | Run vitest (`tests/**/*.test.ts`) |
+| `pnpm lint` | ESLint (flat config, `eslint-config-next` core-web-vitals + typescript) |
+| `pnpm commit` | Interactive Commitizen prompt (recommended over raw `git commit`) |
 | `pnpm copy:wasm` | Copies sqlite-wasm assets and seed Bibles to `public/` |
 | `pnpm build:data` | SQLite → JSON export (fallback only) |
 | `pnpm db:init` | Create TursoDB tables |
 | `pnpm db:import` | Import 18 SQLite files into TursoDB |
 | `pnpm start` | Production server |
-| `pnpm lint` | `eslint .` (no config file in repo) |
-| `pnpm release` | Guides version bump, commits, tags, pushes, and creates a GitHub Release |
+| `pnpm release` | Version bump, commit, tag, push, GitHub Release |
 
-No tests, no typecheck pass. CI valida commits + lint + build em cada PR (`.github/workflows/pr-validation.yml`).
+**No typecheck pass** (`tsc` not in CI). `pnpm build` silently ignores TS errors (`ignoreBuildErrors: true`). CI validates **commits + lint + build** on every PR (`.github/workflows/pr-validation.yml`). Node.js 22 required.
 
 ## Workflow de Desenvolvimento
 
@@ -44,15 +46,6 @@ No tests, no typecheck pass. CI valida commits + lint + build em cada PR (`.gith
 
 > O merge de `develop` → `main` gera um release (deploy automático via Vercel).
 
-### Estrutura de Branches
-```
-main          ← produção (protegida, deploy automático)
- └── develop  ← integração (base para todos os PRs)
-       └── feat/42-highlight-verses
-       └── fix/15-crash-on-search
-       └── improve/38-dark-mode-toggle
-```
-
 ### Branch Naming
 ```
 feat/42-highlight-verses
@@ -68,8 +61,11 @@ feat: add verse highlighting
 fix: crash when searching special characters
 improve: better dark mode toggle UX
 ```
-> Nunca use `--no-verify`. Os hooks (`commit-msg` valida o commitlint, `pre-commit` roda lint)
+> Nunca use `--no-verify`. Os hooks (`commit-msg` valida o commitlint, `pre-commit` roda lint-staged)
 > e o CI de PR aplicam essas regras tanto para pessoas quanto para agentes.
+
+### Idioma no GitHub
+Commits, PRs e issues devem ser escritos em **ingles**, mesmo que a comunicação interna seja em portugues. Mantém o historico padronizado e acessivel.
 
 ### GitHub Project
 - Projeto: **Open Bible** (nº 2) na organização `open-mission`
@@ -85,7 +81,7 @@ improve: better dark mode toggle UX
 - Single dedicated **Web Worker** (`public/sqlite-wasm/open-bible.worker.js`) running official `@sqlite.org/sqlite-wasm` module with **OPFS SAHPool VFS** (sidestepping COOP/COEP header requirements).
 - `DatabaseManager` wraps worker RPC with a promise API.
 - User Database (`app.db`) runs **Drizzle ORM** client-side via `sqlite-proxy` driver.
-- User schemas (`lib/database/user/schema.ts`) contain `notes`, `note_references`, and `installed_bibles`.
+- User schemas (`lib/database/user/schema.ts`) contain `notes`, `note_references`, `installed_bibles`, `highlights`, `highlight_verses`, and `highlight_categories`.
 - Bible Databases (`ara.db`, ...) are opened read-only and queried via `BibleDatabase`.
 
 **Data flow**: `useBibleVerses()` → `BibleVersionContext.getVerses()` → `database.openBible(versionId)` (local SQLite WASM OPFS query) → returns verses. If not installed, falls back to empty.
@@ -100,7 +96,9 @@ improve: better dark mode toggle UX
 **Notes/Highlights**:
 - Notes & Note References: Stored client-side in SQLite WASM (`app.db`) via `database.notes` and `database.noteReferences` (Drizzle repositories).
 - Support multi-verse linking with ranges (`verseStart`, `verseEnd`, `book`, `chapter`, `bible`).
-- Highlights: Schema/migration-ready, but not currently active in UI or stored locally.
+- Highlights: Full schema with `highlights`, `highlight_verses`, and `highlight_categories` tables. UI integration pending.
+
+**Desktop**: Tauri support (`src-tauri/`) — static export (`output: "export"`), no PWA/service worker. Build via `pnpm desktop:build` or `pnpm build:tauri`.
 
 ## Storage Keys (localStorage)
 
@@ -119,20 +117,25 @@ CLOUDFLARE_BUCKET_PUBLIC_URL=...
 ## Key Gotchas
 
 - `pnpm build` silently passes despite any TS errors (`ignoreBuildErrors: true` in both `tsconfig.json` and `next.config.mjs`)
+- `pnpm build` uses `next build --webpack` (not turbopack) — webpack cache is disabled in production
 - SQLite Web Worker source lives in `lib/database/sqlite-worker.source.js` (tracked in git) and is deployed/copied to `public/sqlite-wasm/open-bible.worker.js` via the copy script.
 - Workbox cache overrides in `next.config.mjs` MUST set `/api/bibles/download/` as `NetworkOnly` to avoid concurrent read/write locks that hang OPFS database imports in production.
 - `drizzle-kit` is dev-only (`drizzle.config.ts`) and is used to generate migrations that are hand-embedded or run as client-side migrations via a browser-safe runtime migrator.
 - Search uses `LIKE %q% COLLATE NOCASE` (no FTS) — 31k verses × 18 versions on server; local SQLite uses case-insensitive substring search for parity.
 - `bible_books` uses composite PK `(id, version_id)` — book IDs repeat across versions on server.
 - `better-sqlite3` is native, dev-only, for import scripts only (`scripts/import-bibles.mjs`).
-- pnpm overrides `hono` to `4.12.25` (pinned in package.json.pnpm.overrides).
+- pnpm overrides `hono` to `4.12.25` (pinned in `package.json` `pnpm.overrides`).
 - Tailwind v4 (`@tailwindcss/postcss`) — no `tailwind.config.js`, CSS via `@import "tailwindcss"`.
 - 15 accent colors defined in `lib/theme.ts` as CSS custom property overrides, controlled by `next-themes`.
-- `@base-ui/react` components via shadcn/ui base-nova style.
+- `@base-ui/react` components via shadcn/ui base-vega style (`components.json`).
 - Service worker generated at `public/sw.js` by `@ducanh2912/next-pwa` at build time; MIME type + `Service-Worker-Allowed` headers set in `next.config.mjs`.
 - `@vercel/analytics` renders only in production (`process.env.NODE_ENV === 'production'`).
 - Portuguese UI strings throughout.
+- ESLint flat config with two warnings as tech debt: `react-hooks/set-state-in-effect` and `@typescript-eslint/no-explicit-any` (both set to `warn`).
+- `src-tauri/` is excluded from ESLint (Rust crate, only `.rs`/`.toml` files).
+- `pnpm commit` opens Commitizen interactive prompt — prefer this over raw `git commit` to avoid hook rejections.
+- `lint-staged` runs `eslint --fix` on `*.{ts,tsx,js,mjs}` files in pre-commit hook.
+
 ## AI Context References
 - Documentation index: `.context/docs/README.md`
 - Agent playbooks: `.context/agents/README.md`
-
