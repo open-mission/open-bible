@@ -9,6 +9,15 @@
         "mcp"
       ],
       "enabled": true
+    },
+    "dotcontext": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@dotcontext/mcp@latest"
+      ],
+      "enabled": true
     }
   }
 }
