@@ -267,3 +267,8 @@
   animation: slide-in-right 200ms ease-out;
 }
 
+/* Sonner toasts: fixed width with responsive max-width on small screens */
+[data-sonner-toast] {
+  max-width: min(var(--width), calc(100vw - 2rem));
+}
+

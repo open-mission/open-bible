@@ -78,7 +78,7 @@ export default function RootLayout({
             <TooltipProvider>
               {children}
               <OpfsStatusGate />
-              <Toaster position="top-center" />
+              <Toaster position="bottom-right" />
             </TooltipProvider>
           </BibleVersionProvider>
         </ThemeProvider>
