@@ -6,7 +6,6 @@ import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { getBook, OLD_TESTAMENT, NEW_TESTAMENT } from "@/features/bible-reader/utils/bible-data"
 import { useIsMobile } from "@/lib/use-media-query"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
-import type { VersionMeta } from "@/features/bible-reader/context/bible-version-context"
 import { BookChapterDialogOverlay } from "./book-chapter-dialog-overlay"
 import { BookChapterDialogSearchHeader } from "./book-chapter-dialog-search-header"
 import { BookChapterDialogBookList } from "./book-chapter-dialog-book-list"
@@ -40,7 +39,7 @@ export function BookChapterDialog({
   versionAbbreviation,
 }: BookChapterDialogProps) {
   const isMobile = useIsMobile()
-  const { versionId, setVersionId, installedVersions, availableVersions } = useBibleVersion()
+  const { versionId, setVersionId, installedVersions } = useBibleVersion()
   const [query, setQuery] = useState("")
   const [activeBookId, setActiveBookId] = useState<string | null>(selectedBookId)
   const [showChapters, setShowChapters] = useState(false)
@@ -68,19 +67,7 @@ export function BookChapterDialog({
     )
   }, [query])
 
-  const allVersions = useMemo(() => {
-    const list = [...installedVersions]
-    availableVersions.forEach((av) => {
-      if (!list.some((iv) => iv.id === av.id)) {
-        list.push({
-          id: av.id,
-          name: av.name,
-          books: [],
-        } as VersionMeta)
-      }
-    })
-    return list
-  }, [installedVersions, availableVersions])
+  const allVersions = useMemo(() => installedVersions, [installedVersions])
 
   function handleSelectBook(bookId: string) {
     setActiveBookId(bookId)
