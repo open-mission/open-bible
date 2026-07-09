@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 
 
+## [0.4.5] - 2026-07-09
+
+### Added
+- Sistema de destaques (highlights) com categorias, anotações e badges inline (#82, #83, #86)
+- Seleção de versículos com popover de copiar texto/referência (#76, #77)
+- Navegação entre capítulos com setas do teclado e swipe no mobile
+- App desktop via Tauri v2 (Windows/Linux/macOS) (#67, #70)
+- Configurações de aparência em drawer dedicado (#113)
+
+### Fixed
+- Manter seleção de versículo ao rolar o reader (#117)
+- Toasts Sonner no canto inferior direito com largura fixa (#116)
+- Dropdown de versão nos diálogos mostra apenas versões baixadas (#115)
+- Remoção de chamadas órfãs `setVersionMetaCache` (ReferenceError) (#114)
+- Correções de build/CI: `libappindicator3-dev`, lockfile pnpm no Vercel, renderer DMA-BUF no Linux (#97, #94, #92, #88)
+- Estabilidade do OPFS/SQLite WASM (handles, pool, retries) (#90, #84, #83)
+
+### Changed
+- Redução de re-renders desnecessários em providers, reader e verse-row (#78)
+- Open-source readiness (#73)
+
 ## [0.4.0] - 2026-07-04
 
 ### Added
@@ -55,3 +76,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 [0.2.2]: https://github.com/open-mission/open-bible/compare/v0.2.1...v0.2.2
 [0.3.0]: https://github.com/open-mission/open-bible/compare/v0.2.1...v0.3.0
 [0.3.5]: https://github.com/open-mission/open-bible/compare/v0.3.0...v0.3.5
+[0.4.0]: https://github.com/open-mission/open-bible/compare/v0.3.5...v0.4.0
+[0.4.5]: https://github.com/open-mission/open-bible/compare/v0.4.0...v0.4.5
