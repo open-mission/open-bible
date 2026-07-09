@@ -3,6 +3,9 @@
 # dependencies
 /node_modules
 
+# bun lockfile (projeto usa pnpm)
+bun.lockb
+
 # git worktrees (used by feature-dev workflow)
 /.worktrees/
 
