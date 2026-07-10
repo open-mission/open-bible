@@ -18,10 +18,15 @@ import { HighlightEditor } from "@/features/highlights/components/highlight-edit
 import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
 import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
 import { AllNotesSheet } from "@/features/notes/components/all-notes-sheet";
+import { BottomDock } from "@/features/dock/bottom-dock";
+import { FullScreenNotes } from "@/features/dock/full-screen-notes";
+import { FullScreenHighlights } from "@/features/dock/full-screen-highlights";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
 // highlight icon inline (avoids tabler-icons server build issue)
 import type { HighlightData } from "@/features/highlights/context/highlights-context";
+import type { AllNoteEntry } from "@/features/notes/hooks/use-all-notes";
+import type { HighlightCategory } from "@/lib/database/user/schema";
 
 interface ReaderProps {
   bookId: string;
@@ -75,6 +80,7 @@ function ReaderContent({
   const [showAllHighlights, setShowAllHighlights] = useState(false);
   const [allHighlightsQuery, setAllHighlightsQuery] = useState("");
   const [showAllNotes, setShowAllNotes] = useState(false);
+  const [dockView, setDockView] = useState<"notes" | "highlights" | null>(null);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
@@ -118,6 +124,39 @@ function ReaderContent({
   const open = selectedVerseIds.size > 0;
   const selectedVerses = verses.filter((v) => selectedVerseIds.has(v.id));
   const versionAbbr = versionId.toUpperCase();
+
+  const dockOpenNote = useCallback(
+    (entry: AllNoteEntry) => {
+      setDockView(null);
+      const ref = entry.references[0];
+      if (!ref) return;
+      openNotePanel({
+        bible: ref.bible,
+        book: ref.book,
+        chapter: ref.chapter,
+        verseStart: ref.verseStart,
+        verseEnd: ref.verseEnd ?? null,
+      });
+    },
+    [openNotePanel],
+  );
+
+  const dockEditHighlight = useCallback(
+    async (highlightId: string) => {
+      setDockView(null);
+      await database.initialize();
+      const h = await database.highlights.findById(highlightId);
+      if (!h) return;
+      let category: HighlightCategory | null = null;
+      if (h.categoryId) {
+        category = await database.highlightCategories.findById(h.categoryId);
+      }
+      const verses = await database.highlightVerses.findByHighlightId(highlightId);
+      setEditingHighlight({ highlight: h, category, verses });
+      setShowHighlightEditor(true);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -335,6 +374,14 @@ function ReaderContent({
         </div>
       </div>
 
+      {/* Desktop bottom dock (hidden during verse selection or when a full-screen view is open) */}
+      {!open && !dockView && (
+        <BottomDock
+          activeTab={null}
+          onSelect={(tab) => setDockView(tab)}
+        />
+      )}
+
       {/* Verse selection bottom bar */}
       {open && (
         <VerseSelectionPopover
@@ -454,6 +501,23 @@ function ReaderContent({
         <AllNotesSheet
           open={showAllNotes}
           onClose={() => setShowAllNotes(false)}
+        />
+      )}
+
+      {/* Desktop full-screen dock views */}
+      {dockView === "notes" && (
+        <FullScreenNotes
+          open
+          onClose={() => setDockView(null)}
+          onOpenNote={dockOpenNote}
+        />
+      )}
+      {dockView === "highlights" && (
+        <FullScreenHighlights
+          open
+          onClose={() => setDockView(null)}
+          onEdit={dockEditHighlight}
+          onDelete={deleteHighlight}
         />
       )}
     </div>

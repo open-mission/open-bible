@@ -126,7 +126,7 @@ function NoteSummaryCard({
             </div>
           </div>
         ) : expanded ? (
-          plain ? (
+          entry.note.content?.trim() ? (
             <NoteRenderer html={entry.note.content} />
           ) : (
             <p className="text-sm italic text-muted-foreground/70">Nota sem texto</p>
