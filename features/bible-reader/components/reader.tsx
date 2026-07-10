@@ -17,6 +17,8 @@ import { useNotesContext } from "@/features/notes/context/notes-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
 import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
 import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
+import { AllNotesSheet } from "@/features/notes/components/all-notes-sheet";
+import type { AllNoteEntry } from "@/features/notes/hooks/use-all-notes";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
 // highlight icon inline (avoids tabler-icons server build issue)
@@ -73,6 +75,7 @@ function ReaderContent({
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
   const [showAllHighlights, setShowAllHighlights] = useState(false);
   const [allHighlightsQuery, setAllHighlightsQuery] = useState("");
+  const [showAllNotes, setShowAllNotes] = useState(false);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
@@ -189,6 +192,7 @@ function ReaderContent({
           setAllHighlightsQuery("");
           setShowAllHighlights(true);
         }}
+        onShowAllNotes={() => setShowAllNotes(true)}
       />
 
       <div
@@ -454,6 +458,27 @@ function ReaderContent({
             const verses = await database.highlightVerses.findByHighlightId(highlightId);
             setEditingHighlight({ highlight: h, category, verses });
             setShowHighlightEditor(true);
+          }}
+        />
+      )}
+
+      {/* All Notes Sheet */}
+      {showAllNotes && (
+        <AllNotesSheet
+          open={showAllNotes}
+          onClose={() => setShowAllNotes(false)}
+          onOpen={(entry: AllNoteEntry) => {
+            const first = entry.references[0]
+            if (first) {
+              openNotePanel({
+                bible: first.bible,
+                book: first.book,
+                chapter: first.chapter,
+                verseStart: first.verseStart,
+                verseEnd: first.verseEnd,
+              })
+            }
+            setShowAllNotes(false)
           }}
         />
       )}
