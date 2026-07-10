@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   IconCopy,
   IconClipboardText,
   IconCheck,
   IconX,
   IconHighlight,
+  IconNotebook,
 } from "@tabler/icons-react";
 import type { Book, Verse } from "@/lib/types";
 import { toast } from "sonner";
@@ -21,6 +22,8 @@ import { Separator } from "@/components/ui/separator";
 import { HighlightMenu } from "@/features/highlights/components/highlight-menu";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { useHighlightsContext } from "@/features/highlights/context/highlights-context";
+import { useNotesContext } from "@/features/notes/context/notes-context";
+import type { NoteTarget } from "@/features/notes/types";
 
 interface VerseSelectionPopoverProps {
   book: Book;
@@ -71,7 +74,7 @@ export function VerseSelectionPopover({
   const [copied, setCopied] = useState<CopiedKind>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const isMobile = useIsMobile();
-  
+
   const {
     createHighlight,
     updateHighlight,
@@ -81,6 +84,25 @@ export function VerseSelectionPopover({
   } = useHighlightMutations();
 
   const { highlightsByVerse } = useHighlightsContext();
+  const { openNotePanel } = useNotesContext();
+
+  const noteTarget: NoteTarget = useMemo(() => {
+    const nums = selectedVerses
+      .map((v) => parseInt(v.id.split("-").pop()!, 10))
+      .sort((a, b) => a - b)
+    return {
+      bible: versionId,
+      book: book.id,
+      chapter,
+      verseStart: nums[0],
+      verseEnd: nums.length > 1 ? nums[nums.length - 1] : null,
+    }
+  }, [selectedVerses, versionId, book.id, chapter]);
+
+  const handleOpenNote = useCallback(() => {
+    openNotePanel(noteTarget)
+    onClose()
+  }, [openNotePanel, noteTarget, onClose]);
 
   const reference = formatVerseReference(
     book,
@@ -265,6 +287,17 @@ export function VerseSelectionPopover({
                   <IconHighlight data-icon="inline-start" />
                   Destaque
                 </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleOpenNote}
+                  className="flex-1 text-muted-foreground hover:text-foreground"
+                >
+                  <IconNotebook data-icon="inline-start" />
+                  Nota
+                </Button>
               </div>
             </>
           ) : (
@@ -329,6 +362,17 @@ export function VerseSelectionPopover({
               >
                 <IconHighlight data-icon="inline-start" />
                 Destaque
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleOpenNote}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <IconNotebook data-icon="inline-start" />
+                Nota
               </Button>
 
               <Button

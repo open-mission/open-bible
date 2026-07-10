@@ -13,6 +13,7 @@ import { useSwipeNavigation } from "../hooks/use-swipe-navigation";
 import { ReaderHeader } from "./reader-header";
 import { cn } from "@/lib/utils";
 import { HighlightsProvider, useHighlightsContext } from "@/features/highlights/context/highlights-context";
+import { useNotesContext } from "@/features/notes/context/notes-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
 import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
 import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
@@ -54,6 +55,7 @@ function ReaderContent({
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
   const { highlightsByVerse } = useHighlightsContext();
+  const { notesByVerse, openNotePanel } = useNotesContext();
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
@@ -253,22 +255,32 @@ function ReaderContent({
             </div>
           ) : (
             verses.map((verse) => (
-              <VerseRow
-                key={verse.id}
-                verse={verse}
-                isActive={verse.id === activeVerseId}
-                isSelected={selectedVerseIds.has(verse.id)}
-                highlights={highlightsByVerse.get(verse.id)}
-                onShowAll={(highlights) => {
-                  const h = highlights[0];
-                  if (h) {
-                    const queryText = h.category?.name ?? h.highlight.color;
-                    setAllHighlightsQuery(queryText);
-                    setShowAllHighlights(true);
+                <VerseRow
+                  key={verse.id}
+                  verse={verse}
+                  isActive={verse.id === activeVerseId}
+                  isSelected={selectedVerseIds.has(verse.id)}
+                  highlights={highlightsByVerse.get(verse.id)}
+                  onShowAll={(highlights) => {
+                    const h = highlights[0];
+                    if (h) {
+                      const queryText = h.category?.name ?? h.highlight.color;
+                      setAllHighlightsQuery(queryText);
+                      setShowAllHighlights(true);
+                    }
+                  }}
+                  notes={notesByVerse.get(verse.id)}
+                  onOpenNote={() =>
+                    openNotePanel({
+                      bible: versionId,
+                      book: bookId,
+                      chapter,
+                      verseStart: verse.verse,
+                      verseEnd: null,
+                    })
                   }
-                }}
-                verseSpacing={verseSpacing}
-              />
+                  verseSpacing={verseSpacing}
+                />
             ))
           )}
         </article>
