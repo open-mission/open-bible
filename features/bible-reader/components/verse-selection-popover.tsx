@@ -241,62 +241,62 @@ export function VerseSelectionPopover({
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
+                  size="icon-sm"
                   onClick={() => handleCopy("reference")}
                   className={cn(
                     "flex-1 text-muted-foreground hover:text-foreground",
                     copied === "reference" && "text-primary hover:text-primary"
                   )}
+                  aria-label={copied === "reference" ? "Referência copiada" : "Copiar referência"}
                 >
                   {copied === "reference" ? (
                     <IconCheck data-icon="inline-start" />
                   ) : (
                     <IconCopy data-icon="inline-start" />
                   )}
-                  {copied === "reference" ? "Copiado!" : "Referência"}
                 </Button>
 
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
+                  size="icon-sm"
                   onClick={() => handleCopy("text")}
                   className={cn(
                     "flex-1 text-muted-foreground hover:text-foreground",
                     copied === "text" && "text-primary hover:text-primary"
                   )}
+                  aria-label={copied === "text" ? "Texto copiado" : "Copiar texto"}
                 >
                   {copied === "text" ? (
                     <IconCheck data-icon="inline-start" />
                   ) : (
                     <IconClipboardText data-icon="inline-start" />
                   )}
-                  {copied === "text" ? "Copiado!" : "Texto"}
                 </Button>
 
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
+                  size="icon-sm"
                   onClick={() => setShowToolbar(!showToolbar)}
                   className={cn(
                     "flex-1 text-muted-foreground hover:text-foreground",
                     showToolbar && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                   )}
+                  aria-label="Destacar"
                 >
                   <IconHighlight data-icon="inline-start" />
-                  Destaque
                 </Button>
 
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
+                  size="icon-sm"
                   onClick={handleOpenNote}
                   className="flex-1 text-muted-foreground hover:text-foreground"
+                  aria-label="Anotar"
                 >
                   <IconNotebook data-icon="inline-start" />
-                  Nota
                 </Button>
               </div>
             </>

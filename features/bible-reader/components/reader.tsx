@@ -18,7 +18,6 @@ import { HighlightEditor } from "@/features/highlights/components/highlight-edit
 import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
 import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
 import { AllNotesSheet } from "@/features/notes/components/all-notes-sheet";
-import type { AllNoteEntry } from "@/features/notes/hooks/use-all-notes";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
 // highlight icon inline (avoids tabler-icons server build issue)
@@ -175,7 +174,7 @@ function ReaderContent({
         : "font-serif";
 
   return (
-    <div className="flex flex-col min-w-0 h-full">
+    <div className="relative flex flex-col min-w-0 h-full">
       <ReaderHeader
         book={book}
         chapter={chapter}
@@ -336,7 +335,7 @@ function ReaderContent({
         </div>
       </div>
 
-      <div className="hidden md:flex fixed inset-0 z-40 pointer-events-none">
+      <div className="absolute inset-0 z-40 hidden pointer-events-none md:flex">
         <button
           onClick={prevChapter}
           disabled={chapter <= 1}
@@ -474,19 +473,6 @@ function ReaderContent({
         <AllNotesSheet
           open={showAllNotes}
           onClose={() => setShowAllNotes(false)}
-          onOpen={(entry: AllNoteEntry) => {
-            const first = entry.references[0]
-            if (first) {
-              openNotePanel({
-                bible: first.bible,
-                book: first.book,
-                chapter: first.chapter,
-                verseStart: first.verseStart,
-                verseEnd: first.verseEnd,
-              })
-            }
-            setShowAllNotes(false)
-          }}
         />
       )}
     </div>

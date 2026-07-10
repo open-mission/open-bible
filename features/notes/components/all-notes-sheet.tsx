@@ -1,7 +1,14 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { IconSearch, IconX, IconTrash, IconNotebook } from "@tabler/icons-react"
+import {
+  IconSearch,
+  IconX,
+  IconTrash,
+  IconNotebook,
+  IconEdit,
+  IconCheck,
+} from "@tabler/icons-react"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -10,11 +17,12 @@ import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
 import { useIsMobile } from "@/lib/use-media-query"
 import { useAllNotes, type AllNoteEntry } from "../hooks/use-all-notes"
 import { useNoteMutations } from "../hooks/use-note-mutations"
+import { NoteRenderer } from "./note-renderer"
+import { NoteEditor } from "./note-editor"
 
 interface AllNotesSheetProps {
   open: boolean
   onClose: () => void
-  onOpen: (entry: AllNoteEntry) => void
 }
 
 function stripHtml(html?: string | null): string {
@@ -37,38 +45,59 @@ function referenceLabel(entry: AllNoteEntry): string {
 
 function NoteSummaryCard({
   entry,
-  onOpen,
   onDelete,
+  onChanged,
 }: {
   entry: AllNoteEntry
-  onOpen: (entry: AllNoteEntry) => void
   onDelete: (entry: AllNoteEntry) => void
+  onChanged: () => void
 }) {
+  const [expanded, setExpanded] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(entry.note.content)
+  const { updateNote } = useNoteMutations()
   const plain = stripHtml(entry.note.content)
+
+  async function handleSave() {
+    await updateNote(entry.note.id, { content: draft })
+    setEditing(false)
+    setExpanded(true)
+    onChanged()
+  }
+
   return (
     <article className="group relative w-full shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xs shadow-xs transition-all duration-300 hover:border-border/80 hover:shadow-md">
       <div className="flex flex-col gap-3 p-4.5">
         <header className="flex items-center gap-2.5">
           <IconNotebook className="size-4 shrink-0 text-primary" />
-          <span className="text-xs font-semibold text-muted-foreground truncate font-sans">
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="truncate text-left text-xs font-semibold text-muted-foreground font-sans hover:text-foreground"
+            title="Expandir nota"
+          >
             {referenceLabel(entry)}
-          </span>
+          </button>
           <div className="ml-auto flex items-center gap-0.5">
             <Button
               type="button"
               variant="ghost"
               size="icon-xs"
-              onClick={() => onOpen(entry)}
-              className="text-muted-foreground hover:text-foreground shrink-0"
-              title="Abrir no painel"
+              onClick={() => {
+                setDraft(entry.note.content)
+                setExpanded(true)
+                setEditing(true)
+              }}
+              className="shrink-0 text-muted-foreground hover:text-foreground"
+              title="Editar nota"
             >
-              <IconNotebook className="size-3.5" />
+              <IconEdit className="size-3.5" />
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="icon-xs"
-              className="text-destructive/80 hover:text-destructive hover:bg-destructive/10 shrink-0"
+              className="shrink-0 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
               onClick={() => onDelete(entry)}
               title="Excluir nota"
             >
@@ -77,15 +106,46 @@ function NoteSummaryCard({
           </div>
         </header>
 
-        {plain ? (
-          <p className="text-sm text-foreground/90 leading-relaxed line-clamp-4 whitespace-pre-wrap break-words">
-            {plain}
-          </p>
+        {editing ? (
+          <div className="flex flex-col gap-2">
+            <NoteEditor value={draft} onChange={setDraft} autoFocus />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setEditing(false)
+                  setDraft(entry.note.content)
+                }}
+              >
+                <IconX className="size-4" /> Cancelar
+              </Button>
+              <Button size="sm" onClick={handleSave}>
+                <IconCheck className="size-4" /> Salvar
+              </Button>
+            </div>
+          </div>
+        ) : expanded ? (
+          plain ? (
+            <NoteRenderer html={entry.note.content} />
+          ) : (
+            <p className="text-sm italic text-muted-foreground/70">Nota sem texto</p>
+          )
         ) : (
-          <p className="text-sm italic text-muted-foreground/70">Nota sem texto</p>
+          <button type="button" onClick={() => setExpanded(true)} className="text-left">
+            {plain ? (
+              <p className="line-clamp-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/90">
+                {plain}
+              </p>
+            ) : (
+              <p className="text-sm italic text-muted-foreground/70">
+                Nota sem texto — toque para ver
+              </p>
+            )}
+          </button>
         )}
 
-        {entry.references.length > 1 && (
+        {entry.references.length > 1 && !editing && (
           <p className="text-[10px] text-muted-foreground/70">
             Vinculada a {entry.references.length} referências
           </p>
@@ -95,7 +155,7 @@ function NoteSummaryCard({
   )
 }
 
-export function AllNotesSheet({ open, onClose, onOpen }: AllNotesSheetProps) {
+export function AllNotesSheet({ open, onClose }: AllNotesSheetProps) {
   const [query, setQuery] = useState("")
   const isMobile = useIsMobile()
   const { entries, loading, reload } = useAllNotes(open)
@@ -114,7 +174,11 @@ export function AllNotesSheet({ open, onClose, onOpen }: AllNotesSheetProps) {
     return entries.filter((e) => {
       if (stripHtml(e.note.content).toLowerCase().includes(q)) return true
       if (referenceLabel(e).toLowerCase().includes(q)) return true
-      if (e.verseItems.some((vi) => vi.text.toLowerCase().includes(q) || vi.reference.toLowerCase().includes(q)))
+      if (
+        e.verseItems.some(
+          (vi) => vi.text.toLowerCase().includes(q) || vi.reference.toLowerCase().includes(q),
+        )
+      )
         return true
       return false
     })
@@ -178,7 +242,7 @@ export function AllNotesSheet({ open, onClose, onOpen }: AllNotesSheetProps) {
             <NoteSummaryCard
               key={e.note.id}
               entry={e}
-              onOpen={onOpen}
+              onChanged={reload}
               onDelete={async (entry) => {
                 if (window.confirm("Excluir esta nota? Esta ação não pode ser desfeita.")) {
                   await deleteNote(entry.note.id)
