@@ -31,7 +31,14 @@ export function VersionRow({
   const inner = (
     <div className="flex flex-col gap-0.5 min-w-0">
       <span className="flex items-center gap-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
+        <span
+          className={cn(
+            "text-xs font-bold uppercase tracking-wider",
+            isActive
+              ? "text-primary-foreground"
+              : "text-muted-foreground/80",
+          )}
+        >
           {abbreviation}
         </span>
         <span
@@ -46,7 +53,7 @@ export function VersionRow({
       {meta && (
         <span
           className={cn(
-            "text-[10px] truncate",
+            "text-[10px] truncate text-left",
             isActive
               ? "text-primary-foreground/70"
               : "text-muted-foreground/60",
