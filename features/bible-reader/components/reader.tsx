@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, StickyNote } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
 import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
@@ -17,6 +17,8 @@ import { useNotesContext } from "@/features/notes/context/notes-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
 import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
 import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
+import { AllNotesSheet } from "@/features/notes/components/all-notes-sheet";
+import type { AllNoteEntry } from "@/features/notes/hooks/use-all-notes";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
 // highlight icon inline (avoids tabler-icons server build issue)
@@ -73,6 +75,7 @@ function ReaderContent({
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
   const [showAllHighlights, setShowAllHighlights] = useState(false);
   const [allHighlightsQuery, setAllHighlightsQuery] = useState("");
+  const [showAllNotes, setShowAllNotes] = useState(false);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
@@ -189,6 +192,7 @@ function ReaderContent({
           setAllHighlightsQuery("");
           setShowAllHighlights(true);
         }}
+        onShowAllNotes={() => setShowAllNotes(true)}
       />
 
       <div
@@ -313,6 +317,13 @@ function ReaderContent({
             aria-label="Todos os destaques"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5"><path d="M15.5 3.5a2.121 2.121 0 0 1 3 3L7 18l-4 1 1-4L14.5 3.5z"/><path d="M9 13.5l3 3"/></svg>
+          </button>
+          <button
+            onClick={() => setShowAllNotes(true)}
+            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+            aria-label="Todas as notas"
+          >
+            <StickyNote className="size-5" />
           </button>
           <button
             onClick={nextChapter}
@@ -454,6 +465,27 @@ function ReaderContent({
             const verses = await database.highlightVerses.findByHighlightId(highlightId);
             setEditingHighlight({ highlight: h, category, verses });
             setShowHighlightEditor(true);
+          }}
+        />
+      )}
+
+      {/* All Notes Sheet */}
+      {showAllNotes && (
+        <AllNotesSheet
+          open={showAllNotes}
+          onClose={() => setShowAllNotes(false)}
+          onOpen={(entry: AllNoteEntry) => {
+            const first = entry.references[0]
+            if (first) {
+              openNotePanel({
+                bible: first.bible,
+                book: first.book,
+                chapter: first.chapter,
+                verseStart: first.verseStart,
+                verseEnd: first.verseEnd,
+              })
+            }
+            setShowAllNotes(false)
           }}
         />
       )}
