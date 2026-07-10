@@ -335,25 +335,6 @@ function ReaderContent({
         </div>
       </div>
 
-      <div className="absolute inset-0 z-40 hidden pointer-events-none md:flex">
-        <button
-          onClick={prevChapter}
-          disabled={chapter <= 1}
-          className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full size-12 bg-background/80 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-          aria-label="Capítulo anterior"
-        >
-          <ChevronLeft className="size-5" />
-        </button>
-        <button
-          onClick={nextChapter}
-          disabled={book && chapter >= book.chapters}
-          className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full size-12 bg-background/80 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-          aria-label="Próximo capítulo"
-        >
-          <ChevronRight className="size-5" />
-        </button>
-      </div>
-
       {/* Verse selection bottom bar */}
       {open && (
         <VerseSelectionPopover

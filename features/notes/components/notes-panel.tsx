@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X } from "lucide-react"
+import { X, Plus } from "lucide-react"
 import { toast } from "sonner"
 import { useNotesContext } from "../context/notes-context"
 import { useNotes } from "../hooks/use-notes"
@@ -17,6 +17,7 @@ export function NotesPanel({ embedded = false }: { embedded?: boolean }) {
   const { notes, loading, reload } = useNotes(target)
   const { createNote } = useNoteMutations()
   const [draft, setDraft] = useState("")
+  const [composing, setComposing] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
 
   useEffect(() => {
@@ -63,6 +64,7 @@ export function NotesPanel({ embedded = false }: { embedded?: boolean }) {
     }
     await createNote({ target, content: draft })
     setDraft("")
+    setComposing(false)
     await reload()
     toast.success("Nota salva!")
   }
@@ -92,18 +94,37 @@ export function NotesPanel({ embedded = false }: { embedded?: boolean }) {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 custom-scrollbar">
-        <div className="flex flex-col gap-2">
-          <NoteEditor value={draft} onChange={setDraft} autoFocus />
-          <div className="flex justify-end">
-            <Button onClick={handleCreate} disabled={!draft || draft === "<p></p>"}>
-              Salvar nota
-            </Button>
-          </div>
-        </div>
-
-        <div className="h-px bg-border" />
-
         <NoteList entries={notes} loading={loading} onChanged={reload} />
+
+        {composing ? (
+          <div className="flex flex-col gap-2">
+            <NoteEditor value={draft} onChange={setDraft} autoFocus />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDraft("")
+                  setComposing(false)
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button size="sm" onClick={handleCreate}>
+                Salvar nota
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={() => setComposing(true)}
+          >
+            <Plus className="size-4" /> Adicionar nota
+          </Button>
+        )}
       </div>
     </div>
   )
