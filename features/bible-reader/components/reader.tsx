@@ -15,11 +15,10 @@ import { cn } from "@/lib/utils";
 import { HighlightsProvider, useHighlightsContext } from "@/features/highlights/context/highlights-context";
 import { useNotesContext } from "@/features/notes/context/notes-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
-import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
-import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
-import { AllNotesSheet } from "@/features/notes/components/all-notes-sheet";
+import { AllHighlightsBrowser } from "@/features/highlights/components/all-highlights-browser";
+import { NotesBrowser } from "@/features/notes/components/notes-browser";
 import { BottomDock } from "@/features/dock/bottom-dock";
-import { FullScreenHighlights } from "@/features/dock/full-screen-highlights";
+import { useIsMobile } from "@/lib/use-media-query";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
 // highlight icon inline (avoids tabler-icons server build issue)
@@ -59,7 +58,8 @@ function ReaderContent({
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
   const { highlightsByVerse } = useHighlightsContext();
-  const { notesByVerse, openNotePanel } = useNotesContext();
+  const { notesByVerse, openNotePanel, closeNotePanel } = useNotesContext();
+  const isMobile = useIsMobile();
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
@@ -71,16 +71,10 @@ function ReaderContent({
 
   const [editingHighlight, setEditingHighlight] = useState<HighlightData | null>(null);
   const [showHighlightEditor, setShowHighlightEditor] = useState(false);
-  const [showHighlightList, setShowHighlightList] = useState(false);
-  const [listSheetHighlights, setListSheetHighlights] = useState<HighlightData[]>([]);
   const [showCreateEditor, setShowCreateEditor] = useState(false);
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
-  const [showAllHighlights, setShowAllHighlights] = useState(false);
-  const [allHighlightsQuery, setAllHighlightsQuery] = useState("");
-  /** Single all-notes shell for header + dock (Apple Notes UX). */
-  const [showAllNotes, setShowAllNotes] = useState(false);
-  /** Desktop dock full-screen for highlights only (notes use showAllNotes). */
-  const [dockView, setDockView] = useState<"highlights" | null>(null);
+  /** Dock inspector: toggled "notes" | "highlights" view (null = closed). */
+  const [dockView, setDockView] = useState<"notes" | "highlights" | null>(null);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
@@ -141,11 +135,6 @@ function ReaderContent({
     },
     [],
   );
-
-  const openAllNotes = useCallback(() => {
-    setDockView(null);
-    setShowAllNotes(true);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -216,8 +205,8 @@ function ReaderContent({
         readerFont={readerFont}
         onChangeReaderFont={onChangeReaderFont}
         onShowAllHighlights={() => {
-          setAllHighlightsQuery("");
-          setShowAllHighlights(true);
+          closeNotePanel();
+          setDockView("highlights");
         }}
       />
 
@@ -291,24 +280,21 @@ function ReaderContent({
                   isActive={verse.id === activeVerseId}
                   isSelected={selectedVerseIds.has(verse.id)}
                   highlights={highlightsByVerse.get(verse.id)}
-                  onShowAll={(highlights) => {
-                    const h = highlights[0];
-                    if (h) {
-                      const queryText = h.category?.name ?? h.highlight.color;
-                      setAllHighlightsQuery(queryText);
-                      setShowAllHighlights(true);
-                    }
+                  onShowAll={() => {
+                    closeNotePanel();
+                    setDockView("highlights");
                   }}
                   notes={notesByVerse.get(verse.id)}
-                  onOpenNote={() =>
+                  onOpenNote={() => {
+                    setDockView(null);
                     openNotePanel({
                       bible: versionId,
                       book: bookId,
                       chapter,
                       verseStart: verse.verse,
                       verseEnd: null,
-                    })
-                  }
+                    });
+                  }}
                   verseSpacing={verseSpacing}
                 />
             ))
@@ -324,7 +310,7 @@ function ReaderContent({
       ></div>
 
       {/* Floating navigation: bottom on mobile, sides on desktop */}
-      {!showAllNotes && (
+      {!dockView && (
       <div className="fixed inset-x-0 bottom-8 z-40 flex justify-center pointer-events-none md:hidden">
         <div className="flex gap-5 pointer-events-auto">
           <button
@@ -337,8 +323,8 @@ function ReaderContent({
           </button>
           <button
             onClick={() => {
-              setAllHighlightsQuery("");
-              setShowAllHighlights(true);
+              closeNotePanel();
+              setDockView("highlights");
             }}
             className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
             aria-label="Todos os destaques"
@@ -346,7 +332,10 @@ function ReaderContent({
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5"><path d="M15.5 3.5a2.121 2.121 0 0 1 3 3L7 18l-4 1 1-4L14.5 3.5z"/><path d="M9 13.5l3 3"/></svg>
           </button>
           <button
-            onClick={openAllNotes}
+            onClick={() => {
+              closeNotePanel();
+              setDockView("notes");
+            }}
             className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
             aria-label="Todas as notas"
           >
@@ -364,16 +353,13 @@ function ReaderContent({
       </div>
       )}
 
-      {/* Desktop bottom dock (hidden during verse selection or when a full-screen view is open) */}
-      {!open && !dockView && !showAllNotes && (
+      {/* Desktop bottom dock (toggle: click active tab to close inspector) */}
+      {!open && (
         <BottomDock
-          activeTab={null}
+          activeTab={dockView}
           onSelect={(tab) => {
-            if (tab === "notes") {
-              openAllNotes();
-              return;
-            }
-            setDockView("highlights");
+            closeNotePanel();
+            setDockView((prev) => (prev === tab ? null : tab));
           }}
         />
       )}
@@ -454,58 +440,54 @@ function ReaderContent({
         />
       )}
 
-      {/* Highlight List Sheet */}
-      {showHighlightList && (
-        <HighlightListSheet
-          open={showHighlightList}
-          onClose={() => {
-            setShowHighlightList(false);
-            setListSheetHighlights([]);
-          }}
-          highlights={listSheetHighlights}
-          onEdit={(h) => {
-            setEditingHighlight(h);
-            setShowHighlightEditor(true);
-          }}
-          onDelete={deleteHighlight}
-        />
-      )}
-
-      {/* All Highlights Sheet */}
-      {showAllHighlights && (
-        <AllHighlightsSheet
-          open={showAllHighlights}
-          onClose={() => setShowAllHighlights(false)}
-          initialQuery={allHighlightsQuery}
-          onEdit={async (highlightId) => {
-            await database.initialize();
-            const h = await database.highlights.findById(highlightId);
-            if (!h) return;
-            let category: HighlightCategory | null = null;
-            if (h.categoryId) {
-              category = await database.highlightCategories.findById(h.categoryId);
-            }
-            const verses = await database.highlightVerses.findByHighlightId(highlightId);
-            setEditingHighlight({ highlight: h, category, verses });
-            setShowHighlightEditor(true);
-          }}
-        />
-      )}
-
-      {/* All notes — same shell for header, dock, and mobile FAB */}
-      <AllNotesSheet
-        open={showAllNotes}
-        onClose={() => setShowAllNotes(false)}
-      />
-
-      {/* Desktop full-screen dock view (highlights only) */}
-      {dockView === "highlights" && (
-        <FullScreenHighlights
-          open
-          onClose={() => setDockView(null)}
-          onEdit={dockEditHighlight}
-          onDelete={deleteHighlight}
-        />
+      {/* Dock inspector — toggled notes/highlights view.
+          Desktop: right-docked side panel. Mobile: full-screen drawer. */}
+      {dockView && (
+        isMobile ? (
+          <div className="fixed inset-0 z-50 flex animate-in fade-in duration-200 flex-col bg-background">
+            {dockView === "notes" ? (
+              <NotesBrowser
+                mode="all"
+                active
+                embedded
+                showCloseButton
+                onRequestClose={() => setDockView(null)}
+                className="h-full"
+              />
+            ) : (
+              <AllHighlightsBrowser
+                active
+                embedded
+                showCloseButton
+                onClose={() => setDockView(null)}
+                onEdit={dockEditHighlight}
+                onDelete={deleteHighlight}
+              />
+            )}
+          </div>
+        ) : (
+          <div className="fixed right-0 top-0 z-40 flex h-full w-[min(440px,92vw)] animate-in slide-in-from-right flex-col border-l border-border bg-background shadow-elevation duration-200">
+            {dockView === "notes" ? (
+              <NotesBrowser
+                mode="all"
+                active
+                embedded
+                showCloseButton
+                onRequestClose={() => setDockView(null)}
+                className="h-full"
+              />
+            ) : (
+              <AllHighlightsBrowser
+                active
+                embedded
+                showCloseButton
+                onClose={() => setDockView(null)}
+                onEdit={dockEditHighlight}
+                onDelete={deleteHighlight}
+              />
+            )}
+          </div>
+        )
       )}
     </div>
   );
