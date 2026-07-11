@@ -17,6 +17,11 @@ import {
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { useReaderPosition } from "@/features/bible-reader/hooks/use-reader-position";
 import { usePanelState } from "@/features/layout/hooks/use-panel-state";
+import { useIsMobile } from "@/lib/use-media-query";
+import { NotesProvider } from "@/features/notes/context/notes-context";
+import { NotesPanel } from "@/features/notes/components/notes-panel";
+import { NoteSheet } from "@/features/notes/components/note-sheet";
+import type { NoteTarget } from "@/features/notes/types";
 
 export default function Home() {
   const {
@@ -45,6 +50,10 @@ export default function Home() {
   } = useBibleVersion();
   const { isInstalling, downloadProgress } = useDownloadProgress();
   const activeToastIdRef = useRef<string | number | null>(null);
+
+  const isMobile = useIsMobile();
+  const [notesTarget, setNotesTarget] = useState<NoteTarget | null>(null);
+  const [notesOpen, setNotesOpen] = useState(false);
 
   // Auto-download ARA on first visit if no version is installed
   useEffect(() => {
@@ -123,59 +132,81 @@ export default function Home() {
       : "Select a verse";
 
   return (
-    <SidebarProvider open={false} className="h-dvh">
-      <SidebarInset className="w-auto overflow-hidden h-full">
-        <PanelLayout
-          main={
-            <main className="overflow-hidden reading-area flex flex-col h-full">
-              <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
-                <div className="w-full pb-36 md:pb-8">
-                  {selectedBookId && selectedChapter ? (
-                    <Reader
-                      key={`${selectedBookId}-${selectedChapter}`}
-                      bookId={selectedBookId}
-                      chapter={selectedChapter}
-                      onChapterChange={setSelectedChapter}
-                      onBookChapterClick={() => setBookChapterDialogOpen(true)}
-                      readerMode={readerMode}
-                      onChangeReaderMode={setReaderMode}
-                      fontSize={fontSize}
-                      onChangeFontSize={setFontSize}
-                      verseSpacing={verseSpacing}
-                      onChangeVerseSpacing={setVerseSpacing}
-                      readerFont={readerFont}
-                      onChangeReaderFont={setReaderFont}
-                    />
-                  ) : (
-                    <ReaderEmpty
-                      onOpenSidebar={() => setBookChapterDialogOpen(true)}
-                    />
-                  )}
+    <NotesProvider
+      bookId={selectedBookId}
+      chapter={selectedChapter}
+      versionId={versionId}
+      open={notesOpen}
+      target={notesTarget}
+      onOpen={(t) => {
+        setNotesTarget(t);
+        setNotesOpen(true);
+      }}
+      onClose={() => {
+        setNotesOpen(false);
+        setNotesTarget(null);
+      }}
+    >
+      <SidebarProvider open={false} className="h-dvh">
+        <SidebarInset className="w-auto overflow-hidden h-full">
+          <PanelLayout
+            main={
+              <main className="relative overflow-hidden reading-area flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
+                  <div className="w-full pb-36 md:pb-8">
+                    {selectedBookId && selectedChapter ? (
+                      <Reader
+                        key={`${selectedBookId}-${selectedChapter}`}
+                        bookId={selectedBookId}
+                        chapter={selectedChapter}
+                        onChapterChange={setSelectedChapter}
+                        onBookChapterClick={() => setBookChapterDialogOpen(true)}
+                        readerMode={readerMode}
+                        onChangeReaderMode={setReaderMode}
+                        fontSize={fontSize}
+                        onChangeFontSize={setFontSize}
+                        verseSpacing={verseSpacing}
+                        onChangeVerseSpacing={setVerseSpacing}
+                        readerFont={readerFont}
+                        onChangeReaderFont={setReaderFont}
+                      />
+                    ) : (
+                      <ReaderEmpty
+                        onOpenSidebar={() => setBookChapterDialogOpen(true)}
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
-            </main>
-          }
-          right={
-            inspectorOpen ? (
-              <InspectorPanel
-                verseReference={verseReference}
-                isOpen={inspectorOpen}
-                onClose={() => setInspectorOpen(false)}
-              />
-            ) : undefined
-          }
-        />
+              </main>
+            }
+            right={
+              !isMobile && notesOpen ? (
+                <NotesPanel />
+              ) : inspectorOpen ? (
+                <InspectorPanel
+                  verseReference={verseReference}
+                  isOpen={inspectorOpen}
+                  onClose={() => setInspectorOpen(false)}
+                />
+              ) : (
+                undefined
+              )
+            }
+          />
 
-        <BookChapterDialog
-          open={bookChapterDialogOpen}
-          onClose={() => setBookChapterDialogOpen(false)}
-          onSelectBook={handleSelectBook}
-          onSelectChapter={handleSelectChapter}
-          selectedBookId={selectedBookId}
-          selectedChapter={selectedChapter}
-          versionAbbreviation={versionId.toUpperCase()}
-        />
-      </SidebarInset>
-    </SidebarProvider>
+          <BookChapterDialog
+            open={bookChapterDialogOpen}
+            onClose={() => setBookChapterDialogOpen(false)}
+            onSelectBook={handleSelectBook}
+            onSelectChapter={handleSelectChapter}
+            selectedBookId={selectedBookId}
+            selectedChapter={selectedChapter}
+            versionAbbreviation={versionId.toUpperCase()}
+          />
+        </SidebarInset>
+      </SidebarProvider>
+
+      {isMobile && notesOpen && <NoteSheet />}
+    </NotesProvider>
   );
 }

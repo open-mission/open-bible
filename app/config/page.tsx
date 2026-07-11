@@ -9,6 +9,8 @@ import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@
 import { MobileNav } from "@/features/layout/components/mobile-nav"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { useIsTauriMacOS } from "@/features/layout/hooks/use-is-tauri-macos"
+import { cn } from "@/lib/utils"
 
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
@@ -25,6 +27,7 @@ export default function ConfigPage() {
   const { defaultVersionId, setDefaultVersionId, availableVersions, installedVersions } = useBibleVersion()
   const [versions, setVersions] = useState<{ id: string; name: string }[]>([])
   const [isDesktop, setIsDesktop] = useState(false)
+  const isTauriMacOS = useIsTauriMacOS()
   
 
 
@@ -56,7 +59,13 @@ export default function ConfigPage() {
     <SidebarProvider open={false} className="h-dvh">
       <SidebarInset className="w-auto overflow-hidden h-full flex flex-col bg-background text-foreground">
         {/* Header */}
-        <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4 py-3">
+        <header
+          data-tauri-drag-region={isTauriMacOS ? "" : undefined}
+          className={cn(
+            "sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4 py-3",
+            isTauriMacOS && "pl-[70px]",
+          )}
+        >
           <button
             onClick={() => router.back()}
             aria-label="Voltar"

@@ -272,3 +272,45 @@
   max-width: min(var(--width), calc(100vw - 2rem));
 }
 
+/* Rich-text note content (TipTap HTML output) */
+.note-rich-content {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  word-break: break-word;
+}
+.note-rich-content p {
+  margin: 0 0 0.5rem;
+}
+.note-rich-content p:last-child {
+  margin-bottom: 0;
+}
+.note-rich-content strong {
+  font-weight: 700;
+}
+.note-rich-content em {
+  font-style: italic;
+}
+.note-rich-content mark {
+  background-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.note-rich-content ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0 0 0.5rem;
+}
+.note-rich-content ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0 0 0.5rem;
+}
+.note-rich-content li {
+  margin: 0.125rem 0;
+}
+.note-rich-content:focus {
+  outline: none;
+}
+

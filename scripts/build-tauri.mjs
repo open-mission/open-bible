@@ -40,6 +40,7 @@ try {
   const env = {
     ...process.env,
     TAURI_BUILD: "1",
+    NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV ?? "production",
     NEXT_PUBLIC_API_ORIGIN:
       process.env.NEXT_PUBLIC_API_ORIGIN ?? "https://openbible-prod.vercel.app",
   }

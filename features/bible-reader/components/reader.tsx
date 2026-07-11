@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, StickyNote } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
 import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
@@ -13,13 +13,17 @@ import { useSwipeNavigation } from "../hooks/use-swipe-navigation";
 import { ReaderHeader } from "./reader-header";
 import { cn } from "@/lib/utils";
 import { HighlightsProvider, useHighlightsContext } from "@/features/highlights/context/highlights-context";
+import { useNotesContext } from "@/features/notes/context/notes-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
-import { HighlightListSheet } from "@/features/highlights/components/highlight-list-sheet";
-import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
+import { AllHighlightsBrowser } from "@/features/highlights/components/all-highlights-browser";
+import { NotesBrowser } from "@/features/notes/components/notes-browser";
+import { BottomDock } from "@/features/dock/bottom-dock";
+import { useIsMobile } from "@/lib/use-media-query";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
 // highlight icon inline (avoids tabler-icons server build issue)
 import type { HighlightData } from "@/features/highlights/context/highlights-context";
+import type { HighlightCategory } from "@/lib/database/user/schema";
 
 interface ReaderProps {
   bookId: string;
@@ -54,6 +58,8 @@ function ReaderContent({
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
   const { highlightsByVerse } = useHighlightsContext();
+  const { notesByVerse, openNotePanel, closeNotePanel } = useNotesContext();
+  const isMobile = useIsMobile();
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
   const [selectedVerseIds, setSelectedVerseIds] = useState<Set<string>>(
@@ -65,12 +71,10 @@ function ReaderContent({
 
   const [editingHighlight, setEditingHighlight] = useState<HighlightData | null>(null);
   const [showHighlightEditor, setShowHighlightEditor] = useState(false);
-  const [showHighlightList, setShowHighlightList] = useState(false);
-  const [listSheetHighlights, setListSheetHighlights] = useState<HighlightData[]>([]);
   const [showCreateEditor, setShowCreateEditor] = useState(false);
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
-  const [showAllHighlights, setShowAllHighlights] = useState(false);
-  const [allHighlightsQuery, setAllHighlightsQuery] = useState("");
+  /** Dock inspector: toggled "notes" | "highlights" view (null = closed). */
+  const [dockView, setDockView] = useState<"notes" | "highlights" | null>(null);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
@@ -114,6 +118,23 @@ function ReaderContent({
   const open = selectedVerseIds.size > 0;
   const selectedVerses = verses.filter((v) => selectedVerseIds.has(v.id));
   const versionAbbr = versionId.toUpperCase();
+
+  const dockEditHighlight = useCallback(
+    async (highlightId: string) => {
+      setDockView(null);
+      await database.initialize();
+      const h = await database.highlights.findById(highlightId);
+      if (!h) return;
+      let category: HighlightCategory | null = null;
+      if (h.categoryId) {
+        category = await database.highlightCategories.findById(h.categoryId);
+      }
+      const verses = await database.highlightVerses.findByHighlightId(highlightId);
+      setEditingHighlight({ highlight: h, category, verses });
+      setShowHighlightEditor(true);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -170,7 +191,7 @@ function ReaderContent({
         : "font-serif";
 
   return (
-    <div className="flex flex-col min-w-0 h-full">
+    <div className="relative flex flex-col min-w-0 h-full">
       <ReaderHeader
         book={book}
         chapter={chapter}
@@ -183,10 +204,6 @@ function ReaderContent({
         onChangeVerseSpacing={onChangeVerseSpacing}
         readerFont={readerFont}
         onChangeReaderFont={onChangeReaderFont}
-        onShowAllHighlights={() => {
-          setAllHighlightsQuery("");
-          setShowAllHighlights(true);
-        }}
       />
 
       <div
@@ -253,22 +270,29 @@ function ReaderContent({
             </div>
           ) : (
             verses.map((verse) => (
-              <VerseRow
-                key={verse.id}
-                verse={verse}
-                isActive={verse.id === activeVerseId}
-                isSelected={selectedVerseIds.has(verse.id)}
-                highlights={highlightsByVerse.get(verse.id)}
-                onShowAll={(highlights) => {
-                  const h = highlights[0];
-                  if (h) {
-                    const queryText = h.category?.name ?? h.highlight.color;
-                    setAllHighlightsQuery(queryText);
-                    setShowAllHighlights(true);
-                  }
-                }}
-                verseSpacing={verseSpacing}
-              />
+                <VerseRow
+                  key={verse.id}
+                  verse={verse}
+                  isActive={verse.id === activeVerseId}
+                  isSelected={selectedVerseIds.has(verse.id)}
+                  highlights={highlightsByVerse.get(verse.id)}
+                  onShowAll={() => {
+                    closeNotePanel();
+                    setDockView("highlights");
+                  }}
+                  notes={notesByVerse.get(verse.id)}
+                  onOpenNote={() => {
+                    setDockView(null);
+                    openNotePanel({
+                      bible: versionId,
+                      book: bookId,
+                      chapter,
+                      verseStart: verse.verse,
+                      verseEnd: null,
+                    });
+                  }}
+                  verseSpacing={verseSpacing}
+                />
             ))
           )}
         </article>
@@ -282,6 +306,7 @@ function ReaderContent({
       ></div>
 
       {/* Floating navigation: bottom on mobile, sides on desktop */}
+      {!dockView && (
       <div className="fixed inset-x-0 bottom-8 z-40 flex justify-center pointer-events-none md:hidden">
         <div className="flex gap-5 pointer-events-auto">
           <button
@@ -294,13 +319,23 @@ function ReaderContent({
           </button>
           <button
             onClick={() => {
-              setAllHighlightsQuery("");
-              setShowAllHighlights(true);
+              closeNotePanel();
+              setDockView("highlights");
             }}
             className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
             aria-label="Todos os destaques"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5"><path d="M15.5 3.5a2.121 2.121 0 0 1 3 3L7 18l-4 1 1-4L14.5 3.5z"/><path d="M9 13.5l3 3"/></svg>
+          </button>
+          <button
+            onClick={() => {
+              closeNotePanel();
+              setDockView("notes");
+            }}
+            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+            aria-label="Todas as notas"
+          >
+            <StickyNote className="size-5" />
           </button>
           <button
             onClick={nextChapter}
@@ -312,25 +347,38 @@ function ReaderContent({
           </button>
         </div>
       </div>
+      )}
 
-      <div className="hidden md:flex fixed inset-0 z-40 pointer-events-none">
-        <button
-          onClick={prevChapter}
-          disabled={chapter <= 1}
-          className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full size-12 bg-background/80 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-          aria-label="Capítulo anterior"
-        >
-          <ChevronLeft className="size-5" />
-        </button>
-        <button
-          onClick={nextChapter}
-          disabled={book && chapter >= book.chapters}
-          className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full size-12 bg-background/80 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-          aria-label="Próximo capítulo"
-        >
-          <ChevronRight className="size-5" />
-        </button>
-      </div>
+      {/* Desktop bottom dock with flanking chapter-nav arrows */}
+      {!open && (
+        <div className="fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 items-center gap-2 md:flex">
+          <button
+            type="button"
+            onClick={prevChapter}
+            disabled={chapter <= 1}
+            className="inline-flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-elevation backdrop-blur-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-20"
+            aria-label="Capítulo anterior"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <BottomDock
+            activeTab={dockView}
+            onSelect={(tab) => {
+              closeNotePanel();
+              setDockView((prev) => (prev === tab ? null : tab));
+            }}
+          />
+          <button
+            type="button"
+            onClick={nextChapter}
+            disabled={book && chapter >= book.chapters}
+            className="inline-flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-elevation backdrop-blur-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-20"
+            aria-label="Próximo capítulo"
+          >
+            <ChevronRight className="size-5" />
+          </button>
+        </div>
+      )}
 
       {/* Verse selection bottom bar */}
       {open && (
@@ -408,42 +456,54 @@ function ReaderContent({
         />
       )}
 
-      {/* Highlight List Sheet */}
-      {showHighlightList && (
-        <HighlightListSheet
-          open={showHighlightList}
-          onClose={() => {
-            setShowHighlightList(false);
-            setListSheetHighlights([]);
-          }}
-          highlights={listSheetHighlights}
-          onEdit={(h) => {
-            setEditingHighlight(h);
-            setShowHighlightEditor(true);
-          }}
-          onDelete={deleteHighlight}
-        />
-      )}
-
-      {/* All Highlights Sheet */}
-      {showAllHighlights && (
-        <AllHighlightsSheet
-          open={showAllHighlights}
-          onClose={() => setShowAllHighlights(false)}
-          initialQuery={allHighlightsQuery}
-          onEdit={async (highlightId) => {
-            await database.initialize();
-            const h = await database.highlights.findById(highlightId);
-            if (!h) return;
-            let category: HighlightCategory | null = null;
-            if (h.categoryId) {
-              category = await database.highlightCategories.findById(h.categoryId);
-            }
-            const verses = await database.highlightVerses.findByHighlightId(highlightId);
-            setEditingHighlight({ highlight: h, category, verses });
-            setShowHighlightEditor(true);
-          }}
-        />
+      {/* Dock inspector — toggled notes/highlights view.
+          Desktop: right-docked side panel. Mobile: full-screen drawer. */}
+      {dockView && (
+        isMobile ? (
+          <div className="fixed inset-0 z-50 flex animate-in fade-in duration-200 flex-col bg-background">
+            {dockView === "notes" ? (
+              <NotesBrowser
+                mode="all"
+                active
+                embedded
+                showCloseButton
+                onRequestClose={() => setDockView(null)}
+                className="h-full"
+              />
+            ) : (
+              <AllHighlightsBrowser
+                active
+                embedded
+                showCloseButton
+                onClose={() => setDockView(null)}
+                onEdit={dockEditHighlight}
+                onDelete={deleteHighlight}
+              />
+            )}
+          </div>
+        ) : (
+          <div className="fixed right-0 top-0 z-40 flex h-full w-[min(440px,92vw)] animate-in slide-in-from-right flex-col border-l border-border bg-background shadow-elevation duration-200">
+            {dockView === "notes" ? (
+              <NotesBrowser
+                mode="all"
+                active
+                embedded
+                showCloseButton
+                onRequestClose={() => setDockView(null)}
+                className="h-full"
+              />
+            ) : (
+              <AllHighlightsBrowser
+                active
+                embedded
+                showCloseButton
+                onClose={() => setDockView(null)}
+                onEdit={dockEditHighlight}
+                onDelete={deleteHighlight}
+              />
+            )}
+          </div>
+        )
       )}
     </div>
   );

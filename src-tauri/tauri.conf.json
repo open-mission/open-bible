@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Open Bible",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "identifier": "app.openbible.desktop",
   "build": {
     "frontendDist": "../out",
@@ -19,7 +19,8 @@
         "minWidth": 400,
         "minHeight": 600,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "titleBarStyle": "Overlay"
       }
     ],
     "security": {

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { IconTextSize, IconHighlight } from "@tabler/icons-react";
+import { IconTextSize } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 import { ReaderDisplaySettings } from "./reader-display-settings";
 import { ReaderThemeConfig } from "./reader-theme-config";
@@ -29,6 +30,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { BibleVersionSelector } from "./bible-version-selector";
+import { useIsTauriMacOS } from "@/features/layout/hooks/use-is-tauri-macos";
 
 interface ReaderHeaderProps {
   book: { name: string };
@@ -42,7 +44,6 @@ interface ReaderHeaderProps {
   onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void;
   readerFont: "sans" | "serif" | "mono";
   onChangeReaderFont: (font: "sans" | "serif" | "mono") => void;
-  onShowAllHighlights?: () => void;
 }
 
 export function ReaderHeader({
@@ -57,8 +58,8 @@ export function ReaderHeader({
   onChangeVerseSpacing,
   readerFont,
   onChangeReaderFont,
-  onShowAllHighlights,
 }: ReaderHeaderProps) {
+  const isTauriMacOS = useIsTauriMacOS();
   const [themeDialogOpen, setThemeDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => {
@@ -95,7 +96,13 @@ export function ReaderHeader({
   return (
     <>
       {/* Top Header - Sticky, always visible */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur flex items-center justify-center pb-3 pt-3 px-4 border-b border-border min-h-14.25">
+      <div
+        data-tauri-drag-region={isTauriMacOS ? "" : undefined}
+        className={cn(
+          "sticky top-0 z-20 bg-gradient-to-b from-background via-background/95 to-transparent backdrop-blur flex items-center justify-center pb-3 pt-3 px-4 min-h-14.25",
+          isTauriMacOS && "pl-[70px]",
+        )}
+      >
         {/* Desktop Book/Chapter/Version/Display Selector (Left-aligned pill) */}
         <div className="flex items-center border-0">
           <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-full border border-border/60">
@@ -126,17 +133,6 @@ export function ReaderHeader({
               <IconTextSize data-icon="inline-start" />
               <span className="hidden lg:inline">Exibição</span>
             </Button>
-            {onShowAllHighlights && (
-              <Button
-                onClick={onShowAllHighlights}
-                variant="ghost"
-                className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs flex items-center gap-1.5"
-                title="Todos os destaques"
-              >
-                <IconHighlight data-icon="inline-start" />
-                <span className="hidden lg:inline">Destaques</span>
-              </Button>
-            )}
           </div>
         </div>
       </div>
