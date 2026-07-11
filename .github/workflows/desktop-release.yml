@@ -65,6 +65,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_BUILD: "1"
+          NEXT_PUBLIC_APP_ENV: "production"
           NEXT_PUBLIC_API_ORIGIN: "https://openbible-prod.vercel.app"
         with:
           tagName: ${{ github.ref_name }}
