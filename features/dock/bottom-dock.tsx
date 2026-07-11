@@ -9,8 +9,7 @@ interface BottomDockProps {
 
 export function BottomDock({ activeTab, onSelect }: BottomDockProps) {
   return (
-    <div className="fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 md:flex">
-      <div className="flex items-center gap-1 rounded-full bg-background/85 backdrop-blur-lg border border-border/60 shadow-elevation px-2 py-1.5">
+    <div className="flex items-center gap-1 rounded-full bg-background/85 backdrop-blur-lg border border-border/60 shadow-elevation px-2 py-1.5">
         <button
           type="button"
           onClick={() => onSelect("highlights")}
@@ -30,7 +29,6 @@ export function BottomDock({ activeTab, onSelect }: BottomDockProps) {
           <IconNotebook className="size-3.5" />
           <span>Notas</span>
         </button>
-      </div>
     </div>
   )
 }
