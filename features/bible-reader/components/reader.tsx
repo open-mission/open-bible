@@ -353,15 +353,35 @@ function ReaderContent({
       </div>
       )}
 
-      {/* Desktop bottom dock (toggle: click active tab to close inspector) */}
+      {/* Desktop bottom dock with flanking chapter-nav arrows */}
       {!open && (
-        <BottomDock
-          activeTab={dockView}
-          onSelect={(tab) => {
-            closeNotePanel();
-            setDockView((prev) => (prev === tab ? null : tab));
-          }}
-        />
+        <div className="fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 items-center gap-2 md:flex">
+          <button
+            type="button"
+            onClick={prevChapter}
+            disabled={chapter <= 1}
+            className="inline-flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-elevation backdrop-blur-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-20"
+            aria-label="Capítulo anterior"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <BottomDock
+            activeTab={dockView}
+            onSelect={(tab) => {
+              closeNotePanel();
+              setDockView((prev) => (prev === tab ? null : tab));
+            }}
+          />
+          <button
+            type="button"
+            onClick={nextChapter}
+            disabled={book && chapter >= book.chapters}
+            className="inline-flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-elevation backdrop-blur-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-20"
+            aria-label="Próximo capítulo"
+          >
+            <ChevronRight className="size-5" />
+          </button>
+        </div>
       )}
 
       {/* Verse selection bottom bar */}
