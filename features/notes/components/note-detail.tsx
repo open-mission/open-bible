@@ -69,11 +69,13 @@ export function NoteDetail({ entry, onBack, onEdit, onDelete, subtitle }: NoteDe
       </header>
 
       <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+        <div className="mx-auto max-w-3xl">
         {empty ? (
           <p className="text-sm italic text-muted-foreground/70">Nota sem texto</p>
         ) : (
           <NoteRenderer key={entry.note.id + (entry.note.updatedAt?.toString() ?? "")} html={entry.note.content} />
         )}
+        </div>
       </div>
     </div>
   )

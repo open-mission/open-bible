@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { IconTextSize, IconHighlight, IconNotebook } from "@tabler/icons-react";
+import { IconTextSize, IconHighlight } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -45,7 +45,6 @@ interface ReaderHeaderProps {
   readerFont: "sans" | "serif" | "mono";
   onChangeReaderFont: (font: "sans" | "serif" | "mono") => void;
   onShowAllHighlights?: () => void;
-  onShowAllNotes?: () => void;
 }
 
 export function ReaderHeader({
@@ -61,7 +60,6 @@ export function ReaderHeader({
   readerFont,
   onChangeReaderFont,
   onShowAllHighlights,
-  onShowAllNotes,
 }: ReaderHeaderProps) {
   const isTauriMacOS = useIsTauriMacOS();
   const [themeDialogOpen, setThemeDialogOpen] = useState(false);
@@ -146,17 +144,6 @@ export function ReaderHeader({
               >
                 <IconHighlight data-icon="inline-start" />
                 <span className="hidden lg:inline">Destaques</span>
-              </Button>
-            )}
-            {onShowAllNotes && (
-              <Button
-                onClick={onShowAllNotes}
-                variant="ghost"
-                className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs flex items-center gap-1.5"
-                title="Todas as notas"
-              >
-                <IconNotebook data-icon="inline-start" />
-                <span className="hidden lg:inline">Notas</span>
               </Button>
             )}
           </div>

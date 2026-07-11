@@ -407,7 +407,7 @@ export function NotesBrowser({
             </EmptyHeader>
           </Empty>
         ) : mode === "all" && !embedded ? (
-          <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-1 sm:grid-cols-2 lg:grid-cols-4">
             {filtered.map((entry) => (
               <NoteListItem
                 key={entry.note.id}

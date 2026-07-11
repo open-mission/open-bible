@@ -219,7 +219,6 @@ function ReaderContent({
           setAllHighlightsQuery("");
           setShowAllHighlights(true);
         }}
-        onShowAllNotes={openAllNotes}
       />
 
       <div
@@ -325,6 +324,7 @@ function ReaderContent({
       ></div>
 
       {/* Floating navigation: bottom on mobile, sides on desktop */}
+      {!showAllNotes && (
       <div className="fixed inset-x-0 bottom-8 z-40 flex justify-center pointer-events-none md:hidden">
         <div className="flex gap-5 pointer-events-auto">
           <button
@@ -362,6 +362,7 @@ function ReaderContent({
           </button>
         </div>
       </div>
+      )}
 
       {/* Desktop bottom dock (hidden during verse selection or when a full-screen view is open) */}
       {!open && !dockView && !showAllNotes && (
