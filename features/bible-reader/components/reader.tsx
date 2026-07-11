@@ -204,10 +204,6 @@ function ReaderContent({
         onChangeVerseSpacing={onChangeVerseSpacing}
         readerFont={readerFont}
         onChangeReaderFont={onChangeReaderFont}
-        onShowAllHighlights={() => {
-          closeNotePanel();
-          setDockView("highlights");
-        }}
       />
 
       <div
