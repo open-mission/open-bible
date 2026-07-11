@@ -19,13 +19,11 @@ import { HighlightListSheet } from "@/features/highlights/components/highlight-l
 import { AllHighlightsSheet } from "@/features/highlights/components/all-highlights-sheet";
 import { AllNotesSheet } from "@/features/notes/components/all-notes-sheet";
 import { BottomDock } from "@/features/dock/bottom-dock";
-import { FullScreenNotes } from "@/features/dock/full-screen-notes";
 import { FullScreenHighlights } from "@/features/dock/full-screen-highlights";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
 // highlight icon inline (avoids tabler-icons server build issue)
 import type { HighlightData } from "@/features/highlights/context/highlights-context";
-import type { AllNoteEntry } from "@/features/notes/hooks/use-all-notes";
 import type { HighlightCategory } from "@/lib/database/user/schema";
 
 interface ReaderProps {
@@ -79,8 +77,10 @@ function ReaderContent({
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
   const [showAllHighlights, setShowAllHighlights] = useState(false);
   const [allHighlightsQuery, setAllHighlightsQuery] = useState("");
+  /** Single all-notes shell for header + dock (Apple Notes UX). */
   const [showAllNotes, setShowAllNotes] = useState(false);
-  const [dockView, setDockView] = useState<"notes" | "highlights" | null>(null);
+  /** Desktop dock full-screen for highlights only (notes use showAllNotes). */
+  const [dockView, setDockView] = useState<"highlights" | null>(null);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
@@ -125,22 +125,6 @@ function ReaderContent({
   const selectedVerses = verses.filter((v) => selectedVerseIds.has(v.id));
   const versionAbbr = versionId.toUpperCase();
 
-  const dockOpenNote = useCallback(
-    (entry: AllNoteEntry) => {
-      setDockView(null);
-      const ref = entry.references[0];
-      if (!ref) return;
-      openNotePanel({
-        bible: ref.bible,
-        book: ref.book,
-        chapter: ref.chapter,
-        verseStart: ref.verseStart,
-        verseEnd: ref.verseEnd ?? null,
-      });
-    },
-    [openNotePanel],
-  );
-
   const dockEditHighlight = useCallback(
     async (highlightId: string) => {
       setDockView(null);
@@ -157,6 +141,11 @@ function ReaderContent({
     },
     [],
   );
+
+  const openAllNotes = useCallback(() => {
+    setDockView(null);
+    setShowAllNotes(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -230,7 +219,7 @@ function ReaderContent({
           setAllHighlightsQuery("");
           setShowAllHighlights(true);
         }}
-        onShowAllNotes={() => setShowAllNotes(true)}
+        onShowAllNotes={openAllNotes}
       />
 
       <div
@@ -357,7 +346,7 @@ function ReaderContent({
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5"><path d="M15.5 3.5a2.121 2.121 0 0 1 3 3L7 18l-4 1 1-4L14.5 3.5z"/><path d="M9 13.5l3 3"/></svg>
           </button>
           <button
-            onClick={() => setShowAllNotes(true)}
+            onClick={openAllNotes}
             className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
             aria-label="Todas as notas"
           >
@@ -375,10 +364,16 @@ function ReaderContent({
       </div>
 
       {/* Desktop bottom dock (hidden during verse selection or when a full-screen view is open) */}
-      {!open && !dockView && (
+      {!open && !dockView && !showAllNotes && (
         <BottomDock
           activeTab={null}
-          onSelect={(tab) => setDockView(tab)}
+          onSelect={(tab) => {
+            if (tab === "notes") {
+              openAllNotes();
+              return;
+            }
+            setDockView("highlights");
+          }}
         />
       )}
 
@@ -496,22 +491,13 @@ function ReaderContent({
         />
       )}
 
-      {/* All Notes Sheet */}
-      {showAllNotes && (
-        <AllNotesSheet
-          open={showAllNotes}
-          onClose={() => setShowAllNotes(false)}
-        />
-      )}
+      {/* All notes — same shell for header, dock, and mobile FAB */}
+      <AllNotesSheet
+        open={showAllNotes}
+        onClose={() => setShowAllNotes(false)}
+      />
 
-      {/* Desktop full-screen dock views */}
-      {dockView === "notes" && (
-        <FullScreenNotes
-          open
-          onClose={() => setDockView(null)}
-          onOpenNote={dockOpenNote}
-        />
-      )}
+      {/* Desktop full-screen dock view (highlights only) */}
       {dockView === "highlights" && (
         <FullScreenHighlights
           open
