@@ -72,17 +72,20 @@ export function removeLeaf(
 /**
  * Append a leaf to the deepest-rightmost position in the tree. Used when adding
  * a pane in tabs mode so the layout tree stays in sync for a future grid switch.
+ * The `direction` controls how a split is created when the target is a leaf
+ * (horizontal → new column, vertical → new row).
  */
 export function appendLeaf(
   node: LayoutNode,
   leaf: LayoutLeaf,
+  direction: LayoutDirection = "horizontal",
 ): LayoutNode {
   if (node.type === "leaf") {
-    return makeSplit("horizontal", [node, leaf])
+    return makeSplit(direction, [node, leaf])
   }
   const lastIdx = node.children.length - 1
   const newChildren = [...node.children]
-  newChildren[lastIdx] = appendLeaf(node.children[lastIdx], leaf)
+  newChildren[lastIdx] = appendLeaf(node.children[lastIdx], leaf, direction)
   return { ...node, children: newChildren }
 }
 
@@ -93,34 +96,44 @@ export function collectPaneIds(node: LayoutNode): string[] {
 }
 
 /**
- * Auto-arrange a flat list of pane IDs into a balanced grid. Columns are
- * ceil(sqrt(n)); each column is a vertical split of its panes. This gives:
+ * Auto-arrange a flat list of pane IDs into a balanced grid. The `direction`
+ * controls the outer orientation:
+ *   - "horizontal" (columns): outer split is horizontal, columns hold panes
+ *     stacked vertically. Gives side-by-side panes.
+ *   - "vertical" (rows): outer split is vertical, rows hold panes side-by-side
+ *     horizontally. Gives stacked panes.
+ * Examples for horizontal (columns):
  *   1 -> full screen
  *   2 -> 50/50 side by side
  *   3 -> 1 left, 2 stacked right
  *   4 -> 2x2
  */
-export function autoArrange(paneIds: string[]): LayoutNode | null {
+export function autoArrange(
+  paneIds: string[],
+  direction: LayoutDirection = "horizontal",
+): LayoutNode | null {
   if (paneIds.length === 0) return null
   if (paneIds.length === 1) return makeLeaf(paneIds[0])
 
-  const columns = Math.ceil(Math.sqrt(paneIds.length))
-  const perColumn = Math.ceil(paneIds.length / columns)
+  const groups = Math.ceil(Math.sqrt(paneIds.length))
+  const perGroup = Math.ceil(paneIds.length / groups)
 
-  const columnNodes: LayoutNode[] = []
-  for (let c = 0; c < columns; c++) {
-    const start = c * perColumn
-    const end = Math.min(start + perColumn, paneIds.length)
-    const colPaneIds = paneIds.slice(start, end)
+  const groupNodes: LayoutNode[] = []
+  for (let g = 0; g < groups; g++) {
+    const start = g * perGroup
+    const end = Math.min(start + perGroup, paneIds.length)
+    const groupPaneIds = paneIds.slice(start, end)
 
-    if (colPaneIds.length === 1) {
-      columnNodes.push(makeLeaf(colPaneIds[0]))
+    if (groupPaneIds.length === 1) {
+      groupNodes.push(makeLeaf(groupPaneIds[0]))
     } else {
-      const leaves = colPaneIds.map((id) => makeLeaf(id))
-      columnNodes.push(makeSplit("vertical", leaves))
+      const leaves = groupPaneIds.map((id) => makeLeaf(id))
+      // Inner split runs opposite to the outer direction.
+      const inner = direction === "horizontal" ? "vertical" : "horizontal"
+      groupNodes.push(makeSplit(inner, leaves))
     }
   }
 
-  if (columnNodes.length === 1) return columnNodes[0]
-  return makeSplit("horizontal", columnNodes)
+  if (groupNodes.length === 1) return groupNodes[0]
+  return makeSplit(direction, groupNodes)
 }

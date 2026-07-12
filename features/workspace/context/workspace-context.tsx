@@ -8,7 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react"
-import type { Pane, PaneState, BiblePaneState, LayoutMode, LayoutNode } from "../types"
+import type { Pane, PaneState, BiblePaneState, LayoutMode, LayoutNode, LayoutDirection } from "../types"
 import { paneTitleFor } from "../lib/pane-title"
 import {
   makeLeaf,
@@ -19,6 +19,7 @@ import {
   collectPaneIds,
   autoArrange,
 } from "../lib/layout-tree"
+import { loadLayout } from "../hooks/use-workspace-mode"
 
 /**
  * Workspace state: the set of open panes (tabs), which one is active, and the
@@ -109,7 +110,15 @@ function loadWorkspace(): PersistedWorkspace {
   } catch {
     /* ignore */
   }
-  return { panes: [], activePaneId: null, layoutMode: "tabs", layout: null }
+  // No persisted workspace: respect the user's default layout preference
+  // (columns/rows => grid, tabs => tabs).
+  const preferred = loadLayout()
+  return {
+    panes: [],
+    activePaneId: null,
+    layoutMode: preferred === "tabs" ? "tabs" : "grid",
+    layout: null,
+  }
 }
 
 function saveWorkspace(ws: PersistedWorkspace) {
@@ -122,11 +131,18 @@ function saveWorkspace(ws: PersistedWorkspace) {
 }
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  const initialLayout = loadLayout()
   const [panes, setPanes] = useState<Pane[]>([])
   const [activePaneId, setActivePaneId] = useState<string | null>(null)
-  const [layoutMode, setLayoutModeState] = useState<LayoutMode>("tabs")
+  const [layoutMode, setLayoutModeState] = useState<LayoutMode>(
+    initialLayout === "tabs" ? "tabs" : "grid",
+  )
   const [layout, setLayout] = useState<LayoutNode | null>(null)
   const [loaded, setLoaded] = useState(false)
+  // Default split direction for grid arrangements: columns => horizontal,
+  // rows => vertical, tabs => horizontal (ignored in tabs mode).
+  const defaultSplitDirection: LayoutDirection =
+    initialLayout === "rows" ? "vertical" : "horizontal"
 
   // Load persisted workspace on mount (deferred to avoid SSR mismatch).
   useEffect(() => {
@@ -182,10 +198,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setLayout((prev) => {
       const leaf = makeLeaf(id)
       if (!prev) return leaf
-      return appendLeaf(prev, leaf)
+      return appendLeaf(prev, leaf, defaultSplitDirection)
     })
     return id
-  }, [])
+  }, [defaultSplitDirection])
 
   const closePane = useCallback((id: string) => {
     setPanes((prev) => prev.filter((p) => p.id !== id))
@@ -220,14 +236,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           const layoutIds = new Set(collectPaneIds(currentLayout))
           const paneIds = currentPanes.map((p) => p.id)
           if (!paneIds.every((id) => layoutIds.has(id))) {
-            return autoArrange(paneIds)
+            return autoArrange(paneIds, defaultSplitDirection)
           }
           return currentLayout
         })
         return currentPanes
       })
     }
-  }, [])
+  }, [defaultSplitDirection])
 
   /**
    * Split a pane in the layout tree. The existing pane stays in place; a new
