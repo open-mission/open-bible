@@ -41,14 +41,14 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
-      
+
       - name: Configure pnpm
         run: pnpm config set fetch-timeout 120000
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
 
       # better-sqlite3 is a dev-only native module (used only by server import
