@@ -221,12 +221,12 @@ function ReaderContent({
       />
 
       <div
-        className={`flex-1 w-full mx-auto ${
+        className={`flex-1 overflow-y-auto custom-scrollbar w-full mx-auto ${
           readerMode === "wide"
-            ? "max-w-none px-4 md:px-8 py-8"
+            ? "max-w-none px-4 md:px-8 pt-8 pb-36 md:pb-8"
             : readerMode === "medium"
-              ? "max-w-4xl px-4 md:px-12 py-8"
-              : "max-w-2xl px-4 md:px-16 py-8"
+              ? "max-w-4xl px-4 md:px-12 pt-8 pb-36 md:pb-8"
+              : "max-w-2xl px-4 md:px-16 pt-8 pb-36 md:pb-8"
         }`}
       >
         <header className="mb-12 text-center">

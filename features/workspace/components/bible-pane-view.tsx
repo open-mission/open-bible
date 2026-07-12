@@ -105,26 +105,22 @@ export function BiblePaneView({
             <PanelLayout
               main={
                 <main className="relative overflow-hidden reading-area flex flex-col h-full">
-                  <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
-                    <div className="w-full pb-36 md:pb-8">
-                      <Reader
-                        key={`${state.bookId}-${state.chapter}-${state.versionId}`}
-                        bookId={state.bookId}
-                        chapter={state.chapter}
-                        onChapterChange={(ch) => onPaneUpdate(pane.id, { chapter: ch })}
-                        onBookChapterClick={() => setBookChapterDialogOpen(true)}
-                        readerMode={readerMode}
-                        onChangeReaderMode={onChangeReaderMode}
-                        fontSize={fontSize}
-                        onChangeFontSize={onChangeFontSize}
-                        verseSpacing={verseSpacing}
-                        onChangeVerseSpacing={onChangeVerseSpacing}
-                        readerFont={readerFont}
-                        onChangeReaderFont={onChangeReaderFont}
-                        isActive={isActive}
-                      />
-                    </div>
-                  </div>
+                  <Reader
+                    key={`${state.bookId}-${state.chapter}-${state.versionId}`}
+                    bookId={state.bookId}
+                    chapter={state.chapter}
+                    onChapterChange={(ch) => onPaneUpdate(pane.id, { chapter: ch })}
+                    onBookChapterClick={() => setBookChapterDialogOpen(true)}
+                    readerMode={readerMode}
+                    onChangeReaderMode={onChangeReaderMode}
+                    fontSize={fontSize}
+                    onChangeFontSize={onChangeFontSize}
+                    verseSpacing={verseSpacing}
+                    onChangeVerseSpacing={onChangeVerseSpacing}
+                    readerFont={readerFont}
+                    onChangeReaderFont={onChangeReaderFont}
+                    isActive={isActive}
+                  />
                 </main>
               }
               right={

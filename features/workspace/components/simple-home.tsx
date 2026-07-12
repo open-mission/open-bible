@@ -94,31 +94,27 @@ export function SimpleHome() {
           <PanelLayout
             main={
               <main className="relative overflow-hidden reading-area flex flex-col h-full">
-                <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
-                  <div className="w-full pb-36 md:pb-8">
-                    {selectedBookId && selectedChapter ? (
-                      <Reader
-                        key={`${selectedBookId}-${selectedChapter}`}
-                        bookId={selectedBookId}
-                        chapter={selectedChapter}
-                        onChapterChange={setSelectedChapter}
-                        onBookChapterClick={() => setBookChapterDialogOpen(true)}
-                        readerMode={readerMode}
-                        onChangeReaderMode={setReaderMode}
-                        fontSize={fontSize}
-                        onChangeFontSize={setFontSize}
-                        verseSpacing={verseSpacing}
-                        onChangeVerseSpacing={setVerseSpacing}
-                        readerFont={readerFont}
-                        onChangeReaderFont={setReaderFont}
-                      />
-                    ) : (
-                      <ReaderEmpty
-                        onOpenSidebar={() => setBookChapterDialogOpen(true)}
-                      />
-                    )}
-                  </div>
-                </div>
+                {selectedBookId && selectedChapter ? (
+                  <Reader
+                    key={`${selectedBookId}-${selectedChapter}`}
+                    bookId={selectedBookId}
+                    chapter={selectedChapter}
+                    onChapterChange={setSelectedChapter}
+                    onBookChapterClick={() => setBookChapterDialogOpen(true)}
+                    readerMode={readerMode}
+                    onChangeReaderMode={setReaderMode}
+                    fontSize={fontSize}
+                    onChangeFontSize={setFontSize}
+                    verseSpacing={verseSpacing}
+                    onChangeVerseSpacing={setVerseSpacing}
+                    readerFont={readerFont}
+                    onChangeReaderFont={setReaderFont}
+                  />
+                ) : (
+                  <ReaderEmpty
+                    onOpenSidebar={() => setBookChapterDialogOpen(true)}
+                  />
+                )}
               </main>
             }
             right={
