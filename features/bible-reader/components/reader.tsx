@@ -79,6 +79,7 @@ function ReaderContent({
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
   /** Dock inspector: toggled "notes" | "highlights" view (null = closed). */
   const [dockView, setDockView] = useState<"notes" | "highlights" | null>(null);
+  const [showToolbar, setShowToolbar] = useState(false);
 
   /** Clear verse selection when this pane becomes inactive (grid mode) so
    *  only the focused pane shows a selection popover. */
@@ -86,12 +87,15 @@ function ReaderContent({
     if (!isActive) {
       setSelectedVerseIds(new Set());
       setActiveVerseId(null);
+      setShowToolbar(false);
     }
   }, [isActive]);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [popoverPlacement, setPopoverPlacement] = useState<"top" | "bottom">("bottom");
 
   const prevChapter = useCallback(() => {
     if (chapter > 1) {
@@ -115,6 +119,7 @@ function ReaderContent({
       else next.add(verseId);
       return next;
     });
+    setShowToolbar(false);
   }, []);
 
   const handleArticleClick = useCallback(
@@ -171,9 +176,13 @@ function ReaderContent({
       )
         return;
       setSelectedVerseIds(new Set());
+      setShowToolbar(false);
     }
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setSelectedVerseIds(new Set());
+      if (e.key === "Escape") {
+        setSelectedVerseIds(new Set());
+        setShowToolbar(false);
+      }
     }
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("pointerup", handlePointerUp);
@@ -184,6 +193,72 @@ function ReaderContent({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);
+
+  // Recalculate popover placement (top/bottom layout slot) based on selection bounds to avoid overlap
+  useEffect(() => {
+    if (selectedVerseIds.size === 0 || !scrollContainerRef.current || !containerRef.current) {
+      return;
+    }
+
+    const scrollContainer = scrollContainerRef.current;
+    
+    const updatePlacement = () => {
+      if (selectedVerseIds.size === 0 || !scrollContainerRef.current || !containerRef.current) {
+        return;
+      }
+      
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const elements = Array.from(containerRef.current!.querySelectorAll("[data-verse-row]"))
+        .filter((el) => {
+          const id = el.getAttribute("data-verse-id");
+          return id && selectedVerseIds.has(id);
+        }) as HTMLElement[];
+
+      if (elements.length === 0) {
+        return;
+      }
+
+      // Find the lowest bottom coordinate of the selected verses relative to the scroll container's viewport
+      let maxBottomViewport = -Infinity;
+
+      elements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const relBottomViewport = rect.bottom - containerRect.top;
+        if (relBottomViewport > maxBottomViewport) {
+          maxBottomViewport = relBottomViewport;
+        }
+      });
+
+      // If the bottom of the selected verses is within 125px of the bottom edge of the container viewport,
+      // flip the popover to the top so it doesn't overlap the selected text.
+      const threshold = containerRect.height - 125;
+      const placement = maxBottomViewport > threshold ? "top" : "bottom";
+
+      console.log("Calculated Popover Placement:", { maxBottomViewport, threshold, placement });
+      setPopoverPlacement(placement);
+    };
+
+    // Calculate immediately
+    updatePlacement();
+
+    // Recalculate on scroll, resize, or viewport changes
+    scrollContainer.addEventListener("scroll", updatePlacement);
+    window.addEventListener("resize", updatePlacement);
+
+    const resizeObserver = new ResizeObserver(updatePlacement);
+    const elements = Array.from(containerRef.current.querySelectorAll("[data-verse-row]"))
+      .filter((el) => {
+        const id = el.getAttribute("data-verse-id");
+        return id && selectedVerseIds.has(id);
+      }) as HTMLElement[];
+    elements.forEach(el => resizeObserver.observe(el));
+
+    return () => {
+      scrollContainer.removeEventListener("scroll", updatePlacement);
+      window.removeEventListener("resize", updatePlacement);
+      resizeObserver.disconnect();
+    };
+  }, [selectedVerseIds, verses]);
 
   useKeyboardNavigation(prevChapter, nextChapter);
   useSwipeNavigation(prevChapter, nextChapter);
@@ -222,7 +297,8 @@ function ReaderContent({
       />
 
       <div
-        className={`flex-1 min-h-0 overflow-y-auto custom-scrollbar w-full mx-auto ${
+        ref={scrollContainerRef}
+        className={`relative flex-1 min-h-0 overflow-y-auto custom-scrollbar w-full mx-auto ${
           readerMode === "wide"
             ? "max-w-none px-4 md:px-8 pt-8 pb-8"
             : readerMode === "medium"
@@ -311,7 +387,29 @@ function ReaderContent({
             ))
           )}
         </article>
+
       </div>
+
+      {isActive && open && (
+        <VerseSelectionPopover
+          book={book}
+          chapter={chapter}
+          selectedVerses={selectedVerses}
+          versionAbbr={versionAbbr}
+          versionId={versionId}
+          onClose={() => setSelectedVerseIds(new Set())}
+          onOpenHighlightEditor={() => {
+            const verseNums = selectedVerses.map((v) =>
+              parseInt(v.id.split("-").pop()!, 10)
+            );
+            setCreateEditorVerses(verseNums);
+            setShowCreateEditor(true);
+          }}
+          position={popoverPlacement}
+          showToolbar={showToolbar}
+          setShowToolbar={setShowToolbar}
+        />
+      )}
 
       <div
         className={cn(
@@ -344,24 +442,6 @@ function ReaderContent({
       </div>
       )}
 
-      {/* Verse selection bottom bar — only for the active pane */}
-      {isActive && open && (
-        <VerseSelectionPopover
-          book={book}
-          chapter={chapter}
-          selectedVerses={selectedVerses}
-          versionAbbr={versionAbbr}
-          versionId={versionId}
-          onClose={() => setSelectedVerseIds(new Set())}
-          onOpenHighlightEditor={() => {
-            const verseNums = selectedVerses.map((v) =>
-              parseInt(v.id.split("-").pop()!, 10)
-            );
-            setCreateEditorVerses(verseNums);
-            setShowCreateEditor(true);
-          }}
-        />
-      )}
 
       {/* Highlight Editor — edit mode (from sidebar) */}
       {showHighlightEditor && editingHighlight && (
