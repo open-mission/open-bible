@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { IconTextSize } from "@tabler/icons-react";
+import { IconTextSize, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +33,7 @@ import { BibleVersionSelector } from "./bible-version-selector";
 import { useIsTauriMacOS } from "@/features/layout/hooks/use-is-tauri-macos";
 
 interface ReaderHeaderProps {
-  book: { name: string };
+  book: { name: string; chapters: number };
   chapter: number;
   readerMode: "narrow" | "medium" | "wide";
   onBookChapterClick: () => void;
@@ -44,6 +44,11 @@ interface ReaderHeaderProps {
   onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void;
   readerFont: "sans" | "serif" | "mono";
   onChangeReaderFont: (font: "sans" | "serif" | "mono") => void;
+  /** Per-pane chapter navigation (optional). Rendered as desktop-only arrows
+   *  flanking the book/chapter pill so each tab/grid item navigates
+   *  independently. */
+  onPrevChapter?: () => void;
+  onNextChapter?: () => void;
 }
 
 export function ReaderHeader({
@@ -58,6 +63,8 @@ export function ReaderHeader({
   onChangeVerseSpacing,
   readerFont,
   onChangeReaderFont,
+  onPrevChapter,
+  onNextChapter,
 }: ReaderHeaderProps) {
   const isTauriMacOS = useIsTauriMacOS();
   const [themeDialogOpen, setThemeDialogOpen] = useState(false);
@@ -106,6 +113,19 @@ export function ReaderHeader({
         {/* Desktop Book/Chapter/Version/Display Selector (Left-aligned pill) */}
         <div className="flex items-center border-0">
           <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-full border border-border/60">
+            {onPrevChapter && (
+              <Button
+                onClick={onPrevChapter}
+                disabled={chapter <= 1}
+                variant="ghost"
+                size="icon-xs"
+                className="h-8 w-8 rounded-full hover:bg-background hover:shadow-xs hidden md:inline-flex"
+                title="Capítulo anterior"
+                aria-label="Capítulo anterior"
+              >
+                <IconChevronLeft />
+              </Button>
+            )}
             <Button
               onClick={onBookChapterClick}
               variant="ghost"
@@ -120,6 +140,19 @@ export function ReaderHeader({
             >
               <span className="text-sm font-semibold mx-1">{chapter}</span>
             </Button>
+            {onNextChapter && (
+              <Button
+                onClick={onNextChapter}
+                disabled={chapter >= book.chapters}
+                variant="ghost"
+                size="icon-xs"
+                className="h-8 w-8 rounded-full hover:bg-background hover:shadow-xs hidden md:inline-flex"
+                title="Próximo capítulo"
+                aria-label="Próximo capítulo"
+              >
+                <IconChevronRight />
+              </Button>
+            )}
             <BibleVersionSelector
               variant="ghost"
               className="h-8 rounded-full px-3"

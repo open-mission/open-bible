@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, StickyNote } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
 import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
@@ -218,6 +218,8 @@ function ReaderContent({
         onChangeVerseSpacing={onChangeVerseSpacing}
         readerFont={readerFont}
         onChangeReaderFont={onChangeReaderFont}
+        onPrevChapter={prevChapter}
+        onNextChapter={nextChapter}
       />
 
       <div
@@ -330,26 +332,6 @@ function ReaderContent({
             aria-label="Capítulo anterior"
           >
             <ChevronLeft className="size-5" />
-          </button>
-          <button
-            onClick={() => {
-              closeNotePanel();
-              setDockView("highlights");
-            }}
-            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
-            aria-label="Todos os destaques"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5"><path d="M15.5 3.5a2.121 2.121 0 0 1 3 3L7 18l-4 1 1-4L14.5 3.5z"/><path d="M9 13.5l3 3"/></svg>
-          </button>
-          <button
-            onClick={() => {
-              closeNotePanel();
-              setDockView("notes");
-            }}
-            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
-            aria-label="Todas as notas"
-          >
-            <StickyNote className="size-5" />
           </button>
           <button
             onClick={nextChapter}
