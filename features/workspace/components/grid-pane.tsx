@@ -1,6 +1,7 @@
 "use client"
 
 import { Columns2, Rows2, X } from "lucide-react"
+import { IconGripHorizontal } from "@tabler/icons-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -10,7 +11,10 @@ import {
   DropdownMenuGroup,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
+import { useWorkspaceDnd } from "./workspace-view"
 import { BiblePaneView } from "./bible-pane-view"
 import { NotePaneView } from "./note-pane-view"
 import { SermonPaneView } from "./sermon-pane-view"
@@ -23,6 +27,8 @@ interface GridPaneProps {
   pane: Pane
   isActive: boolean
   onActivate: () => void
+  /** Drag handle element (from the sortable wrapper) rendered top-left. */
+  dragHandle?: React.ReactNode
 }
 
 /**
@@ -78,7 +84,7 @@ function GridSplitButton({
  * reader header — saving the vertical space of a separate header bar. Each
  * pane has its own version scope and notes context (via BiblePaneView).
  */
-export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
+export function GridPane({ pane, isActive, onActivate, dragHandle }: GridPaneProps) {
   const { closePane, updatePaneState, panes } = useWorkspace()
   const settings = useReaderSettings()
   const canClose = panes.length > 1
@@ -93,6 +99,9 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
       )}
       onMouseDown={onActivate}
     >
+      {/* Drag handle — top-left, reorder the grid pane */}
+      {dragHandle}
+
       {/* Floating grid controls — top-right, aligned with reader header */}
       <div className="absolute top-2.5 right-2.5 z-30 flex items-center gap-0.5 rounded-full bg-background/85 backdrop-blur border border-border/60 p-0.5 shadow-sm">
         <GridSplitButton
@@ -150,6 +159,66 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+/**
+ * Wraps a GridPane with dnd-kit sortable behavior. The grip handle (top-left)
+
+
+/**
+ * Wraps a GridPane with dnd-kit sortable behavior. The grip handle (top-left)
+ * carries the drag listeners; the pane itself still activates on mousedown.
+ */
+interface SortableGridPaneProps {
+  pane: Pane
+  isActive: boolean
+  onActivate: () => void
+}
+
+export function SortableGridPane({
+  pane,
+  isActive,
+  onActivate,
+}: SortableGridPaneProps) {
+  const { setActiveId } = useWorkspaceDnd()
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: pane.id })
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  const dragHandle = (
+    <button
+      type="button"
+      aria-label="Reordenar painel"
+      title="Arraste para reordenar"
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => {
+        e.stopPropagation()
+        setActiveId(pane.id)
+      }}
+      {...attributes}
+      {...listeners}
+      className="absolute top-2.5 left-2.5 z-30 flex items-center justify-center rounded-full bg-background/85 backdrop-blur border border-border/60 size-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-grab active:cursor-grabbing outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <IconGripHorizontal className="h-3.5 w-3.5" />
+    </button>
+  )
+
+  return (
+    <div ref={setNodeRef} style={style} className="h-full min-h-0">
+      <GridPane
+        pane={pane}
+        isActive={isActive}
+        onActivate={onActivate}
+        dragHandle={dragHandle}
+      />
     </div>
   )
 }

@@ -7,7 +7,7 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable"
 import { useWorkspace } from "../context/workspace-context"
-import { GridPane } from "./grid-pane"
+import { SortableGridPane } from "./grid-pane"
 import type { LayoutNode } from "../types"
 
 /**
@@ -34,7 +34,7 @@ function LayoutRenderer({ node }: { node: LayoutNode }) {
     const pane = panes.find((p) => p.id === node.paneId)
     if (!pane) return null
     return (
-      <GridPane
+      <SortableGridPane
         pane={pane}
         isActive={pane.id === activePaneId}
         onActivate={() => activatePane(pane.id)}

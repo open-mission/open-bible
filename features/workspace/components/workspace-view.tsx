@@ -1,7 +1,24 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, createContext, useContext } from "react"
 import { ChevronUp, ChevronDown } from "lucide-react"
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragStartEvent,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable"
 import { useWorkspace } from "../context/workspace-context"
 import { useReaderSettings } from "../hooks/use-reader-settings"
 import { BiblePaneView } from "./bible-pane-view"
@@ -16,6 +33,16 @@ import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
 import { cn } from "@/lib/utils"
 import type { BiblePaneState } from "../types"
 
+/** Shares the currently dragged pane id so tabs/grid panes can render an overlay. */
+const WorkspaceDndContext = createContext<{
+  activeId: string | null
+  setActiveId: (id: string | null) => void
+}>({ activeId: null, setActiveId: () => {} })
+
+export function useWorkspaceDnd() {
+  return useContext(WorkspaceDndContext)
+}
+
 const HEADER_COLLAPSED_KEY = "openbible:workspace-header-collapsed"
 
 /**
@@ -27,9 +54,31 @@ const HEADER_COLLAPSED_KEY = "openbible:workspace-header-collapsed"
  * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane } = useWorkspace()
+  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes } = useWorkspace()
   const settings = useReaderSettings()
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
+  const [activeDragId, setActiveDragId] = useState<string | null>(null)
+
+  // DnD sensors: small movement threshold so clicks still activate panes.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor),
+  )
+
+  const handleDragStart = (e: DragStartEvent) => {
+    setActiveDragId(String(e.active.id))
+  }
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    setActiveDragId(null)
+    const { active, over } = e
+    if (!over || active.id === over.id) return
+    const ids = panes.map((p) => p.id)
+    const from = ids.indexOf(String(active.id))
+    const to = ids.indexOf(String(over.id))
+    if (from === -1 || to === -1) return
+    reorderPanes(arrayMove(ids, from, to))
+  }
 
   // Load persisted collapse preference (client-only).
   useEffect(() => {
@@ -93,7 +142,21 @@ export function WorkspaceView() {
   const openFirstPane = () =>
     openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
 
+  const paneIds = panes.map((p) => p.id)
+  const activePaneTitle = panes.find((p) => p.id === activeDragId)?.title
+
   return (
+    <WorkspaceDndContext.Provider value={{ activeId: activeDragId, setActiveId: setActiveDragId }}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+    <SortableContext
+      items={paneIds}
+      strategy={layoutMode === "grid" ? rectSortingStrategy : horizontalListSortingStrategy}
+    >
     <div className="relative flex flex-col h-full min-h-0">
       {/* Desktop header — tabs + Abas/Grade toggle + picker on one line */}
       {panes.length > 0 && !headerCollapsed && (
@@ -167,5 +230,16 @@ export function WorkspaceView() {
       {/* Mobile bottom bar — tabs + toggle + picker + settings, above MobileNav */}
       {panes.length > 0 && <WorkspaceMobileBar />}
     </div>
+
+    {activeDragId && activePaneTitle && (
+      <DragOverlay>
+        <div className="rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium shadow-lg">
+          {activePaneTitle}
+        </div>
+      </DragOverlay>
+    )}
+    </SortableContext>
+    </DndContext>
+    </WorkspaceDndContext.Provider>
   )
 }

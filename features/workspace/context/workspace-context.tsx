@@ -42,6 +42,7 @@ interface WorkspaceContextValue {
   openPane: (state: PaneState) => string
   closePane: (id: string) => void
   activatePane: (id: string) => void
+  reorderPanes: (newOrderIds: string[]) => void
   updatePaneState: (id: string, state: Partial<BiblePaneState>) => void
   setLayoutMode: (mode: LayoutMode) => void
   splitPane: (paneId: string, direction: "horizontal" | "vertical", newState?: PaneState) => string
@@ -212,6 +213,33 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setActivePaneId(id)
   }, [])
 
+  /**
+   * Reorder panes (tabs and grid) by a new ordered list of pane IDs. The layout
+   * tree is re-mapped so its shape (splits/ratios) is preserved while panes move.
+   */
+  const reorderPanes = useCallback((newOrderIds: string[]) => {
+    setPanes((prevPanes) =>
+      newOrderIds
+        .map((id) => prevPanes.find((p) => p.id === id))
+        .filter((p): p is Pane => !!p)
+        .concat(prevPanes.filter((p) => !newOrderIds.includes(p.id))),
+    )
+    setLayout((prevLayout) => {
+      if (!prevLayout) return prevLayout
+      const ids = collectPaneIds(prevLayout)
+      let cursor = 0
+      const remap = (node: LayoutNode): LayoutNode => {
+        if (node.type === "leaf") {
+          const next = ids[Math.min(cursor, ids.length - 1)]
+          cursor++
+          return { ...node, paneId: next }
+        }
+        return { ...node, children: node.children.map(remap) }
+      }
+      return remap(prevLayout)
+    })
+  }, [])
+
   const updatePaneState = useCallback(
     (id: string, state: Partial<BiblePaneState>) => {
       setPanes((prev) =>
@@ -284,6 +312,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     openPane,
     closePane,
     activatePane,
+    reorderPanes,
     updatePaneState,
     setLayoutMode,
     splitPane,

@@ -89,10 +89,57 @@ export function appendLeaf(
   return { ...node, children: newChildren }
 }
 
-/** Collect all pane IDs referenced by a layout tree (depth-first). */
-export function collectPaneIds(node: LayoutNode): string[] {
-  if (node.type === "leaf") return [node.paneId]
-  return node.children.flatMap(collectPaneIds)
+/** Collect all pane IDs referenced by a layout tree, in visual (depth-first) order. */
+export function getOrderedPaneIds(node: LayoutNode): string[] {
+  return collectPaneIds(node)
+}
+
+/**
+ * Reorder the `panes` array and re-map the layout tree's leaves to match, so
+ * the tree keeps its exact shape (splits/ratios) while the panes change order.
+ * Used by both tabs reorder and grid reorder (the leaf order is what matters
+ * for visual ordering; the tree topology is preserved).
+ */
+export function reorderPanes(
+  panes: Pane[],
+  layout: LayoutNode | null,
+  newOrderIds: string[],
+): { panes: Pane[]; layout: LayoutNode | null } {
+  const ordered = newOrderIds
+    .map((id) => panes.find((p) => p.id === id))
+    .filter((p): p is Pane => !!p)
+  // Keep any panes not present in the layout (shouldn't happen) appended.
+  for (const p of panes) {
+    if (!ordered.find((o) => o.id === p.id)) ordered.push(p)
+  }
+
+  let newLayout = layout
+  if (layout) {
+    const ids = getOrderedPaneIds(layout)
+    let cursor = 0
+    newLayout = mapLeaves(layout, () => ids[Math.min(cursor++, ids.length - 1)])
+  }
+
+  return { panes: ordered, layout: newLayout }
+}
+
+/** Map every leaf's paneId through `fn`, returning a new tree. */
+function mapLeaves(node: LayoutNode, fn: (paneId: string) => string): LayoutNode {
+  if (node.type === "leaf") return { ...node, paneId: fn(node.paneId) }
+  return { ...node, children: node.children.map((c) => mapLeaves(c, fn)) }
+}
+
+/**
+ * Reorder grid panes by a flat ordered list of pane IDs. Rebuilds the layout
+ * tree from the new sequence using the same balanced arrangement. The active
+ * pane is preserved by the caller. Keeps ratios balanced (tmux/i3wm feel).
+ */
+export function reorderGridPanes(
+  orderIds: string[],
+  direction: LayoutDirection = "horizontal",
+): LayoutNode | null {
+  if (orderIds.length === 0) return null
+  return autoArrange(orderIds, direction)
 }
 
 /**
