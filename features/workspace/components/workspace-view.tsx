@@ -84,7 +84,7 @@ export function WorkspaceView() {
           aria-label="Mostrar barra"
           title="Mostrar barra"
           className={cn(
-            "hidden md:flex absolute top-0 left-1/2 -translate-x-1/2 z-30 items-center justify-center",
+            "hidden md:flex absolute top-0 left-2 z-30 items-center justify-center",
             "rounded-b-lg border border-t-0 border-border/60 bg-background/85 backdrop-blur px-4 py-0.5",
             "text-muted-foreground shadow-sm transition-colors hover:bg-background hover:text-foreground",
             "outline-none focus-visible:ring-2 focus-visible:ring-ring",
