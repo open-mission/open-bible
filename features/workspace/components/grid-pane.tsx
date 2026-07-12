@@ -98,7 +98,7 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
         ) : pane.state.type === "note" ? (
           <NotePaneView key={pane.id} />
         ) : pane.state.type === "sermon" ? (
-          <SermonPaneView key={pane.id} />
+          <SermonPaneView key={pane.id} paneId={pane.id} />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Em breve

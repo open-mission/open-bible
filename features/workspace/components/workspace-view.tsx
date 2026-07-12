@@ -54,7 +54,7 @@ export function WorkspaceView() {
         ) : activePane.state.type === "note" ? (
           <NotePaneView key={activePane.id} />
         ) : activePane.state.type === "sermon" ? (
-          <SermonPaneView key={activePane.id} />
+          <SermonPaneView key={activePane.id} paneId={activePane.id} />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Em breve
