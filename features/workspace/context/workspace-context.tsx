@@ -18,6 +18,7 @@ import {
   appendLeaf,
   collectPaneIds,
   autoArrange,
+  swapLeaves,
 } from "../lib/layout-tree"
 import { loadLayout } from "../hooks/use-workspace-mode"
 
@@ -43,6 +44,7 @@ interface WorkspaceContextValue {
   closePane: (id: string) => void
   activatePane: (id: string) => void
   reorderPanes: (newOrderIds: string[]) => void
+  swapPanes: (idA: string, idB: string) => void
   updatePaneState: (id: string, state: Partial<BiblePaneState>) => void
   setLayoutMode: (mode: LayoutMode) => void
   splitPane: (paneId: string, direction: "horizontal" | "vertical", newState?: PaneState) => string
@@ -240,6 +242,25 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  /**
+   * Swap two panes in the layout tree. The tree topology and panel sizes are
+   * preserved — only the pane IDs of the two matching leaves are exchanged.
+   * The panes array order is also swapped for consistency with tab rendering.
+   */
+  const swapPanes = useCallback((idA: string, idB: string) => {
+    if (idA === idB) return
+    setPanes((prev) => {
+      const indexA = prev.findIndex((p) => p.id === idA)
+      const indexB = prev.findIndex((p) => p.id === idB)
+      if (indexA === -1 || indexB === -1) return prev
+      const next = [...prev]
+      next[indexA] = prev[indexB]
+      next[indexB] = prev[indexA]
+      return next
+    })
+    setLayout((prev) => (prev ? swapLeaves(prev, idA, idB) : prev))
+  }, [])
+
   const updatePaneState = useCallback(
     (id: string, state: Partial<BiblePaneState>) => {
       setPanes((prev) =>
@@ -313,6 +334,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     closePane,
     activatePane,
     reorderPanes,
+    swapPanes,
     updatePaneState,
     setLayoutMode,
     splitPane,

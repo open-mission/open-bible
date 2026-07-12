@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, createContext, useContext } from "react"
+import { useState, useEffect, createContext, useContext, useMemo } from "react"
 import { ChevronUp, ChevronDown } from "lucide-react"
 import {
   DndContext,
@@ -17,7 +17,6 @@ import {
   SortableContext,
   arrayMove,
   horizontalListSortingStrategy,
-  rectSortingStrategy,
 } from "@dnd-kit/sortable"
 import { useWorkspace } from "../context/workspace-context"
 import { useReaderSettings } from "../hooks/use-reader-settings"
@@ -29,6 +28,8 @@ import { WorkspaceToolbar } from "./workspace-toolbar"
 import { WorkspaceGrid } from "./workspace-grid"
 import { WorkspaceMobileBar } from "./workspace-mobile-bar"
 import { ConfigButton } from "./config-button"
+import { IconLayoutGrid } from "@tabler/icons-react"
+import { WorkspaceTabOverview } from "./workspace-tab-overview"
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
 import { cn } from "@/lib/utils"
 import type { BiblePaneState } from "../types"
@@ -37,7 +38,7 @@ import type { BiblePaneState } from "../types"
 const WorkspaceDndContext = createContext<{
   activeId: string | null
   setActiveId: (id: string | null) => void
-}>({ activeId: null, setActiveId: () => {} })
+}>({ activeId: null, setActiveId: () => { } })
 
 export function useWorkspaceDnd() {
   return useContext(WorkspaceDndContext)
@@ -54,14 +55,15 @@ const HEADER_COLLAPSED_KEY = "openbible:workspace-header-collapsed"
  * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes } = useWorkspace()
+  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes } = useWorkspace()
   const settings = useReaderSettings()
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
+  const [overviewOpen, setOverviewOpen] = useState(false)
 
-  // DnD sensors: small movement threshold so clicks still activate panes.
+  // DnD sensors: 8px threshold to reduce false-positive drags when clicking.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor),
   )
 
@@ -73,11 +75,18 @@ export function WorkspaceView() {
     setActiveDragId(null)
     const { active, over } = e
     if (!over || active.id === over.id) return
-    const ids = panes.map((p) => p.id)
-    const from = ids.indexOf(String(active.id))
-    const to = ids.indexOf(String(over.id))
-    if (from === -1 || to === -1) return
-    reorderPanes(arrayMove(ids, from, to))
+
+    if (layoutMode === "grid") {
+      // Grid mode: swap pane positions in the layout tree.
+      swapPanes(String(active.id), String(over.id))
+    } else {
+      // Tabs mode: reorder the flat pane list.
+      const ids = panes.map((p) => p.id)
+      const from = ids.indexOf(String(active.id))
+      const to = ids.indexOf(String(over.id))
+      if (from === -1 || to === -1) return
+      reorderPanes(arrayMove(ids, from, to))
+    }
   }
 
   // Load persisted collapse preference (client-only).
@@ -143,103 +152,123 @@ export function WorkspaceView() {
     openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
 
   const paneIds = panes.map((p) => p.id)
-  const activePaneTitle = panes.find((p) => p.id === activeDragId)?.title
+  const activeDragPane = panes.find((p) => p.id === activeDragId)
+
+  // Memoize the drag overlay content to avoid re-renders
+  const dragOverlayContent = useMemo(() => {
+    if (!activeDragId || !activeDragPane) return null
+    return (
+      <div className="rounded-lg border border-primary/30 bg-background/95 backdrop-blur-sm px-4 py-2 shadow-xl ring-1 ring-primary/10">
+        <span className="text-sm font-medium">{activeDragPane.title}</span>
+      </div>
+    )
+  }, [activeDragId, activeDragPane])
 
   return (
     <WorkspaceDndContext.Provider value={{ activeId: activeDragId, setActiveId: setActiveDragId }}>
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-    <SortableContext
-      items={paneIds}
-      strategy={layoutMode === "grid" ? rectSortingStrategy : horizontalListSortingStrategy}
-    >
-    <div className="relative flex flex-col h-full min-h-0">
-      {/* Desktop header — tabs + Abas/Grade toggle + picker on one line */}
-      {panes.length > 0 && !headerCollapsed && (
-        <div className="hidden md:flex items-center gap-2 border-b border-border bg-muted/40 px-2 py-1.5 shrink-0">
-          <WorkspaceTabs />
-          <WorkspaceToolbar />
-          <ConfigButton />
-          <button
-            type="button"
-            onClick={toggleHeader}
-            aria-label="Ocultar barra"
-            title="Ocultar barra"
-            className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <ChevronUp className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Floating reveal handle when header is collapsed (desktop) */}
-      {panes.length > 0 && headerCollapsed && (
-        <button
-          type="button"
-          onClick={toggleHeader}
-          aria-label="Mostrar barra"
-          title="Mostrar barra"
-          className={cn(
-            "hidden md:flex absolute top-0 left-2 z-30 items-center justify-center",
-            "rounded-b-lg border border-t-0 border-border/60 bg-background/85 backdrop-blur px-4 py-0.5",
-            "text-muted-foreground shadow-sm transition-colors hover:bg-background hover:text-foreground",
-            "outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          )}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        {/* SortableContext only needed for tabs mode (sortable reorder) */}
+        <SortableContext
+          items={paneIds}
+          strategy={horizontalListSortingStrategy}
         >
-          <ChevronDown className="h-4 w-4" />
-        </button>
-      )}
+          <div className="relative flex flex-col h-full min-h-0">
+            {/* Desktop header — tabs + Abas/Grade toggle + picker on one line */}
+            {panes.length > 0 && !headerCollapsed && (
+              <div className="hidden md:flex items-center gap-2 px-2 pt-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setOverviewOpen(true)}
+                  aria-label="Ver todas as abas"
+                  title="Ver todas as abas (Estilo Safari)"
+                  className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <IconLayoutGrid className="h-4 w-4" />
+                </button>
+                <WorkspaceTabs />
+                <WorkspaceToolbar />
+                <ConfigButton />
+                <button
+                  type="button"
+                  onClick={toggleHeader}
+                  aria-label="Ocultar barra"
+                  title="Ocultar barra"
+                  className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </button>
+              </div>
+            )}
 
-      {/* Content */}
-      <div className="relative flex-1 min-h-0 h-full overflow-hidden pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-0">
-        {panes.length === 0 ? (
-          <ReaderEmpty onOpenSidebar={openFirstPane} />
-        ) : layoutMode === "grid" ? (
-          <WorkspaceGrid />
-        ) : !activePane ? (
-          <ReaderEmpty onOpenSidebar={openFirstPane} />
-        ) : activePane.state.type === "bible" ? (
-          <BiblePaneView
-            key={activePane.id}
-            pane={activePane}
-            readerMode={settings.readerMode}
-            onChangeReaderMode={settings.setReaderMode}
-            fontSize={settings.fontSize}
-            onChangeFontSize={settings.setFontSize}
-            verseSpacing={settings.verseSpacing}
-            onChangeVerseSpacing={settings.setVerseSpacing}
-            readerFont={settings.readerFont}
-            onChangeReaderFont={settings.setReaderFont}
-            onPaneUpdate={updatePaneState}
-          />
-        ) : activePane.state.type === "note" ? (
-          <NotePaneView key={activePane.id} />
-        ) : activePane.state.type === "sermon" ? (
-          <SermonPaneView key={activePane.id} paneId={activePane.id} />
-        ) : (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            Em breve
+            {/* Floating reveal handle when header is collapsed (desktop) */}
+            {panes.length > 0 && headerCollapsed && (
+              <button
+                type="button"
+                onClick={toggleHeader}
+                aria-label="Mostrar barra"
+                title="Mostrar barra"
+                className={cn(
+                  "hidden md:flex absolute top-0 left-2 z-30 items-center justify-center",
+                  "rounded-b-lg border border-t-0 border-border/60 bg-background/85 backdrop-blur px-4 py-0.5",
+                  "text-muted-foreground shadow-sm transition-colors hover:bg-background hover:text-foreground",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                )}
+              >
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            )}
+
+            {/* Content */}
+            <div className="relative flex-1 min-h-0 h-full overflow-hidden pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-0">
+              {panes.length === 0 ? (
+                <ReaderEmpty onOpenSidebar={openFirstPane} />
+              ) : layoutMode === "grid" ? (
+                <WorkspaceGrid />
+              ) : !activePane ? (
+                <ReaderEmpty onOpenSidebar={openFirstPane} />
+              ) : activePane.state.type === "bible" ? (
+                <BiblePaneView
+                  key={activePane.id}
+                  pane={activePane}
+                  readerMode={settings.readerMode}
+                  onChangeReaderMode={settings.setReaderMode}
+                  fontSize={settings.fontSize}
+                  onChangeFontSize={settings.setFontSize}
+                  verseSpacing={settings.verseSpacing}
+                  onChangeVerseSpacing={settings.setVerseSpacing}
+                  readerFont={settings.readerFont}
+                  onChangeReaderFont={settings.setReaderFont}
+                  onPaneUpdate={updatePaneState}
+                />
+              ) : activePane.state.type === "note" ? (
+                <NotePaneView key={activePane.id} />
+              ) : activePane.state.type === "sermon" ? (
+                <SermonPaneView key={activePane.id} paneId={activePane.id} />
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  Em breve
+                </div>
+              )}
+            </div>
+
+            {/* Mobile bottom bar — tabs + toggle + picker + settings, above MobileNav */}
+            {panes.length > 0 && <WorkspaceMobileBar />}
           </div>
-        )}
-      </div>
 
-      {/* Mobile bottom bar — tabs + toggle + picker + settings, above MobileNav */}
-      {panes.length > 0 && <WorkspaceMobileBar />}
-    </div>
+          <WorkspaceTabOverview open={overviewOpen} onClose={() => setOverviewOpen(false)} />
 
-    {activeDragId && activePaneTitle && (
-      <DragOverlay>
-        <div className="rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium shadow-lg">
-          {activePaneTitle}
-        </div>
-      </DragOverlay>
-    )}
-    </SortableContext>
-    </DndContext>
+          {activeDragId && (
+            <DragOverlay dropAnimation={null}>
+              {dragOverlayContent}
+            </DragOverlay>
+          )}
+        </SortableContext>
+      </DndContext>
     </WorkspaceDndContext.Provider>
   )
 }
