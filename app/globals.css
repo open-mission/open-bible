@@ -190,6 +190,22 @@
   html {
     @apply font-sans;
   }
+  /* Disable native text selection and the iOS long-press callout globally.
+     On touch devices native selection fights drag-and-drop (workspace tabs /
+     grid handles) and triggers an unwanted callout menu. Verse selection and
+     copy use a custom popover, so disabling native selection is safe. Editable
+     fields (notes, sermons) are re-enabled below so they stay typeable. */
+  body {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
 /* Reading area styles */
 .reading-area {
