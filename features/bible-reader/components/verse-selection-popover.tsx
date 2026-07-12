@@ -156,8 +156,8 @@ export function VerseSelectionPopover({
     <div
       data-verse-selection-bar=""
       className={cn(
-        "fixed inset-x-0 z-50 flex justify-center p-4 transition-all duration-200 pointer-events-none",
-        isMobile ? "bottom-24" : "bottom-4",
+        "absolute inset-x-0 bottom-0 z-50 flex justify-center p-4 transition-all duration-200 pointer-events-none",
+        isMobile ? "pb-24" : "pb-4",
       )}
     >
       <style>{`
