@@ -3,6 +3,8 @@
 import { Columns2, Rows2, X } from "lucide-react"
 import { useWorkspace } from "../context/workspace-context"
 import { BiblePaneView } from "./bible-pane-view"
+import { NotePaneView } from "./note-pane-view"
+import { SermonPaneView } from "./sermon-pane-view"
 import { useReaderSettings } from "../hooks/use-reader-settings"
 import { cn } from "@/lib/utils"
 import type { Pane } from "../types"
@@ -93,6 +95,10 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
             onPaneUpdate={updatePaneState}
             isActive={isActive}
           />
+        ) : pane.state.type === "note" ? (
+          <NotePaneView key={pane.id} />
+        ) : pane.state.type === "sermon" ? (
+          <SermonPaneView key={pane.id} />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Em breve

@@ -1,17 +1,15 @@
 "use client"
 
-import { Rows3, LayoutGrid } from "lucide-react"
+import { Rows3, LayoutGrid, Notebook } from "lucide-react"
 import { useWorkspace } from "../context/workspace-context"
 import { cn } from "@/lib/utils"
 
 /**
  * Toolbar shown at the top of the workspace when panes are open. Contains the
- * layout mode toggle (Abas/Grade) so the user can switch between browser-style
- * tabs and the tiling grid. In tabs mode the tab bar below adds the "+"; in
- * grid mode each pane header has split controls.
+ * layout mode toggle (Abas/Grade) and a "Notas" button to open a notes pane.
  */
 export function WorkspaceToolbar() {
-  const { layoutMode, setLayoutMode } = useWorkspace()
+  const { layoutMode, setLayoutMode, openPane } = useWorkspace()
 
   return (
     <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-2 py-1.5 shrink-0">
@@ -47,6 +45,18 @@ export function WorkspaceToolbar() {
           Grade
         </button>
       </div>
+
+      <div className="flex-1" />
+
+      <button
+        type="button"
+        aria-label="Abrir notas"
+        onClick={() => openPane({ type: "note", noteId: "" })}
+        className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+      >
+        <Notebook className="h-3.5 w-3.5" />
+        Notas
+      </button>
     </div>
   )
 }
