@@ -190,3 +190,21 @@ export function autoArrange(
   if (groupNodes.length === 1) return groupNodes[0]
   return makeSplit(direction, groupNodes)
 }
+
+/**
+ * Swap two leaf pane IDs in the layout tree. The tree topology and `sizes`
+ * arrays are unchanged — only the `paneId` values of the two matching leaves
+ * are exchanged. Returns the same tree reference if neither ID is found.
+ */
+export function swapLeaves(
+  node: LayoutNode,
+  idA: string,
+  idB: string,
+): LayoutNode {
+  if (idA === idB) return node
+  return mapLeaves(node, (paneId) => {
+    if (paneId === idA) return idB
+    if (paneId === idB) return idA
+    return paneId
+  })
+}

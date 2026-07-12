@@ -11,8 +11,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { useSortable } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
+import { useDraggable, useDroppable } from "@dnd-kit/core"
 import { useWorkspace } from "../context/workspace-context"
 import { useWorkspaceDnd } from "./workspace-view"
 import { BiblePaneView } from "./bible-pane-view"
@@ -29,6 +28,10 @@ interface GridPaneProps {
   onActivate: () => void
   /** Drag handle element (from the sortable wrapper) rendered top-left. */
   dragHandle?: React.ReactNode
+  /** Whether another pane is being dragged over this one. */
+  isDropTarget?: boolean
+  /** Whether this pane is currently being dragged. */
+  isDragging?: boolean
 }
 
 /**
@@ -84,7 +87,7 @@ function GridSplitButton({
  * reader header — saving the vertical space of a separate header bar. Each
  * pane has its own version scope and notes context (via BiblePaneView).
  */
-export function GridPane({ pane, isActive, onActivate, dragHandle }: GridPaneProps) {
+export function GridPane({ pane, isActive, onActivate, dragHandle, isDropTarget, isDragging }: GridPaneProps) {
   const { closePane, updatePaneState, panes } = useWorkspace()
   const settings = useReaderSettings()
   const canClose = panes.length > 1
@@ -92,13 +95,26 @@ export function GridPane({ pane, isActive, onActivate, dragHandle }: GridPanePro
   return (
     <div
       className={cn(
-        "relative flex flex-col h-full min-h-0 overflow-hidden bg-background transition-shadow ring-1 ring-inset border",
-        isActive
-          ? "border-primary/40 ring-primary/20"
-          : "border-border ring-border",
+        "relative flex flex-col h-full min-h-0 overflow-hidden bg-background transition-all ring-1 ring-inset border rounded",
+        isDragging
+          ? "opacity-30 scale-[0.97] border-primary/20 ring-primary/10"
+          : isDropTarget
+            ? "border-primary ring-primary/40 shadow-[inset_0_0_0_2px_hsl(var(--primary)/0.15)]"
+            : isActive
+              ? "border-primary/40 ring-primary/20"
+              : "border-border ring-border",
       )}
       onMouseDown={onActivate}
     >
+      {/* Drop target overlay — visible when another pane hovers over this one */}
+      {isDropTarget && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-primary/5 backdrop-blur-[1px] pointer-events-none">
+          <span className="rounded-full bg-primary/15 px-3 py-1.5 text-xs font-medium text-primary">
+            Soltar para trocar
+          </span>
+        </div>
+      )}
+
       {/* Drag handle — top-left, reorder the grid pane */}
       {dragHandle}
 
@@ -164,14 +180,12 @@ export function GridPane({ pane, isActive, onActivate, dragHandle }: GridPanePro
 }
 
 /**
- * Wraps a GridPane with dnd-kit sortable behavior. The grip handle (top-left)
-
-
-/**
- * Wraps a GridPane with dnd-kit sortable behavior. The grip handle (top-left)
- * carries the drag listeners; the pane itself still activates on mousedown.
+ * Wraps a GridPane with dnd-kit draggable + droppable behavior for swap-based
+ * reordering. The grip handle (top-left) carries the drag listeners; the pane
+ * itself is a droppable target. When a pane is dragged over another, they swap
+ * positions in the layout tree (preserving panel sizes and tree shape).
  */
-interface SortableGridPaneProps {
+interface DraggableGridPaneProps {
   pane: Pane
   isActive: boolean
   onActivate: () => void
@@ -181,17 +195,22 @@ export function SortableGridPane({
   pane,
   isActive,
   onActivate,
-}: SortableGridPaneProps) {
+}: DraggableGridPaneProps) {
   const { setActiveId } = useWorkspaceDnd()
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: pane.id })
 
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 50 : undefined,
-    opacity: isDragging ? 0.5 : 1,
-  }
+  // Draggable — the grip handle is the activator.
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragRef,
+    isDragging,
+  } = useDraggable({ id: pane.id })
+
+  // Droppable — the entire pane is a drop target.
+  const {
+    setNodeRef: setDropRef,
+    isOver,
+  } = useDroppable({ id: pane.id })
 
   const dragHandle = (
     <button
@@ -203,21 +222,29 @@ export function SortableGridPane({
         e.stopPropagation()
         setActiveId(pane.id)
       }}
+      ref={setDragRef}
       {...attributes}
       {...listeners}
-      className="absolute top-2.5 left-2.5 z-30 flex items-center justify-center rounded-full bg-background/85 backdrop-blur border border-border/60 size-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-grab active:cursor-grabbing outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className={cn(
+        "absolute top-2.5 left-2.5 z-30 flex items-center justify-center rounded-full bg-background/85 backdrop-blur border border-border/60 size-8 text-muted-foreground transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        isDragging
+          ? "cursor-grabbing bg-primary/10 border-primary/30 text-primary"
+          : "cursor-grab hover:bg-muted hover:text-foreground hover:scale-110",
+      )}
     >
-      <IconGripHorizontal className="h-3.5 w-3.5" />
+      <IconGripHorizontal className="h-4 w-4" />
     </button>
   )
 
   return (
-    <div ref={setNodeRef} style={style} className="h-full min-h-0">
+    <div ref={setDropRef} className="h-full min-h-0">
       <GridPane
         pane={pane}
         isActive={isActive}
         onActivate={onActivate}
         dragHandle={dragHandle}
+        isDropTarget={isOver && !isDragging}
+        isDragging={isDragging}
       />
     </div>
   )

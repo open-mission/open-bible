@@ -5,7 +5,6 @@ import { IconGripVertical } from "@tabler/icons-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
-import { useWorkspaceDnd } from "./workspace-view"
 import { cn } from "@/lib/utils"
 import type { Pane } from "../types"
 
@@ -13,8 +12,8 @@ import type { Pane } from "../types"
  * Horizontal scrollable tab list for the workspace — browser-style tabs along
  * the top, each showing the pane title with a drag grip and a close button
  * (when more than one pane is open). Tabs can be reordered by dragging the
- * grip. Rendered inside the desktop header and the mobile bottom bar. The "+"
- * picker lives in WorkspaceToolbar.
+ * entire tab (like Chrome/VS Code). Rendered inside the desktop header and the
+ * mobile bottom bar. The "+" picker lives in WorkspaceToolbar.
  */
 export function WorkspaceTabs() {
   const { panes, activePaneId, activatePane, closePane } = useWorkspace()
@@ -51,15 +50,16 @@ function SortableTab({
   index: number
   total: number
 }) {
-  const { setActiveId } = useWorkspaceDnd()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: pane.id })
 
+  // Lock Y-axis: tabs should only slide horizontally inside the tab strip.
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Transform.toString(
+      transform ? { ...transform, y: 0 } : null,
+    ),
     transition,
     zIndex: isDragging ? 50 : undefined,
-    opacity: isDragging ? 0.4 : 1,
   }
 
   return (
@@ -74,6 +74,9 @@ function SortableTab({
           ? `${pane.title} — ⌘/Ctrl+${index + 1}`
           : pane.title
       }
+      // The entire tab is the drag handle — listeners are on the wrapper.
+      {...attributes}
+      {...listeners}
       onClick={onActivate}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -82,33 +85,26 @@ function SortableTab({
         }
       }}
       className={cn(
-        "group relative flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm whitespace-nowrap cursor-pointer transition-colors select-none border",
-        active
+        "group relative flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm whitespace-nowrap transition-all select-none border",
+        isDragging
+          ? "opacity-40 scale-95 border-primary/30 bg-primary/5 shadow-none cursor-grabbing"
+          : "cursor-grab active:cursor-grabbing",
+        !isDragging && active
           ? "bg-background text-foreground shadow-sm border-border"
-          : "text-muted-foreground hover:bg-background/60 hover:text-foreground border-transparent",
+          : !isDragging
+            ? "text-muted-foreground hover:bg-background/60 hover:text-foreground border-transparent"
+            : "",
       )}
     >
-      {/* Drag handle */}
+      {/* Decorative grip icon — the whole tab is draggable */}
       {total > 1 && (
-        <button
-          type="button"
-          aria-label="Reordenar aba"
-          title="Arraste para reordenar"
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => {
-            e.stopPropagation()
-            setActiveId(pane.id)
-          }}
-          {...attributes}
-          {...listeners}
-          className="flex items-center justify-center rounded text-muted-foreground/50 hover:text-foreground cursor-grab active:cursor-grabbing outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
+        <span className="flex items-center justify-center text-muted-foreground/40 shrink-0">
           <IconGripVertical className="h-3.5 w-3.5" />
-        </button>
+        </span>
       )}
 
       {/* Active indicator — subtle bottom accent, only when multiple tabs */}
-      {active && total > 1 && (
+      {active && total > 1 && !isDragging && (
         <span
           className="absolute inset-x-1.5 -bottom-[5px] h-0.5 rounded-full bg-muted-foreground/40"
           aria-hidden
@@ -123,6 +119,8 @@ function SortableTab({
             e.stopPropagation()
             onClose()
           }}
+          // Prevent drag from triggering on the close button.
+          onPointerDown={(e) => e.stopPropagation()}
           className="ml-1 rounded p-0.5 text-muted-foreground/70 opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100 focus:opacity-100 focus:outline-none"
         >
           <X className="h-3.5 w-3.5" />
