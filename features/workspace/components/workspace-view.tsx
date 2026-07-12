@@ -99,7 +99,6 @@ export function WorkspaceView() {
       {panes.length > 0 && !headerCollapsed && (
         <div className="hidden md:flex items-center gap-2 border-b border-border bg-muted/40 px-2 py-1.5 shrink-0">
           <WorkspaceTabs />
-          <div className="flex-1" />
           <WorkspaceToolbar />
           <ConfigButton />
           <button

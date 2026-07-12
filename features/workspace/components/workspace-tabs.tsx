@@ -14,7 +14,7 @@ export function WorkspaceTabs() {
   const { panes, activePaneId, activatePane, closePane } = useWorkspace()
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar min-w-0 flex-1">
+    <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar min-w-0 flex-1 px-0.5 py-1">
       {panes.map((pane) => {
         const active = pane.id === activePaneId
         return (
