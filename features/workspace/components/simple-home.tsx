@@ -109,6 +109,7 @@ export function SimpleHome() {
                     onChangeVerseSpacing={setVerseSpacing}
                     readerFont={readerFont}
                     onChangeReaderFont={setReaderFont}
+                    showConfigButton={true}
                   />
                 ) : (
                   <ReaderEmpty
