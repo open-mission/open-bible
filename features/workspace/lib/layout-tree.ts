@@ -89,7 +89,13 @@ export function appendLeaf(
   return { ...node, children: newChildren }
 }
 
-/** Collect all pane IDs referenced by a layout tree, in visual (depth-first) order. */
+/** Collect all pane IDs referenced by a layout tree (depth-first, visual order). */
+export function collectPaneIds(node: LayoutNode): string[] {
+  if (node.type === "leaf") return [node.paneId]
+  return node.children.flatMap(collectPaneIds)
+}
+
+/** Alias of collectPaneIds — pane IDs in visual (depth-first) order. */
 export function getOrderedPaneIds(node: LayoutNode): string[] {
   return collectPaneIds(node)
 }
