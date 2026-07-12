@@ -17,7 +17,6 @@ import { useNotesContext } from "@/features/notes/context/notes-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
 import { AllHighlightsBrowser } from "@/features/highlights/components/all-highlights-browser";
 import { NotesBrowser } from "@/features/notes/components/notes-browser";
-import { BottomDock } from "@/features/dock/bottom-dock";
 import { useIsMobile } from "@/lib/use-media-query";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
@@ -343,37 +342,6 @@ function ReaderContent({
           </button>
         </div>
       </div>
-      )}
-
-      {/* Desktop bottom dock with flanking chapter-nav arrows */}
-      {!open && (
-        <div className="fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 items-center gap-2 md:flex">
-          <button
-            type="button"
-            onClick={prevChapter}
-            disabled={chapter <= 1}
-            className="inline-flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-elevation backdrop-blur-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-20"
-            aria-label="Capítulo anterior"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
-          <BottomDock
-            activeTab={dockView}
-            onSelect={(tab) => {
-              closeNotePanel();
-              setDockView((prev) => (prev === tab ? null : tab));
-            }}
-          />
-          <button
-            type="button"
-            onClick={nextChapter}
-            disabled={book && chapter >= book.chapters}
-            className="inline-flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-elevation backdrop-blur-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-20"
-            aria-label="Próximo capítulo"
-          >
-            <ChevronRight className="size-5" />
-          </button>
-        </div>
       )}
 
       {/* Verse selection bottom bar — only for the active pane */}
