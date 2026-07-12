@@ -33,7 +33,6 @@ interface VerseSelectionPopoverProps {
   versionId: string;
   onClose: () => void;
   onOpenHighlightEditor: () => void;
-  top: number;
   position: "top" | "bottom";
   showToolbar: boolean;
   setShowToolbar: (show: boolean) => void;
@@ -74,12 +73,11 @@ export function VerseSelectionPopover({
   versionId,
   onClose,
   onOpenHighlightEditor,
-  top,
   position,
   showToolbar,
   setShowToolbar,
 }: VerseSelectionPopoverProps) {
-  console.log("VerseSelectionPopover Rendered:", { top, position, selectedVersesCount: selectedVerses.length });
+  console.log("VerseSelectionPopover Rendered:", { position, selectedVersesCount: selectedVerses.length });
   const [copied, setCopied] = useState<CopiedKind>(null);
   const isMobile = useIsMobile();
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -157,9 +155,14 @@ export function VerseSelectionPopover({
     <div
       data-verse-selection-bar=""
       ref={popoverRef}
-      style={{
+      style={position === "top" ? {
         position: "absolute",
-        top: `${top}px`,
+        top: "72px",
+        left: "50%",
+        transform: "translateX(-50%)",
+      } : {
+        position: "absolute",
+        bottom: "16px",
         left: "50%",
         transform: "translateX(-50%)",
       }}

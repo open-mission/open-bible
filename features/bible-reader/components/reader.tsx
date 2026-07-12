@@ -95,7 +95,7 @@ function ReaderContent({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [popoverPosition, setPopoverPosition] = useState<{ top: number; position: "top" | "bottom" } | null>(null);
+  const [popoverPlacement, setPopoverPlacement] = useState<"top" | "bottom">("bottom");
 
   const prevChapter = useCallback(() => {
     if (chapter > 1) {
@@ -194,18 +194,16 @@ function ReaderContent({
     };
   }, [open]);
 
-  // Recalculate popover position based on selection bounds
+  // Recalculate popover placement (top/bottom layout slot) based on selection bounds to avoid overlap
   useEffect(() => {
     if (selectedVerseIds.size === 0 || !scrollContainerRef.current || !containerRef.current) {
-      setPopoverPosition(null);
       return;
     }
 
     const scrollContainer = scrollContainerRef.current;
     
-    const updatePosition = () => {
+    const updatePlacement = () => {
       if (selectedVerseIds.size === 0 || !scrollContainerRef.current || !containerRef.current) {
-        setPopoverPosition(null);
         return;
       }
       
@@ -217,63 +215,37 @@ function ReaderContent({
         }) as HTMLElement[];
 
       if (elements.length === 0) {
-        setPopoverPosition(null);
         return;
       }
 
-      // Get bounding range of all selected verses relative to the scrolling container
-      let minTop = Infinity;
-      let maxBottom = -Infinity;
+      // Find the lowest bottom coordinate of the selected verses relative to the scroll container's viewport
+      let maxBottomViewport = -Infinity;
 
       elements.forEach((el) => {
         const rect = el.getBoundingClientRect();
-        // Since we position the popover absolute inside scrollContainer,
-        // we calculate top and bottom relative to scrollContainer's top, plus current scroll.
-        const relTop = rect.top - containerRect.top + scrollContainer.scrollTop;
-        const relBottom = rect.bottom - containerRect.top + scrollContainer.scrollTop;
-        if (relTop < minTop) minTop = relTop;
-        if (relBottom > maxBottom) maxBottom = relBottom;
+        const relBottomViewport = rect.bottom - containerRect.top;
+        if (relBottomViewport > maxBottomViewport) {
+          maxBottomViewport = relBottomViewport;
+        }
       });
 
-      // Space above the selection within the scrollContainer's viewport
-      const spaceAbove = minTop - scrollContainer.scrollTop;
-      // Space below the selection within the scrollContainer's viewport
-      const spaceBelow = containerRect.height - (maxBottom - scrollContainer.scrollTop);
+      // If the bottom of the selected verses is within 125px of the bottom edge of the container viewport,
+      // flip the popover to the top so it doesn't overlap the selected text.
+      const threshold = containerRect.height - 125;
+      const placement = maxBottomViewport > threshold ? "top" : "bottom";
 
-      // Estimated height of our compact popover (around 60px to 120px depending on showToolbar)
-      // Since it's a floating pill, it will be small.
-      const estimatedHeight = showToolbar ? 120 : 60;
-      const offset = 8; // Spacing margin
-
-      let placement: "top" | "bottom" = "top";
-      let top = minTop - estimatedHeight - offset;
-
-      // If there is not enough space above, but there is space below, or if space below is greater
-      if (spaceAbove < estimatedHeight + offset && spaceBelow > spaceAbove) {
-        placement = "bottom";
-        top = maxBottom + offset;
-      } else {
-        placement = "top";
-        top = minTop - estimatedHeight - offset;
-      }
-
-      // Ensure we don't position above the scroll container's top boundary
-      if (top < 0) {
-        top = offset;
-      }
-
-      console.log("Calculated Popover Position:", { minTop, maxBottom, top, placement, spaceAbove, spaceBelow });
-      setPopoverPosition({ top, position: placement });
+      console.log("Calculated Popover Placement:", { maxBottomViewport, threshold, placement });
+      setPopoverPlacement(placement);
     };
 
     // Calculate immediately
-    updatePosition();
+    updatePlacement();
 
     // Recalculate on scroll, resize, or viewport changes
-    scrollContainer.addEventListener("scroll", updatePosition);
-    window.addEventListener("resize", updatePosition);
+    scrollContainer.addEventListener("scroll", updatePlacement);
+    window.addEventListener("resize", updatePlacement);
 
-    const resizeObserver = new ResizeObserver(updatePosition);
+    const resizeObserver = new ResizeObserver(updatePlacement);
     const elements = Array.from(containerRef.current.querySelectorAll("[data-verse-row]"))
       .filter((el) => {
         const id = el.getAttribute("data-verse-id");
@@ -282,11 +254,11 @@ function ReaderContent({
     elements.forEach(el => resizeObserver.observe(el));
 
     return () => {
-      scrollContainer.removeEventListener("scroll", updatePosition);
-      window.removeEventListener("resize", updatePosition);
+      scrollContainer.removeEventListener("scroll", updatePlacement);
+      window.removeEventListener("resize", updatePlacement);
       resizeObserver.disconnect();
     };
-  }, [selectedVerseIds, verses, showToolbar]);
+  }, [selectedVerseIds, verses]);
 
   useKeyboardNavigation(prevChapter, nextChapter);
   useSwipeNavigation(prevChapter, nextChapter);
@@ -416,28 +388,28 @@ function ReaderContent({
           )}
         </article>
 
-        {isActive && open && (
-          <VerseSelectionPopover
-            book={book}
-            chapter={chapter}
-            selectedVerses={selectedVerses}
-            versionAbbr={versionAbbr}
-            versionId={versionId}
-            onClose={() => setSelectedVerseIds(new Set())}
-            onOpenHighlightEditor={() => {
-              const verseNums = selectedVerses.map((v) =>
-                parseInt(v.id.split("-").pop()!, 10)
-              );
-              setCreateEditorVerses(verseNums);
-              setShowCreateEditor(true);
-            }}
-            top={popoverPosition?.top ?? 0}
-            position={popoverPosition?.position ?? "top"}
-            showToolbar={showToolbar}
-            setShowToolbar={setShowToolbar}
-          />
-        )}
       </div>
+
+      {isActive && open && (
+        <VerseSelectionPopover
+          book={book}
+          chapter={chapter}
+          selectedVerses={selectedVerses}
+          versionAbbr={versionAbbr}
+          versionId={versionId}
+          onClose={() => setSelectedVerseIds(new Set())}
+          onOpenHighlightEditor={() => {
+            const verseNums = selectedVerses.map((v) =>
+              parseInt(v.id.split("-").pop()!, 10)
+            );
+            setCreateEditorVerses(verseNums);
+            setShowCreateEditor(true);
+          }}
+          position={popoverPlacement}
+          showToolbar={showToolbar}
+          setShowToolbar={setShowToolbar}
+        />
+      )}
 
       <div
         className={cn(
