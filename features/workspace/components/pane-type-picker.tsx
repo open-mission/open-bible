@@ -1,6 +1,6 @@
 "use client"
 
-import { Plus, BookOpen, Notebook, Presentation } from "lucide-react"
+import { Plus } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { useWorkspace } from "../context/workspace-context"
-import type { PaneState } from "../types"
+import { PANE_TYPE_OPTIONS } from "../lib/pane-type-options"
 
 /**
  * A "+" button that opens a dropdown menu letting the user choose what type
@@ -22,33 +22,7 @@ import type { PaneState } from "../types"
  * in one place.
  */
 export function PaneTypePicker() {
-  const { openPane, activePane, panes } = useWorkspace()
-
-  const options: {
-    type: PaneState["type"]
-    label: string
-    icon: React.ReactNode
-    state: PaneState
-  }[] = [
-    {
-      type: "bible",
-      label: "Bíblia",
-      icon: <BookOpen />,
-      state: { type: "bible", bookId: "gen", chapter: 1, versionId: "ara" },
-    },
-    {
-      type: "note",
-      label: "Notas",
-      icon: <Notebook />,
-      state: { type: "note", noteId: "" },
-    },
-    {
-      type: "sermon",
-      label: "Sermões",
-      icon: <Presentation />,
-      state: { type: "sermon", sermonId: "" },
-    },
-  ]
+  const { openPane } = useWorkspace()
 
   return (
     <DropdownMenu>
@@ -64,12 +38,12 @@ export function PaneTypePicker() {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {options.map((opt) => (
+          {PANE_TYPE_OPTIONS.map((opt) => (
             <DropdownMenuItem
               key={opt.type}
               onClick={() => openPane(opt.state)}
             >
-              {opt.icon}
+              <opt.icon />
               <span>{opt.label}</span>
             </DropdownMenuItem>
           ))}
