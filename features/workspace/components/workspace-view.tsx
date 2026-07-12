@@ -27,7 +27,7 @@ const HEADER_COLLAPSED_KEY = "openbible:workspace-header-collapsed"
  * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, openPane, panes, updatePaneState, layoutMode } = useWorkspace()
+  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode } = useWorkspace()
   const settings = useReaderSettings()
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
 
