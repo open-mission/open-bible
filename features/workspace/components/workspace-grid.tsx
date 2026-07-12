@@ -46,7 +46,7 @@ function LayoutRenderer({ node }: { node: LayoutNode }) {
   return (
     <ResizablePanelGroup
       key={node.id}
-      direction={node.direction}
+      orientation={node.direction}
       className="h-full w-full"
     >
       {node.children.map((child, i) => (
