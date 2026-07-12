@@ -100,8 +100,8 @@ export function BiblePaneView({
           setNotesTarget(null)
         }}
       >
-        <SidebarProvider open={false} className="h-full">
-          <SidebarInset className="w-auto overflow-hidden h-full">
+        <SidebarProvider open={false} className="h-full min-h-0">
+          <SidebarInset className="w-auto overflow-hidden h-full min-h-0">
             <PanelLayout
               main={
                 <main className="relative overflow-hidden reading-area flex flex-col h-full">
