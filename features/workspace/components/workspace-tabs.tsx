@@ -1,34 +1,17 @@
 "use client"
 
-import { Plus, X } from "lucide-react"
+import { X } from "lucide-react"
 import { useWorkspace } from "../context/workspace-context"
+import { PaneTypePicker } from "./pane-type-picker"
 import { cn } from "@/lib/utils"
-import type { BiblePaneState } from "../types"
 
 /**
  * Horizontal scrollable tab bar for the workspace — browser-style tabs along
  * the top, each showing the pane title with a close button (when more than one
- * pane is open), plus a "+" button to open a new Bible pane.
+ * pane is open), plus a PaneTypePicker (+) to open a new pane of any type.
  */
 export function WorkspaceTabs() {
-  const { panes, activePaneId, activatePane, closePane, openPane } = useWorkspace()
-
-  function handleNewTab() {
-    const active = panes.find((p) => p.id === activePaneId)
-    let newState: BiblePaneState
-    if (active?.state.type === "bible") {
-      // Duplicate the active pane's passage (common tab behavior).
-      newState = {
-        type: "bible",
-        bookId: active.state.bookId,
-        chapter: active.state.chapter,
-        versionId: active.state.versionId,
-      }
-    } else {
-      newState = { type: "bible", bookId: "gen", chapter: 1, versionId: "ara" }
-    }
-    openPane(newState)
-  }
+  const { panes, activePaneId, activatePane, closePane } = useWorkspace()
 
   return (
     <div className="flex items-center gap-1 border-b border-border bg-muted/40 px-2 py-1.5 overflow-x-auto custom-scrollbar shrink-0">
@@ -71,14 +54,7 @@ export function WorkspaceTabs() {
           </div>
         )
       })}
-      <button
-        type="button"
-        aria-label="Nova aba"
-        onClick={handleNewTab}
-        className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground shrink-0"
-      >
-        <Plus className="h-4 w-4" />
-      </button>
+      <PaneTypePicker />
     </div>
   )
 }
