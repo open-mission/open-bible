@@ -8,8 +8,17 @@ import {
   useCallback,
   type ReactNode,
 } from "react"
-import type { Pane, PaneState, BiblePaneState, LayoutMode } from "../types"
+import type { Pane, PaneState, BiblePaneState, LayoutMode, LayoutNode } from "../types"
 import { paneTitleFor } from "../lib/pane-title"
+import {
+  makeLeaf,
+  makeSplit,
+  replaceLeaf,
+  removeLeaf,
+  appendLeaf,
+  collectPaneIds,
+  autoArrange,
+} from "../lib/layout-tree"
 
 /**
  * Workspace state: the set of open panes (tabs), which one is active, and the
@@ -28,11 +37,13 @@ interface WorkspaceContextValue {
   panes: Pane[]
   activePaneId: string | null
   layoutMode: LayoutMode
+  layout: LayoutNode | null
   openPane: (state: PaneState) => string
   closePane: (id: string) => void
   activatePane: (id: string) => void
   updatePaneState: (id: string, state: Partial<BiblePaneState>) => void
   setLayoutMode: (mode: LayoutMode) => void
+  splitPane: (paneId: string, direction: "horizontal" | "vertical", newState?: PaneState) => string
   activePane: Pane | null
 }
 
@@ -46,6 +57,7 @@ interface PersistedWorkspace {
   panes: Pane[]
   activePaneId: string | null
   layoutMode: LayoutMode
+  layout?: LayoutNode | null
 }
 
 function migrateFromLegacy(): PersistedWorkspace | null {
@@ -59,7 +71,7 @@ function migrateFromLegacy(): PersistedWorkspace | null {
       if (!Number.isNaN(chapter) && chapter > 0) {
         const state: BiblePaneState = { type: "bible", bookId, chapter, versionId }
         const pane: Pane = { id: generateId(), title: paneTitleFor(state), state }
-        return { panes: [pane], activePaneId: pane.id, layoutMode: "tabs" }
+        return { panes: [pane], activePaneId: pane.id, layoutMode: "tabs", layout: makeLeaf(pane.id) }
       }
     }
   } catch {
@@ -77,7 +89,19 @@ function loadWorkspace(): PersistedWorkspace {
     if (raw) {
       const parsed = JSON.parse(raw) as PersistedWorkspace
       if (parsed.panes && Array.isArray(parsed.panes) && parsed.panes.length > 0) {
-        return parsed
+        // Backward compat: if layout is missing or doesn't cover all panes,
+        // auto-arrange from the pane list.
+        let layout = parsed.layout ?? null
+        if (layout) {
+          const layoutIds = new Set(collectPaneIds(layout))
+          const paneIds = parsed.panes.map((p) => p.id)
+          if (!paneIds.every((id) => layoutIds.has(id))) {
+            layout = autoArrange(paneIds)
+          }
+        } else {
+          layout = autoArrange(parsed.panes.map((p) => p.id))
+        }
+        return { ...parsed, layout }
       }
     }
     const migrated = migrateFromLegacy()
@@ -85,7 +109,7 @@ function loadWorkspace(): PersistedWorkspace {
   } catch {
     /* ignore */
   }
-  return { panes: [], activePaneId: null, layoutMode: "tabs" }
+  return { panes: [], activePaneId: null, layoutMode: "tabs", layout: null }
 }
 
 function saveWorkspace(ws: PersistedWorkspace) {
@@ -101,6 +125,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [panes, setPanes] = useState<Pane[]>([])
   const [activePaneId, setActivePaneId] = useState<string | null>(null)
   const [layoutMode, setLayoutModeState] = useState<LayoutMode>("tabs")
+  const [layout, setLayout] = useState<LayoutNode | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   // Load persisted workspace on mount (deferred to avoid SSR mismatch).
@@ -110,6 +135,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setPanes(ws.panes)
       setActivePaneId(ws.activePaneId)
       setLayoutModeState(ws.layoutMode)
+      setLayout(ws.layout ?? null)
       setLoaded(true)
     }, 0)
     return () => clearTimeout(timer)
@@ -118,8 +144,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // Persist whenever workspace changes (after initial load).
   useEffect(() => {
     if (!loaded) return
-    saveWorkspace({ panes, activePaneId, layoutMode })
-  }, [panes, activePaneId, layoutMode, loaded])
+    saveWorkspace({ panes, activePaneId, layoutMode, layout })
+  }, [panes, activePaneId, layoutMode, layout, loaded])
 
   // Keep activePaneId valid: if it points to a closed/non-existent pane, fall
   // back to the last pane (or null if empty).
@@ -152,11 +178,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const pane: Pane = { id, title: paneTitleFor(state), state }
     setPanes((prev) => [...prev, pane])
     setActivePaneId(id)
+    // Keep layout tree in sync: append the new pane as a leaf.
+    setLayout((prev) => {
+      const leaf = makeLeaf(id)
+      if (!prev) return leaf
+      return appendLeaf(prev, leaf)
+    })
     return id
   }, [])
 
   const closePane = useCallback((id: string) => {
     setPanes((prev) => prev.filter((p) => p.id !== id))
+    setLayout((prev) => (prev ? removeLeaf(prev, id) : null))
   }, [])
 
   const activatePane = useCallback((id: string) => {
@@ -179,7 +212,51 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const setLayoutMode = useCallback((mode: LayoutMode) => {
     setLayoutModeState(mode)
+    // When switching to grid, ensure the layout tree covers all panes.
+    if (mode === "grid") {
+      setPanes((currentPanes) => {
+        setLayout((currentLayout) => {
+          if (!currentLayout || currentPanes.length === 0) return currentLayout
+          const layoutIds = new Set(collectPaneIds(currentLayout))
+          const paneIds = currentPanes.map((p) => p.id)
+          if (!paneIds.every((id) => layoutIds.has(id))) {
+            return autoArrange(paneIds)
+          }
+          return currentLayout
+        })
+        return currentPanes
+      })
+    }
   }, [])
+
+  /**
+   * Split a pane in the layout tree. The existing pane stays in place; a new
+   * pane (with `newState`, or a duplicate of the original for Bible panes) is
+   * added as the second child of a new split node. Returns the new pane ID.
+   */
+  const splitPane = useCallback(
+    (paneId: string, direction: "horizontal" | "vertical", newState?: PaneState): string => {
+      const newId = generateId()
+      const sourcePane = panes.find((p) => p.id === paneId)
+      // Default: duplicate the source pane's state (common for comparing translations).
+      const state: PaneState =
+        newState ??
+        (sourcePane?.state ?? { type: "bible", bookId: "gen", chapter: 1, versionId: "ara" })
+      const newPane: Pane = { id: newId, title: paneTitleFor(state), state }
+
+      setPanes((prev) => [...prev, newPane])
+      setActivePaneId(newId)
+      setLayout((prev) => {
+        if (!prev) return makeLeaf(newId)
+        const sourceLeaf = makeLeaf(paneId)
+        const newLeaf = makeLeaf(newId)
+        const split = makeSplit(direction, [sourceLeaf, newLeaf])
+        return replaceLeaf(prev, paneId, split)
+      })
+      return newId
+    },
+    [panes],
+  )
 
   const activePane = panes.find((p) => p.id === activePaneId) ?? null
 
@@ -187,11 +264,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     panes,
     activePaneId,
     layoutMode,
+    layout,
     openPane,
     closePane,
     activatePane,
     updatePaneState,
     setLayoutMode,
+    splitPane,
     activePane,
   }
 

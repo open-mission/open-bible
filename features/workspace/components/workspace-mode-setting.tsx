@@ -28,7 +28,7 @@ export function WorkspaceModeSetting() {
     {
       value: "advanced",
       label: "Avançado",
-      description: "Workspace com abas — abra várias passagens e traduções ao mesmo tempo.",
+      description: "Workspace com abas e grade tiling — abra várias passagens e traduções ao mesmo tempo, lado a lado.",
       icon: <LayoutGrid className="h-5 w-5" />,
     },
   ]

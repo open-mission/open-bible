@@ -38,5 +38,28 @@ export interface Pane {
   state: PaneState
 }
 
-/** Workspace layout mode. `grid` (tiling) arrives in Phase 2. */
+/** Workspace layout mode — `tabs` (browser-style) or `grid` (tiling, tmux/i3wm). */
 export type LayoutMode = "tabs" | "grid"
+
+// ─── Layout tree (Phase 2 — tiling grid) ─────────────────────────────────────
+
+export type LayoutDirection = "horizontal" | "vertical"
+
+/** A leaf node — holds a single pane reference. */
+export interface LayoutLeaf {
+  type: "leaf"
+  paneId: string
+}
+
+/** A split node — divides space among children in a direction, with relative sizes. */
+export interface LayoutSplit {
+  type: "split"
+  id: string
+  direction: LayoutDirection
+  children: LayoutNode[]
+  /** Relative sizes (percentages, sum = 100). Length matches children. */
+  sizes: number[]
+}
+
+/** A node in the layout tree — either a leaf (pane) or a split (container). */
+export type LayoutNode = LayoutLeaf | LayoutSplit

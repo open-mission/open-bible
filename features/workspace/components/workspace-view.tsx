@@ -4,28 +4,36 @@ import { useWorkspace } from "../context/workspace-context"
 import { useReaderSettings } from "../hooks/use-reader-settings"
 import { BiblePaneView } from "./bible-pane-view"
 import { WorkspaceTabs } from "./workspace-tabs"
+import { WorkspaceToolbar } from "./workspace-toolbar"
+import { WorkspaceGrid } from "./workspace-grid"
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
 import type { BiblePaneState } from "../types"
 
 /**
- * Renders the active workspace pane inside a tab bar. When no pane exists yet,
- * shows an empty state with a call-to-action to open the first Bible passage.
- * Note/sermon pane types are handled in Phase 3.
+ * The workspace content area. When panes are open, a toolbar lets the user
+ * switch between layout modes:
+ *  - tabs  → browser-style tab bar + the active pane only
+ *  - grid  → tiling grid showing all panes simultaneously with drag-to-resize
+ * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, openPane, panes, updatePaneState } = useWorkspace()
+  const { activePane, openPane, panes, updatePaneState, layoutMode } = useWorkspace()
   const settings = useReaderSettings()
+
+  const openFirstPane = () =>
+    openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {panes.length > 0 && <WorkspaceTabs />}
+      {panes.length > 0 && <WorkspaceToolbar />}
+      {layoutMode === "tabs" && panes.length > 0 && <WorkspaceTabs />}
       <div className="flex-1 min-h-0 overflow-hidden">
-        {!activePane ? (
-          <ReaderEmpty
-            onOpenSidebar={() =>
-              openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
-            }
-          />
+        {panes.length === 0 ? (
+          <ReaderEmpty onOpenSidebar={openFirstPane} />
+        ) : layoutMode === "grid" ? (
+          <WorkspaceGrid />
+        ) : !activePane ? (
+          <ReaderEmpty onOpenSidebar={openFirstPane} />
         ) : activePane.state.type === "bible" ? (
           <BiblePaneView
             key={activePane.id}
@@ -41,7 +49,6 @@ export function WorkspaceView() {
             onPaneUpdate={updatePaneState}
           />
         ) : (
-          // note / sermon pane types — Phase 3
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Em breve
           </div>
