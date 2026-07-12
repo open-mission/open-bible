@@ -23,6 +23,11 @@ export function WorkspaceTabs() {
             role="tab"
             tabIndex={0}
             aria-selected={active}
+            title={
+              panes.indexOf(pane) < 9
+                ? `${pane.title} — ⌘/Ctrl+${panes.indexOf(pane) + 1}`
+                : pane.title
+            }
             onClick={() => activatePane(pane.id)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -31,12 +36,16 @@ export function WorkspaceTabs() {
               }
             }}
             className={cn(
-              "group flex items-center gap-2 rounded-md px-3 py-1.5 text-sm whitespace-nowrap cursor-pointer transition-colors select-none",
+              "group relative flex items-center gap-2 rounded-md px-3 py-1.5 text-sm whitespace-nowrap cursor-pointer transition-colors select-none border",
               active
-                ? "bg-background text-foreground border border-border shadow-sm"
-                : "text-muted-foreground hover:bg-background/60 hover:text-foreground border border-transparent",
+                ? "bg-background text-foreground shadow-sm border-border"
+                : "text-muted-foreground hover:bg-background/60 hover:text-foreground border-transparent",
             )}
           >
+            {/* Active indicator — colored bottom border */}
+            {active && (
+              <span className="absolute inset-x-1 -bottom-[5px] h-0.5 rounded-full bg-primary" aria-hidden />
+            )}
             <span className="max-w-[220px] truncate font-medium">{pane.title}</span>
             {panes.length > 1 && (
               <button

@@ -52,6 +52,44 @@ export function WorkspaceView() {
     })
   }
 
+  // Keyboard shortcuts: ⌘/Ctrl + 1..9 jump to a pane by index; ⌘/Ctrl + Tab
+  // (and Shift) cycle through panes. Works in both tabs and grid modes.
+  useEffect(() => {
+    if (panes.length === 0) return
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return
+      const target = e.target as HTMLElement | null
+      const tag = target?.tagName
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        target?.isContentEditable
+      ) {
+        return
+      }
+
+      // ⌘/Ctrl + Tab  and  ⌘/Ctrl + Shift + Tab  → cycle
+      if (e.key === "Tab") {
+        e.preventDefault()
+        const idx = panes.findIndex((p) => p.id === activePaneId)
+        const current = idx === -1 ? 0 : idx
+        const delta = e.shiftKey ? -1 : 1
+        const nextIdx = (current + delta + panes.length) % panes.length
+        activatePane(panes[nextIdx].id)
+        return
+      }
+
+      // ⌘/Ctrl + 1..9  → jump to that pane
+      if (/^[1-9]$/.test(e.key)) {
+        e.preventDefault()
+        const idx = Number(e.key) - 1
+        if (idx < panes.length) activatePane(panes[idx].id)
+      }
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [panes, activePaneId, activatePane])
+
   const openFirstPane = () =>
     openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
 
