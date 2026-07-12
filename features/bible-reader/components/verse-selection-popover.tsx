@@ -79,6 +79,7 @@ export function VerseSelectionPopover({
   showToolbar,
   setShowToolbar,
 }: VerseSelectionPopoverProps) {
+  console.log("VerseSelectionPopover Rendered:", { top, position, selectedVersesCount: selectedVerses.length });
   const [copied, setCopied] = useState<CopiedKind>(null);
   const isMobile = useIsMobile();
   const popoverRef = useRef<HTMLDivElement>(null);

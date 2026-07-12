@@ -262,6 +262,7 @@ function ReaderContent({
         top = offset;
       }
 
+      console.log("Calculated Popover Position:", { minTop, maxBottom, top, placement, spaceAbove, spaceBelow });
       setPopoverPosition({ top, position: placement });
     };
 
