@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, StickyNote } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
 import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
