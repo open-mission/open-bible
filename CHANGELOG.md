@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 
 
+
+## [0.6.0] - 2026-07-12
+
+### Added
+- Release version 0.6.0 from 0.5.0
+
+[0.6.0]: https://github.com/open-mission/open-bible/compare/0.6.0...0.6.0
+
 ## [0.5.0] - 2026-07-11
 
 ### Added

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   IconSun,
   IconMoon,
@@ -8,6 +8,7 @@ import {
   IconBook,
 } from "@tabler/icons-react";
 import { useAppTheme } from "@/features/theme/components/theme-provider";
+import { ConfigDialog } from "@/features/config/components/config-dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -47,7 +48,7 @@ export function AppSidebar({
   onToggleSidebar,
 }: SidebarProps) {
   const { isDark, setTheme } = useAppTheme();
-  const router = useRouter();
+  const [configOpen, setConfigOpen] = useState(false);
 
   return (
     <Sidebar
@@ -98,7 +99,7 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => router.push("/config")}
+              onClick={() => setConfigOpen(true)}
               tooltip="Configurações"
               className="h-11"
             >
@@ -124,6 +125,7 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      <ConfigDialog open={configOpen} onOpenChange={setConfigOpen} />
     </Sidebar>
   );
 }

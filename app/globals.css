@@ -190,6 +190,22 @@
   html {
     @apply font-sans;
   }
+  /* Disable native text selection and the iOS long-press callout globally.
+     On touch devices native selection fights drag-and-drop (workspace tabs /
+     grid handles) and triggers an unwanted callout menu. Verse selection and
+     copy use a custom popover, so disabling native selection is safe. Editable
+     fields (notes, sermons) are re-enabled below so they stay typeable. */
+  body {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
 /* Reading area styles */
 .reading-area {
@@ -197,8 +213,17 @@
 }
 
 /* Custom scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(240 5.9% 80%) transparent;
+}
+.dark .custom-scrollbar {
+  scrollbar-color: hsl(240 5.9% 26%) transparent;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -206,12 +231,12 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: hsl(240 5.9% 90%);
+  background: hsl(240 5.9% 80% / 0.7);
   border-radius: 10px;
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: hsl(240 5.9% 20%);
+  background: hsl(240 5.9% 26% / 0.7);
 }
 
 /* Highlight verse styles */

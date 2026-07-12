@@ -17,7 +17,6 @@ import { useNotesContext } from "@/features/notes/context/notes-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
 import { AllHighlightsBrowser } from "@/features/highlights/components/all-highlights-browser";
 import { NotesBrowser } from "@/features/notes/components/notes-browser";
-import { BottomDock } from "@/features/dock/bottom-dock";
 import { useIsMobile } from "@/lib/use-media-query";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
@@ -38,6 +37,10 @@ interface ReaderProps {
   onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void;
   readerFont: "sans" | "serif" | "mono";
   onChangeReaderFont: (font: "sans" | "serif" | "mono") => void;
+  /** Whether this pane is the active one in the workspace grid. When false,
+   *  verse selection is cleared and the selection popover is hidden so that
+   *  only the focused pane can show a selection. Defaults to true (tabs/simple). */
+  isActive?: boolean;
 }
 
 function ReaderContent({
@@ -54,6 +57,7 @@ function ReaderContent({
   readerFont,
   onChangeReaderFont,
   versionId,
+  isActive = true,
 }: ReaderProps & { versionId: string }) {
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
@@ -75,10 +79,23 @@ function ReaderContent({
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
   /** Dock inspector: toggled "notes" | "highlights" view (null = closed). */
   const [dockView, setDockView] = useState<"notes" | "highlights" | null>(null);
+  const [showToolbar, setShowToolbar] = useState(false);
+
+  /** Clear verse selection when this pane becomes inactive (grid mode) so
+   *  only the focused pane shows a selection popover. */
+  useEffect(() => {
+    if (!isActive) {
+      setSelectedVerseIds(new Set());
+      setActiveVerseId(null);
+      setShowToolbar(false);
+    }
+  }, [isActive]);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [popoverPlacement, setPopoverPlacement] = useState<"top" | "bottom">("bottom");
 
   const prevChapter = useCallback(() => {
     if (chapter > 1) {
@@ -102,6 +119,7 @@ function ReaderContent({
       else next.add(verseId);
       return next;
     });
+    setShowToolbar(false);
   }, []);
 
   const handleArticleClick = useCallback(
@@ -158,9 +176,13 @@ function ReaderContent({
       )
         return;
       setSelectedVerseIds(new Set());
+      setShowToolbar(false);
     }
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setSelectedVerseIds(new Set());
+      if (e.key === "Escape") {
+        setSelectedVerseIds(new Set());
+        setShowToolbar(false);
+      }
     }
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("pointerup", handlePointerUp);
@@ -171,6 +193,72 @@ function ReaderContent({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);
+
+  // Recalculate popover placement (top/bottom layout slot) based on selection bounds to avoid overlap
+  useEffect(() => {
+    if (selectedVerseIds.size === 0 || !scrollContainerRef.current || !containerRef.current) {
+      return;
+    }
+
+    const scrollContainer = scrollContainerRef.current;
+    
+    const updatePlacement = () => {
+      if (selectedVerseIds.size === 0 || !scrollContainerRef.current || !containerRef.current) {
+        return;
+      }
+      
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const elements = Array.from(containerRef.current!.querySelectorAll("[data-verse-row]"))
+        .filter((el) => {
+          const id = el.getAttribute("data-verse-id");
+          return id && selectedVerseIds.has(id);
+        }) as HTMLElement[];
+
+      if (elements.length === 0) {
+        return;
+      }
+
+      // Find the lowest bottom coordinate of the selected verses relative to the scroll container's viewport
+      let maxBottomViewport = -Infinity;
+
+      elements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const relBottomViewport = rect.bottom - containerRect.top;
+        if (relBottomViewport > maxBottomViewport) {
+          maxBottomViewport = relBottomViewport;
+        }
+      });
+
+      // If the bottom of the selected verses is within 125px of the bottom edge of the container viewport,
+      // flip the popover to the top so it doesn't overlap the selected text.
+      const threshold = containerRect.height - 125;
+      const placement = maxBottomViewport > threshold ? "top" : "bottom";
+
+      console.log("Calculated Popover Placement:", { maxBottomViewport, threshold, placement });
+      setPopoverPlacement(placement);
+    };
+
+    // Calculate immediately
+    updatePlacement();
+
+    // Recalculate on scroll, resize, or viewport changes
+    scrollContainer.addEventListener("scroll", updatePlacement);
+    window.addEventListener("resize", updatePlacement);
+
+    const resizeObserver = new ResizeObserver(updatePlacement);
+    const elements = Array.from(containerRef.current.querySelectorAll("[data-verse-row]"))
+      .filter((el) => {
+        const id = el.getAttribute("data-verse-id");
+        return id && selectedVerseIds.has(id);
+      }) as HTMLElement[];
+    elements.forEach(el => resizeObserver.observe(el));
+
+    return () => {
+      scrollContainer.removeEventListener("scroll", updatePlacement);
+      window.removeEventListener("resize", updatePlacement);
+      resizeObserver.disconnect();
+    };
+  }, [selectedVerseIds, verses]);
 
   useKeyboardNavigation(prevChapter, nextChapter);
   useSwipeNavigation(prevChapter, nextChapter);
@@ -204,15 +292,18 @@ function ReaderContent({
         onChangeVerseSpacing={onChangeVerseSpacing}
         readerFont={readerFont}
         onChangeReaderFont={onChangeReaderFont}
+        onPrevChapter={prevChapter}
+        onNextChapter={nextChapter}
       />
 
       <div
-        className={`flex-1 w-full mx-auto ${
+        ref={scrollContainerRef}
+        className={`relative flex-1 min-h-0 overflow-y-auto custom-scrollbar w-full mx-auto ${
           readerMode === "wide"
-            ? "max-w-none px-4 md:px-8 py-8"
+            ? "max-w-none px-4 md:px-8 pt-8 pb-8"
             : readerMode === "medium"
-              ? "max-w-4xl px-4 md:px-12 py-8"
-              : "max-w-2xl px-4 md:px-16 py-8"
+              ? "max-w-4xl px-4 md:px-12 pt-8 pb-8"
+              : "max-w-2xl px-4 md:px-16 pt-8 pb-8"
         }`}
       >
         <header className="mb-12 text-center">
@@ -296,92 +387,10 @@ function ReaderContent({
             ))
           )}
         </article>
+
       </div>
 
-      <div
-        className={cn(
-          "w-full bg-linear-to-t z-10 from-background to-transparent absolute bottom-0",
-          open ? "h-50" : "h-30",
-        )}
-      ></div>
-
-      {/* Floating navigation: bottom on mobile, sides on desktop */}
-      {!dockView && (
-      <div className="fixed inset-x-0 bottom-8 z-40 flex justify-center pointer-events-none md:hidden">
-        <div className="flex gap-5 pointer-events-auto">
-          <button
-            onClick={prevChapter}
-            disabled={chapter <= 1}
-            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-            aria-label="Capítulo anterior"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
-          <button
-            onClick={() => {
-              closeNotePanel();
-              setDockView("highlights");
-            }}
-            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
-            aria-label="Todos os destaques"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5"><path d="M15.5 3.5a2.121 2.121 0 0 1 3 3L7 18l-4 1 1-4L14.5 3.5z"/><path d="M9 13.5l3 3"/></svg>
-          </button>
-          <button
-            onClick={() => {
-              closeNotePanel();
-              setDockView("notes");
-            }}
-            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors"
-            aria-label="Todas as notas"
-          >
-            <StickyNote className="size-5" />
-          </button>
-          <button
-            onClick={nextChapter}
-            disabled={book && chapter >= book.chapters}
-            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-            aria-label="Próximo capítulo"
-          >
-            <ChevronRight className="size-5" />
-          </button>
-        </div>
-      </div>
-      )}
-
-      {/* Desktop bottom dock with flanking chapter-nav arrows */}
-      {!open && (
-        <div className="fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 items-center gap-2 md:flex">
-          <button
-            type="button"
-            onClick={prevChapter}
-            disabled={chapter <= 1}
-            className="inline-flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-elevation backdrop-blur-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-20"
-            aria-label="Capítulo anterior"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
-          <BottomDock
-            activeTab={dockView}
-            onSelect={(tab) => {
-              closeNotePanel();
-              setDockView((prev) => (prev === tab ? null : tab));
-            }}
-          />
-          <button
-            type="button"
-            onClick={nextChapter}
-            disabled={book && chapter >= book.chapters}
-            className="inline-flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-elevation backdrop-blur-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-20"
-            aria-label="Próximo capítulo"
-          >
-            <ChevronRight className="size-5" />
-          </button>
-        </div>
-      )}
-
-      {/* Verse selection bottom bar */}
-      {open && (
+      {isActive && open && (
         <VerseSelectionPopover
           book={book}
           chapter={chapter}
@@ -396,8 +405,43 @@ function ReaderContent({
             setCreateEditorVerses(verseNums);
             setShowCreateEditor(true);
           }}
+          position={popoverPlacement}
+          showToolbar={showToolbar}
+          setShowToolbar={setShowToolbar}
         />
       )}
+
+      <div
+        className={cn(
+          "w-full bg-linear-to-t z-10 from-background to-transparent absolute bottom-0",
+          open ? "h-50" : "h-30",
+        )}
+      ></div>
+
+      {/* Floating navigation: bottom on mobile, sides on desktop */}
+      {!dockView && !open && (
+      <div className="fixed inset-x-0 bottom-8 z-40 flex justify-center pointer-events-none md:hidden">
+        <div className="flex gap-5 pointer-events-auto">
+          <button
+            onClick={prevChapter}
+            disabled={chapter <= 1}
+            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+            aria-label="Capítulo anterior"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <button
+            onClick={nextChapter}
+            disabled={book && chapter >= book.chapters}
+            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+            aria-label="Próximo capítulo"
+          >
+            <ChevronRight className="size-5" />
+          </button>
+        </div>
+      </div>
+      )}
+
 
       {/* Highlight Editor — edit mode (from sidebar) */}
       {showHighlightEditor && editingHighlight && (

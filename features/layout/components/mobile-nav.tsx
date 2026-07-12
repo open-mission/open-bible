@@ -1,16 +1,21 @@
 "use client"
 
+import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { IconBook, IconSettings } from "@tabler/icons-react"
+import { ConfigDialog } from "@/features/config/components/config-dialog"
 
 interface MobileNavProps {
   activeNav: string | null
   onNavClick: (navId: string) => void
+  /** Hide the settings (Ajustes) tab — used by the workspace, which has its own settings entry. */
+  hideConfig?: boolean
 }
 
-export function MobileNav({ activeNav, onNavClick }: MobileNavProps) {
+export function MobileNav({ activeNav, onNavClick, hideConfig }: MobileNavProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const [configOpen, setConfigOpen] = useState(false)
 
   const navItems = [
     {
@@ -26,16 +31,21 @@ export function MobileNav({ activeNav, onNavClick }: MobileNavProps) {
       },
       isActive: pathname === "/" && activeNav === "library",
     },
-    {
-      id: "config",
-      label: "Ajustes",
-      icon: IconSettings,
-      onClick: () => router.push("/config"),
-      isActive: pathname === "/config",
-    },
+    ...(hideConfig
+      ? []
+      : [
+          {
+            id: "config",
+            label: "Ajustes",
+            icon: IconSettings,
+            onClick: () => setConfigOpen(true),
+            isActive: configOpen,
+          },
+        ]),
   ]
 
   return (
+    <>
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] h-[calc(3.5rem+env(safe-area-inset-bottom))]">
       <nav className="flex h-14 items-center justify-around">
         {navItems.map((item) => {
@@ -57,5 +67,9 @@ export function MobileNav({ activeNav, onNavClick }: MobileNavProps) {
         })}
       </nav>
     </div>
+    {!hideConfig && (
+      <ConfigDialog open={configOpen} onOpenChange={setConfigOpen} />
+    )}
+    </>
   )
 }
