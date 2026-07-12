@@ -77,7 +77,7 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
       </div>
 
       {/* Pane body */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 h-full overflow-hidden">
         {pane.state.type === "bible" ? (
           <BiblePaneView
             key={pane.id}

@@ -27,7 +27,7 @@ export function WorkspaceView() {
     <div className="flex flex-col h-full min-h-0">
       {panes.length > 0 && <WorkspaceToolbar />}
       {layoutMode === "tabs" && panes.length > 0 && <WorkspaceTabs />}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 h-full overflow-hidden">
         {panes.length === 0 ? (
           <ReaderEmpty onOpenSidebar={openFirstPane} />
         ) : layoutMode === "grid" ? (

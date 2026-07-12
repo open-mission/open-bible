@@ -59,7 +59,7 @@ export function PanelLayout({
         </>
       )}
 
-      <ResizablePanel defaultSize={mainDefaultSize()} minSize={mainMinSize}>
+      <ResizablePanel defaultSize={mainDefaultSize()} minSize={mainMinSize} className="h-full min-h-0">
         {main}
       </ResizablePanel>
 
