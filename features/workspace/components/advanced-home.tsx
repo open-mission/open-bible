@@ -23,7 +23,7 @@ export function AdvancedHome() {
           <WorkspaceView />
         </div>
       </WorkspaceProvider>
-      <MobileNav activeNav="home" onNavClick={() => router.push("/config")} />
+      <MobileNav activeNav="home" hideConfig onNavClick={() => router.push("/config")} />
     </>
   )
 }

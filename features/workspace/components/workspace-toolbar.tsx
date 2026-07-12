@@ -6,15 +6,15 @@ import { PaneTypePicker } from "./pane-type-picker"
 import { cn } from "@/lib/utils"
 
 /**
- * Toolbar shown at the top of the workspace when panes are open. Contains the
- * layout mode toggle (Abas/Grade) and a PaneTypePicker (+) to open new panes
- * of any type (Bible, Notes, Sermons).
+ * The Abas/Grade layout-mode toggle plus the PaneTypePicker (+) to open new
+ * panes of any type. Rendered inline — on the desktop header (tabs + toggle
+ * on one line) and inside the mobile bottom bar.
  */
 export function WorkspaceToolbar() {
   const { layoutMode, setLayoutMode } = useWorkspace()
 
   return (
-    <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-2 py-1.5 shrink-0">
+    <div className="flex items-center gap-2 shrink-0">
       <div className="flex items-center gap-0.5 rounded-lg bg-background border border-border p-0.5">
         <button
           type="button"
@@ -47,8 +47,6 @@ export function WorkspaceToolbar() {
           Grade
         </button>
       </div>
-
-      <div className="flex-1" />
 
       <PaneTypePicker />
     </div>

@@ -6,9 +6,11 @@ import { IconBook, IconSettings } from "@tabler/icons-react"
 interface MobileNavProps {
   activeNav: string | null
   onNavClick: (navId: string) => void
+  /** Hide the settings (Ajustes) tab — used by the workspace, which has its own settings entry. */
+  hideConfig?: boolean
 }
 
-export function MobileNav({ activeNav, onNavClick }: MobileNavProps) {
+export function MobileNav({ activeNav, onNavClick, hideConfig }: MobileNavProps) {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -26,13 +28,17 @@ export function MobileNav({ activeNav, onNavClick }: MobileNavProps) {
       },
       isActive: pathname === "/" && activeNav === "library",
     },
-    {
-      id: "config",
-      label: "Ajustes",
-      icon: IconSettings,
-      onClick: () => router.push("/config"),
-      isActive: pathname === "/config",
-    },
+    ...(hideConfig
+      ? []
+      : [
+          {
+            id: "config",
+            label: "Ajustes",
+            icon: IconSettings,
+            onClick: () => router.push("/config"),
+            isActive: pathname === "/config",
+          },
+        ]),
   ]
 
   return (

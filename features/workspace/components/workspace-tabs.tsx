@@ -2,19 +2,19 @@
 
 import { X } from "lucide-react"
 import { useWorkspace } from "../context/workspace-context"
-import { PaneTypePicker } from "./pane-type-picker"
 import { cn } from "@/lib/utils"
 
 /**
- * Horizontal scrollable tab bar for the workspace — browser-style tabs along
+ * Horizontal scrollable tab list for the workspace — browser-style tabs along
  * the top, each showing the pane title with a close button (when more than one
- * pane is open), plus a PaneTypePicker (+) to open a new pane of any type.
+ * pane is open). Rendered inside the desktop header (tabs + toggle on one
+ * line) and the mobile bottom bar. The "+" picker lives in WorkspaceToolbar.
  */
 export function WorkspaceTabs() {
   const { panes, activePaneId, activatePane, closePane } = useWorkspace()
 
   return (
-    <div className="flex items-center gap-1 border-b border-border bg-muted/40 px-2 py-1.5 overflow-x-auto custom-scrollbar shrink-0">
+    <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar min-w-0 flex-1">
       {panes.map((pane) => {
         const active = pane.id === activePaneId
         return (
@@ -54,7 +54,6 @@ export function WorkspaceTabs() {
           </div>
         )
       })}
-      <PaneTypePicker />
     </div>
   )
 }
