@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuGroup,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { useWorkspace } from "../context/workspace-context"
@@ -58,17 +59,21 @@ export function PaneTypePicker() {
         <Plus className="h-4 w-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" side="bottom" sideOffset={4}>
-        <DropdownMenuLabel>Abrir nova aba</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Abrir nova aba</DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        {options.map((opt) => (
-          <DropdownMenuItem
-            key={opt.type}
-            onClick={() => openPane(opt.state)}
-          >
-            {opt.icon}
-            <span>{opt.label}</span>
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          {options.map((opt) => (
+            <DropdownMenuItem
+              key={opt.type}
+              onClick={() => openPane(opt.state)}
+            >
+              {opt.icon}
+              <span>{opt.label}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )
