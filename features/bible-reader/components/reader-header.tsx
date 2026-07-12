@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { IconTextSize, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { IconTextSize, IconChevronLeft, IconChevronRight, IconSettings } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/sheet";
 import { BibleVersionSelector } from "./bible-version-selector";
 import { useIsTauriMacOS } from "@/features/layout/hooks/use-is-tauri-macos";
+import { ConfigDialog } from "@/features/config/components/config-dialog";
 
 interface ReaderHeaderProps {
   book: { name: string; chapters: number };
@@ -49,6 +50,7 @@ interface ReaderHeaderProps {
    *  independently. */
   onPrevChapter?: () => void;
   onNextChapter?: () => void;
+  showConfigButton?: boolean;
 }
 
 export function ReaderHeader({
@@ -65,10 +67,12 @@ export function ReaderHeader({
   onChangeReaderFont,
   onPrevChapter,
   onNextChapter,
+  showConfigButton = false,
 }: ReaderHeaderProps) {
   const isTauriMacOS = useIsTauriMacOS();
   const [themeDialogOpen, setThemeDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(min-width: 768px)").matches;
@@ -166,6 +170,17 @@ export function ReaderHeader({
               <IconTextSize data-icon="inline-start" />
               <span className="hidden lg:inline">Exibição</span>
             </Button>
+            {showConfigButton && (
+              <Button
+                onClick={() => setConfigOpen(true)}
+                variant="ghost"
+                className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs hidden md:inline-flex"
+                title="Configurações"
+              >
+                <IconSettings data-icon="inline-start" />
+                <span className="hidden lg:inline">Ajustes</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -225,6 +240,10 @@ export function ReaderHeader({
             <ReaderThemeConfig />
           </DrawerContent>
         </Drawer>
+      )}
+
+      {showConfigButton && (
+        <ConfigDialog open={configOpen} onOpenChange={setConfigOpen} />
       )}
     </>
   );

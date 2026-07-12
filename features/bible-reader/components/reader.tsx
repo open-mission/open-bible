@@ -41,6 +41,7 @@ interface ReaderProps {
    *  verse selection is cleared and the selection popover is hidden so that
    *  only the focused pane can show a selection. Defaults to true (tabs/simple). */
   isActive?: boolean;
+  showConfigButton?: boolean;
 }
 
 function ReaderContent({
@@ -58,6 +59,7 @@ function ReaderContent({
   onChangeReaderFont,
   versionId,
   isActive = true,
+  showConfigButton = false,
 }: ReaderProps & { versionId: string }) {
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
@@ -294,6 +296,7 @@ function ReaderContent({
         onChangeReaderFont={onChangeReaderFont}
         onPrevChapter={prevChapter}
         onNextChapter={nextChapter}
+        showConfigButton={showConfigButton}
       />
 
       <div
