@@ -86,10 +86,10 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
   return (
     <div
       className={cn(
-        "relative flex flex-col h-full min-h-0 overflow-hidden bg-background transition-shadow ring-1 ring-inset",
+        "relative flex flex-col h-full min-h-0 overflow-hidden bg-background transition-shadow ring-1 ring-inset border",
         isActive
-          ? "border border-primary ring-primary/30"
-          : "border border-border ring-border",
+          ? "border-primary/40 ring-primary/20"
+          : "border-border ring-border",
       )}
       onMouseDown={onActivate}
     >
