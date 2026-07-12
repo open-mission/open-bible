@@ -42,9 +42,12 @@ export function WorkspaceTabs() {
                 : "text-muted-foreground hover:bg-background/60 hover:text-foreground border-transparent",
             )}
           >
-            {/* Active indicator — colored bottom border */}
-            {active && (
-              <span className="absolute inset-x-1 -bottom-[5px] h-0.5 rounded-full bg-primary" aria-hidden />
+            {/* Active indicator — subtle bottom accent, only when multiple tabs */}
+            {active && panes.length > 1 && (
+              <span
+                className="absolute inset-x-1.5 -bottom-[5px] h-0.5 rounded-full bg-muted-foreground/40"
+                aria-hidden
+              />
             )}
             <span className="max-w-[220px] truncate font-medium">{pane.title}</span>
             {panes.length > 1 && (
