@@ -1,0 +1,205 @@
+"use client"
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from "react"
+import type { Pane, PaneState, BiblePaneState, LayoutMode } from "../types"
+import { paneTitleFor } from "../lib/pane-title"
+
+/**
+ * Workspace state: the set of open panes (tabs), which one is active, and the
+ * layout mode (tabs today, grid in Phase 2). Persisted to a single localStorage
+ * key so the workspace survives reloads. On first run, migrates the legacy
+ * book/chapter/version keys so the user keeps their last reading position.
+ */
+
+const WORKSPACE_KEY = "openbible:workspace"
+const LEGACY_BOOK_KEY = "openbible:book"
+const LEGACY_CHAPTER_KEY = "openbible:chapter"
+const LEGACY_VERSION_KEY = "openbible:version"
+const FALLBACK_VERSION = "ara"
+
+interface WorkspaceContextValue {
+  panes: Pane[]
+  activePaneId: string | null
+  layoutMode: LayoutMode
+  openPane: (state: PaneState) => string
+  closePane: (id: string) => void
+  activatePane: (id: string) => void
+  updatePaneState: (id: string, state: Partial<BiblePaneState>) => void
+  setLayoutMode: (mode: LayoutMode) => void
+  activePane: Pane | null
+}
+
+const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
+
+function generateId(): string {
+  return `pane-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+interface PersistedWorkspace {
+  panes: Pane[]
+  activePaneId: string | null
+  layoutMode: LayoutMode
+}
+
+function migrateFromLegacy(): PersistedWorkspace | null {
+  if (typeof window === "undefined") return null
+  try {
+    const bookId = localStorage.getItem(LEGACY_BOOK_KEY)
+    const chapterStr = localStorage.getItem(LEGACY_CHAPTER_KEY)
+    const versionId = localStorage.getItem(LEGACY_VERSION_KEY) || FALLBACK_VERSION
+    if (bookId && chapterStr) {
+      const chapter = Number(chapterStr)
+      if (!Number.isNaN(chapter) && chapter > 0) {
+        const state: BiblePaneState = { type: "bible", bookId, chapter, versionId }
+        const pane: Pane = { id: generateId(), title: paneTitleFor(state), state }
+        return { panes: [pane], activePaneId: pane.id, layoutMode: "tabs" }
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null
+}
+
+function loadWorkspace(): PersistedWorkspace {
+  if (typeof window === "undefined") {
+    return { panes: [], activePaneId: null, layoutMode: "tabs" }
+  }
+  try {
+    const raw = localStorage.getItem(WORKSPACE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw) as PersistedWorkspace
+      if (parsed.panes && Array.isArray(parsed.panes) && parsed.panes.length > 0) {
+        return parsed
+      }
+    }
+    const migrated = migrateFromLegacy()
+    if (migrated) return migrated
+  } catch {
+    /* ignore */
+  }
+  return { panes: [], activePaneId: null, layoutMode: "tabs" }
+}
+
+function saveWorkspace(ws: PersistedWorkspace) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(WORKSPACE_KEY, JSON.stringify(ws))
+  } catch {
+    /* ignore */
+  }
+}
+
+export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  const [panes, setPanes] = useState<Pane[]>([])
+  const [activePaneId, setActivePaneId] = useState<string | null>(null)
+  const [layoutMode, setLayoutModeState] = useState<LayoutMode>("tabs")
+  const [loaded, setLoaded] = useState(false)
+
+  // Load persisted workspace on mount (deferred to avoid SSR mismatch).
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const ws = loadWorkspace()
+      setPanes(ws.panes)
+      setActivePaneId(ws.activePaneId)
+      setLayoutModeState(ws.layoutMode)
+      setLoaded(true)
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Persist whenever workspace changes (after initial load).
+  useEffect(() => {
+    if (!loaded) return
+    saveWorkspace({ panes, activePaneId, layoutMode })
+  }, [panes, activePaneId, layoutMode, loaded])
+
+  // Keep activePaneId valid: if it points to a closed/non-existent pane, fall
+  // back to the last pane (or null if empty).
+  useEffect(() => {
+    if (!loaded) return
+    if (panes.length === 0) {
+      if (activePaneId !== null) setActivePaneId(null)
+    } else if (!panes.some((p) => p.id === activePaneId)) {
+      setActivePaneId(panes[panes.length - 1].id)
+    }
+  }, [panes, activePaneId, loaded])
+
+  // Sync the active Bible pane's position back to the legacy localStorage keys
+  // so Simple mode picks up where Advanced mode left off when switching modes.
+  useEffect(() => {
+    if (!loaded) return
+    const active = panes.find((p) => p.id === activePaneId)
+    if (!active || active.state.type !== "bible") return
+    try {
+      localStorage.setItem(LEGACY_BOOK_KEY, active.state.bookId)
+      localStorage.setItem(LEGACY_CHAPTER_KEY, String(active.state.chapter))
+      localStorage.setItem(LEGACY_VERSION_KEY, active.state.versionId)
+    } catch {
+      /* ignore */
+    }
+  }, [panes, activePaneId, loaded])
+
+  const openPane = useCallback((state: PaneState): string => {
+    const id = generateId()
+    const pane: Pane = { id, title: paneTitleFor(state), state }
+    setPanes((prev) => [...prev, pane])
+    setActivePaneId(id)
+    return id
+  }, [])
+
+  const closePane = useCallback((id: string) => {
+    setPanes((prev) => prev.filter((p) => p.id !== id))
+  }, [])
+
+  const activatePane = useCallback((id: string) => {
+    setActivePaneId(id)
+  }, [])
+
+  const updatePaneState = useCallback(
+    (id: string, state: Partial<BiblePaneState>) => {
+      setPanes((prev) =>
+        prev.map((p) => {
+          if (p.id !== id) return p
+          if (p.state.type !== "bible") return p
+          const newState = { ...p.state, ...state } as BiblePaneState
+          return { ...p, state: newState, title: paneTitleFor(newState) }
+        }),
+      )
+    },
+    [],
+  )
+
+  const setLayoutMode = useCallback((mode: LayoutMode) => {
+    setLayoutModeState(mode)
+  }, [])
+
+  const activePane = panes.find((p) => p.id === activePaneId) ?? null
+
+  const value: WorkspaceContextValue = {
+    panes,
+    activePaneId,
+    layoutMode,
+    openPane,
+    closePane,
+    activatePane,
+    updatePaneState,
+    setLayoutMode,
+    activePane,
+  }
+
+  return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>
+}
+
+export function useWorkspace() {
+  const ctx = useContext(WorkspaceContext)
+  if (!ctx) throw new Error("useWorkspace must be used within WorkspaceProvider")
+  return ctx
+}

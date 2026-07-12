@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Monitor, Moon, Sun, Check, BookOpen, Palette } from "lucide-react"
+import { ArrowLeft, Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid } from "lucide-react"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/features/theme/utils/theme"
@@ -10,6 +10,7 @@ import { MobileNav } from "@/features/layout/components/mobile-nav"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { useIsTauriMacOS } from "@/features/layout/hooks/use-is-tauri-macos"
+import { WorkspaceModeSetting } from "@/features/workspace/components/workspace-mode-setting"
 import { cn } from "@/lib/utils"
 
 
@@ -97,6 +98,13 @@ export default function ConfigPage() {
                 >
                   <Palette className="h-4 w-4" />
                   <span>Tema</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="workspace"
+                  className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  <span>Leitura</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -265,6 +273,11 @@ export default function ConfigPage() {
                       </div>
                     </div>
                   )}
+                </TabsContent>
+
+                {/* ── Reading Mode (Simple / Advanced workspace) ────────────────── */}
+                <TabsContent value="workspace" className="space-y-8 animate-in fade-in-50 duration-200">
+                  <WorkspaceModeSetting />
                 </TabsContent>
               </div>
             </Tabs>

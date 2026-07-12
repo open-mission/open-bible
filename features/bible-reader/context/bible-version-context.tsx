@@ -76,6 +76,28 @@ interface BibleVersionContextValue {
 
 const BibleVersionContext = createContext<BibleVersionContextValue | null>(null)
 
+// Per-pane version scope. Allows a subtree (e.g. a workspace pane) to override
+// the active versionId/setVersionId while delegating install/listing/getVerses
+// to the global provider. This enables parallel reading in different
+// translations across workspace panes.
+const VersionScopeContext = createContext<{
+  versionId: string
+  setVersionId: (id: string) => void
+} | null>(null)
+
+export function BibleVersionScopeProvider({
+  versionId,
+  setVersionId,
+  children,
+}: {
+  versionId: string
+  setVersionId: (id: string) => void
+  children: ReactNode
+}) {
+  const value = useMemo(() => ({ versionId, setVersionId }), [versionId, setVersionId])
+  return <VersionScopeContext.Provider value={value}>{children}</VersionScopeContext.Provider>
+}
+
 // Separate context for download progress to avoid re-rendering all BibleVersion consumers
 interface DownloadProgressContextValue {
   isInstalling: boolean
@@ -402,7 +424,14 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
 }
 
 export function useBibleVersion() {
+  const scope = useContext(VersionScopeContext)
   const ctx = useContext(BibleVersionContext)
   if (!ctx) throw new Error("useBibleVersion must be used within BibleVersionProvider")
+  // When inside a BibleVersionScopeProvider (e.g. a workspace pane), override
+  // versionId/setVersionId with the scoped values; everything else (install,
+  // listing, getVerses, defaultVersionId) still comes from the global provider.
+  if (scope) {
+    return { ...ctx, ...scope }
+  }
   return ctx
 }
