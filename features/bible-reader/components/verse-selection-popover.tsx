@@ -163,7 +163,7 @@ export function VerseSelectionPopover({
         transform: "translateX(-50%)",
       }}
       className={cn(
-        "z-40 flex justify-center px-4 w-full transition-all duration-300 pointer-events-none select-none max-w-lg md:max-w-xl",
+        "z-40 flex justify-center px-4 w-full transition-all duration-300 pointer-events-none select-none max-w-[320px]",
         position === "top" ? "float-animate-top" : "float-animate-bottom"
       )}
     >
@@ -213,7 +213,7 @@ export function VerseSelectionPopover({
         {/* --- Toolbar / Highlight Menu --- */}
         {showToolbar && (
           <div
-            className="flex overflow-hidden rounded-full bg-background/95 backdrop-blur-sm border border-border shadow-lg px-4 py-2 menu-animate"
+            className="flex overflow-hidden rounded-2xl bg-popover/95 backdrop-blur-sm border border-border shadow-lg px-4 py-2.5 menu-animate w-full justify-center"
           >
             <HighlightMenu
               selectedVerseIds={selectedVerses.map((v) => v.id)}
@@ -232,107 +232,105 @@ export function VerseSelectionPopover({
           </div>
         )}
 
-        {/* --- Card / Popover Pill --- */}
+        {/* --- Card / Popover --- */}
         <div
-          className="flex items-center gap-2 rounded-full bg-background/95 backdrop-blur-sm border border-border px-3 py-1.5 shadow-lg max-w-full text-xs sm:text-sm"
+          className="flex flex-col w-full overflow-hidden rounded-2xl bg-popover/95 backdrop-blur-sm border border-border/80 shadow-lg px-4 py-3 text-sm gap-2"
         >
-          {/* Reference Indicator */}
-          <span className="font-semibold text-foreground px-1 truncate max-w-[100px] sm:max-w-[180px]" title={reference}>
-            {isMobile 
-              ? `${book.abbreviation} ${chapter}:${selectedVerses.map(v => v.id.split("-").pop()).join(",")}` 
-              : reference}
-          </span>
-          {count > 1 && (
-            <span className="shrink-0 rounded-full bg-primary/10 text-primary px-1.5 py-0.5 text-[10px] font-bold">
-              {count}
-            </span>
-          )}
+          {/* Header Row */}
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2 truncate">
+              <span className="font-semibold text-foreground text-xs truncate max-w-[150px]" title={reference}>
+                {reference}
+              </span>
+              <span className="shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
+                {count > 1 ? `${count} versículos` : `${count} versículo`}
+              </span>
+            </div>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="ghost"
+              size="icon-xs"
+              className="shrink-0 text-muted-foreground hover:text-foreground rounded-full size-6 hover:bg-muted/40 transition-colors"
+              aria-label="Limpar seleção"
+            >
+              <IconX className="size-3.5" />
+            </Button>
+          </div>
 
-          <Separator orientation="vertical" className="h-4 bg-border" />
+          <Separator className="bg-border/60" />
 
-          {/* Copy Reference */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => handleCopy("reference")}
-            className={cn(
-              "text-muted-foreground hover:text-foreground rounded-full size-7 shrink-0",
-              copied === "reference" && "text-primary hover:text-primary bg-primary/10"
-            )}
-            title={copied === "reference" ? "Referência copiada!" : "Copiar referência"}
-            aria-label="Copiar referência"
-          >
-            {copied === "reference" ? (
-              <IconCheck className="size-4" />
-            ) : (
-              <IconCopy className="size-4" />
-            )}
-          </Button>
+          {/* Actions Row */}
+          <div className="flex items-center justify-between w-full px-1">
+            {/* Copy Reference */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => handleCopy("reference")}
+              className={cn(
+                "text-muted-foreground hover:text-foreground rounded-lg size-9 transition-colors shrink-0",
+                copied === "reference" && "text-primary hover:text-primary bg-primary/10"
+              )}
+              title={copied === "reference" ? "Referência copiada!" : "Copiar referência"}
+              aria-label="Copiar referência"
+            >
+              {copied === "reference" ? (
+                <IconCheck className="size-4" />
+              ) : (
+                <IconCopy className="size-4" />
+              )}
+            </Button>
 
-          {/* Copy Text */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => handleCopy("text")}
-            className={cn(
-              "text-muted-foreground hover:text-foreground rounded-full size-7 shrink-0",
-              copied === "text" && "text-primary hover:text-primary bg-primary/10"
-            )}
-            title={copied === "text" ? "Texto copiado!" : "Copiar texto"}
-            aria-label="Copiar texto"
-          >
-            {copied === "text" ? (
-              <IconCheck className="size-4" />
-            ) : (
-              <IconClipboardText className="size-4" />
-            )}
-          </Button>
+            {/* Copy Text */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => handleCopy("text")}
+              className={cn(
+                "text-muted-foreground hover:text-foreground rounded-lg size-9 transition-colors shrink-0",
+                copied === "text" && "text-primary hover:text-primary bg-primary/10"
+              )}
+              title={copied === "text" ? "Texto copiado!" : "Copiar texto"}
+              aria-label="Copiar texto"
+            >
+              {copied === "text" ? (
+                <IconCheck className="size-4" />
+              ) : (
+                <IconClipboardText className="size-4" />
+              )}
+            </Button>
 
-          {/* Highlight Color Palette toggle */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => setShowToolbar(!showToolbar)}
-            className={cn(
-              "text-muted-foreground hover:text-foreground rounded-full size-7 shrink-0",
-              showToolbar && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-            )}
-            title="Destaque"
-            aria-label="Destaque"
-          >
-            <IconHighlight className="size-4" />
-          </Button>
+            {/* Highlight */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setShowToolbar(!showToolbar)}
+              className={cn(
+                "text-muted-foreground hover:text-foreground rounded-lg size-9 transition-colors shrink-0",
+                showToolbar && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              )}
+              title="Destacar"
+              aria-label="Destacar"
+            >
+              <IconHighlight className="size-4" />
+            </Button>
 
-          {/* Notes */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={handleOpenNote}
-            className="text-muted-foreground hover:text-foreground rounded-full size-7 shrink-0"
-            title="Anotar"
-            aria-label="Anotar"
-          >
-            <IconNotebook className="size-4" />
-          </Button>
-
-          <Separator orientation="vertical" className="h-4 bg-border" />
-
-          {/* Close */}
-          <Button
-            type="button"
-            onClick={onClose}
-            variant="ghost"
-            size="icon-xs"
-            className="text-muted-foreground hover:text-foreground rounded-full size-7 shrink-0"
-            title="Limpar seleção"
-            aria-label="Limpar seleção"
-          >
-            <IconX className="size-4" />
-          </Button>
+            {/* Note */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleOpenNote}
+              className="text-muted-foreground hover:text-foreground rounded-lg size-9 transition-colors shrink-0"
+              title="Anotar"
+              aria-label="Anotar"
+            >
+              <IconNotebook className="size-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
