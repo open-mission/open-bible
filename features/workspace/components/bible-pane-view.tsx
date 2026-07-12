@@ -28,6 +28,9 @@ interface BiblePaneViewProps {
   readerFont: ReaderFont
   onChangeReaderFont: (f: ReaderFont) => void
   onPaneUpdate: (id: string, state: Partial<BiblePaneState>) => void
+  /** Whether this pane is the active one in the grid. Controls verse selection
+   *  isolation. Defaults to true (tabs/simple mode always active). */
+  isActive?: boolean
 }
 
 
@@ -48,6 +51,7 @@ export function BiblePaneView({
   readerFont,
   onChangeReaderFont,
   onPaneUpdate,
+  isActive = true,
 }: BiblePaneViewProps) {
   const state = pane.state as BiblePaneState
   const isMobile = useIsMobile()
@@ -117,6 +121,7 @@ export function BiblePaneView({
                         onChangeVerseSpacing={onChangeVerseSpacing}
                         readerFont={readerFont}
                         onChangeReaderFont={onChangeReaderFont}
+                        isActive={isActive}
                       />
                     </div>
                   </div>

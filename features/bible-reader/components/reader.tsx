@@ -38,6 +38,10 @@ interface ReaderProps {
   onChangeVerseSpacing: (spacing: "small" | "medium" | "large") => void;
   readerFont: "sans" | "serif" | "mono";
   onChangeReaderFont: (font: "sans" | "serif" | "mono") => void;
+  /** Whether this pane is the active one in the workspace grid. When false,
+   *  verse selection is cleared and the selection popover is hidden so that
+   *  only the focused pane can show a selection. Defaults to true (tabs/simple). */
+  isActive?: boolean;
 }
 
 function ReaderContent({
@@ -54,6 +58,7 @@ function ReaderContent({
   readerFont,
   onChangeReaderFont,
   versionId,
+  isActive = true,
 }: ReaderProps & { versionId: string }) {
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
@@ -75,6 +80,15 @@ function ReaderContent({
   const [createEditorVerses, setCreateEditorVerses] = useState<number[]>([]);
   /** Dock inspector: toggled "notes" | "highlights" view (null = closed). */
   const [dockView, setDockView] = useState<"notes" | "highlights" | null>(null);
+
+  /** Clear verse selection when this pane becomes inactive (grid mode) so
+   *  only the focused pane shows a selection popover. */
+  useEffect(() => {
+    if (!isActive) {
+      setSelectedVerseIds(new Set());
+      setActiveVerseId(null);
+    }
+  }, [isActive]);
 
   const { createHighlight, updateHighlight, deleteHighlight, listCategories, createCategory } = useHighlightMutations();
 
@@ -380,8 +394,8 @@ function ReaderContent({
         </div>
       )}
 
-      {/* Verse selection bottom bar */}
-      {open && (
+      {/* Verse selection bottom bar — only for the active pane */}
+      {isActive && open && (
         <VerseSelectionPopover
           book={book}
           chapter={chapter}

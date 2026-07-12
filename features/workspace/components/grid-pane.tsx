@@ -14,8 +14,9 @@ interface GridPaneProps {
 }
 
 /**
- * A single pane rendered inside the tiling grid. Shows a compact header with
- * the pane title plus split/close controls, and the Bible reader below. Each
+ * A single pane rendered inside the tiling grid. Grid controls (split
+ * horizontal/vertical, close) float at the top-right corner, aligned with the
+ * reader header — saving the vertical space of a separate header bar. Each
  * pane has its own version scope and notes context (via BiblePaneView).
  */
 export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
@@ -26,21 +27,15 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
   return (
     <div
       className={cn(
-        "flex flex-col h-full min-h-0 overflow-hidden bg-background transition-shadow",
-        isActive ? "ring-1 ring-inset ring-primary/30" : "ring-1 ring-inset ring-border",
+        "relative flex flex-col h-full min-h-0 overflow-hidden bg-background transition-shadow",
+        isActive
+          ? "ring-1 ring-inset ring-primary/30"
+          : "ring-1 ring-inset ring-border",
       )}
       onMouseDown={onActivate}
     >
-      {/* Compact header with split + close controls */}
-      <div
-        className={cn(
-          "flex items-center gap-1 px-2 py-1 border-b shrink-0 transition-colors",
-          isActive ? "border-primary/20 bg-primary/5" : "border-border bg-muted/40",
-        )}
-      >
-        <span className="flex-1 truncate text-xs font-medium text-foreground">
-          {pane.title}
-        </span>
+      {/* Floating grid controls — top-right, aligned with reader header */}
+      <div className="absolute top-2.5 right-2.5 z-30 flex items-center gap-0.5 rounded-full bg-background/85 backdrop-blur border border-border/60 p-0.5 shadow-sm">
         <button
           type="button"
           aria-label="Dividir lado a lado"
@@ -49,7 +44,7 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
             e.stopPropagation()
             splitPane(pane.id, "horizontal")
           }}
-          className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex items-center justify-center rounded-full size-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <Columns2 className="h-3.5 w-3.5" />
         </button>
@@ -61,7 +56,7 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
             e.stopPropagation()
             splitPane(pane.id, "vertical")
           }}
-          className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex items-center justify-center rounded-full size-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <Rows2 className="h-3.5 w-3.5" />
         </button>
@@ -74,7 +69,7 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
               e.stopPropagation()
               closePane(pane.id)
             }}
-            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="flex items-center justify-center rounded-full size-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -96,6 +91,7 @@ export function GridPane({ pane, isActive, onActivate }: GridPaneProps) {
             readerFont={settings.readerFont}
             onChangeReaderFont={settings.setReaderFont}
             onPaneUpdate={updatePaneState}
+            isActive={isActive}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
