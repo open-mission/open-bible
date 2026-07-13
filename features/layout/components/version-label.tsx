@@ -9,7 +9,7 @@ export function VersionLabel() {
   return (
     <span
       aria-hidden="true"
-      className="fixed bottom-4 left-4 z-40 flex items-center gap-1.5 text-xs text-muted-foreground/40 font-mono select-none pointer-events-none"
+      className="fixed bottom-4 left-4 z-40 hidden md:flex items-center gap-1.5 text-xs text-muted-foreground/40 font-mono select-none pointer-events-none"
     >
       <span>v{APP_VERSION}</span>
       {isPreRelease && envLabel ? (

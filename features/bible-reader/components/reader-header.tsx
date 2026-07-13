@@ -174,7 +174,7 @@ export function ReaderHeader({
               <Button
                 onClick={() => setConfigOpen(true)}
                 variant="ghost"
-                className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs hidden md:inline-flex"
+                className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs inline-flex"
                 title="Configurações"
               >
                 <IconSettings data-icon="inline-start" />

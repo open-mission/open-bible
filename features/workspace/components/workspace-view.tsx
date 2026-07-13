@@ -32,6 +32,7 @@ import { IconLayoutGrid } from "@tabler/icons-react"
 import { WorkspaceTabOverview } from "./workspace-tab-overview"
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
 import { cn } from "@/lib/utils"
+import { useIsTauriMacOS } from "@/features/layout/hooks/use-is-tauri-macos"
 import type { BiblePaneState } from "../types"
 
 /** Shares the currently dragged pane id so tabs/grid panes can render an overlay. */
@@ -57,6 +58,7 @@ const HEADER_COLLAPSED_KEY = "openbible:workspace-header-collapsed"
 export function WorkspaceView() {
   const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes } = useWorkspace()
   const settings = useReaderSettings()
+  const isTauriMacOS = useIsTauriMacOS()
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
   const [overviewOpen, setOverviewOpen] = useState(false)
@@ -180,7 +182,13 @@ export function WorkspaceView() {
           <div className="relative flex flex-col h-full min-h-0">
             {/* Desktop header — tabs + Abas/Grade toggle + picker on one line */}
             {panes.length > 0 && !headerCollapsed && (
-              <div className="hidden md:flex items-center gap-2 px-2 pt-1.5 shrink-0">
+              <div
+                data-tauri-drag-region={isTauriMacOS ? "" : undefined}
+                className={cn(
+                  "hidden md:flex items-center gap-2 px-2 pt-1.5 shrink-0",
+                  isTauriMacOS && "pl-[75px] pt-3 pb-1"
+                )}
+              >
                 <button
                   type="button"
                   onClick={() => setOverviewOpen(true)}
@@ -214,6 +222,7 @@ export function WorkspaceView() {
                 title="Mostrar barra"
                 className={cn(
                   "hidden md:flex absolute top-0 left-2 z-30 items-center justify-center",
+                  isTauriMacOS && "left-[80px]",
                   "rounded-b-lg border border-t-0 border-border/60 bg-background/85 backdrop-blur px-4 py-0.5",
                   "text-muted-foreground shadow-sm transition-colors hover:bg-background hover:text-foreground",
                   "outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -224,7 +233,7 @@ export function WorkspaceView() {
             )}
 
             {/* Content */}
-            <div className="relative flex-1 min-h-0 h-full overflow-hidden pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-0">
+            <div className="relative flex-1 min-h-0 h-full overflow-hidden pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
               {panes.length === 0 ? (
                 <ReaderEmpty onOpenSidebar={openFirstPane} />
               ) : layoutMode === "grid" ? (
