@@ -303,10 +303,10 @@ function ReaderContent({
         ref={scrollContainerRef}
         className={`relative flex-1 min-h-0 overflow-y-auto custom-scrollbar w-full mx-auto ${
           readerMode === "wide"
-            ? "max-w-none px-4 md:px-8 pt-8 pb-8"
+            ? "max-w-none px-4 md:px-8 pt-8 pb-[calc(2.5rem+env(safe-area-inset-bottom))] md:pb-8"
             : readerMode === "medium"
-              ? "max-w-4xl px-4 md:px-12 pt-8 pb-8"
-              : "max-w-2xl px-4 md:px-16 pt-8 pb-8"
+              ? "max-w-4xl px-4 md:px-12 pt-8 pb-[calc(2.5rem+env(safe-area-inset-bottom))] md:pb-8"
+              : "max-w-2xl px-4 md:px-16 pt-8 pb-[calc(2.5rem+env(safe-area-inset-bottom))] md:pb-8"
         }`}
       >
         <header className="mb-12 text-center">
@@ -423,7 +423,7 @@ function ReaderContent({
 
       {/* Floating navigation: bottom on mobile, sides on desktop */}
       {!dockView && !open && (
-      <div className="fixed inset-x-0 bottom-8 z-40 flex justify-center pointer-events-none md:hidden">
+      <div className="fixed inset-x-0 bottom-[calc(2rem+env(safe-area-inset-bottom))] z-40 flex justify-center pointer-events-none md:hidden">
         <div className="flex gap-5 pointer-events-auto">
           <button
             onClick={prevChapter}
