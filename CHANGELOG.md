@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 
 
+## [0.6.2] - 2026-07-13
+
+### Changed
+- Release version 0.6.2 from 0.6.1 (Tauri macOS header alignment and mobile safe area adjustments)
+
+[0.6.2]: https://github.com/open-mission/open-bible/compare/0.6.1...0.6.2
+
 ## [0.6.1] - 2026-07-12
 
 ### Fixed
