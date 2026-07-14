@@ -1,10 +1,35 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { APP_ENV, APP_VERSION, ENV_LABEL, isPreRelease } from "@/lib/app-env";
 import { Badge } from "@/components/ui/badge";
 
 export function VersionLabel() {
+  const [tabsOrientation, setTabsOrientation] = useState<"horizontal" | "vertical">("horizontal");
   const envLabel = ENV_LABEL[APP_ENV];
+
+  useEffect(() => {
+    const updateOrientation = () => {
+      try {
+        const v = localStorage.getItem("openbible:tabs-orientation");
+        setTabsOrientation(v === "vertical" ? "vertical" : "horizontal");
+      } catch {
+        /* ignore */
+      }
+    };
+
+    // Initial load
+    updateOrientation();
+
+    window.addEventListener("openbible:tabs-orientation-changed", updateOrientation);
+    window.addEventListener("storage", updateOrientation);
+    return () => {
+      window.removeEventListener("openbible:tabs-orientation-changed", updateOrientation);
+      window.removeEventListener("storage", updateOrientation);
+    };
+  }, []);
+
+  if (tabsOrientation === "vertical") return null;
 
   return (
     <span

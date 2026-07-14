@@ -10,6 +10,8 @@ import { type TabsOrientation } from "../hooks/use-workspace-mode"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { ConfigDialog } from "@/features/config/components/config-dialog"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { APP_VERSION, APP_ENV, ENV_LABEL, isPreRelease } from "@/lib/app-env"
 import type { Pane, LayoutMode } from "../types"
 import {
   Sidebar,
@@ -287,6 +289,21 @@ export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+
+        {/* Subtle version indicator inside sidebar footer */}
+        <div className="px-2.5 py-1.5 flex items-center justify-between border-t border-sidebar-border/20 mt-1 select-none">
+          <span className="text-[10px] text-muted-foreground/45 font-mono group-data-[collapsible=icon]:hidden">
+            Open Bible v{APP_VERSION}
+          </span>
+          <span className="text-[10px] text-muted-foreground/45 font-mono hidden group-data-[collapsible=icon]:inline mx-auto">
+            v{APP_VERSION}
+          </span>
+          {!isCollapsed && isPreRelease && ENV_LABEL[APP_ENV] && (
+            <Badge variant="secondary" className="h-3.5 px-1 text-[8px] font-medium leading-none">
+              {ENV_LABEL[APP_ENV]}
+            </Badge>
+          )}
+        </div>
       </SidebarFooter>
       <ConfigDialog open={configOpen} onOpenChange={setConfigOpen} />
 
