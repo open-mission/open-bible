@@ -1,6 +1,6 @@
 [package]
 name = "open-bible"
-version = "0.7.0"
+version = "0.7.1"
 description = "Open Bible — leitor bíblico offline-first"
 authors = ["Open Mission"]
 license = "MIT"
