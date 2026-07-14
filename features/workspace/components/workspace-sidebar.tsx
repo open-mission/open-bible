@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, Plus, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop } from "lucide-react"
+import { X, Plus, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen } from "lucide-react"
 import { IconGripVertical, IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -23,6 +23,7 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import {
   ContextMenu,
@@ -32,6 +33,7 @@ import {
   ContextMenuSeparator,
   ContextMenuRadioGroup,
   ContextMenuRadioItem,
+  ContextMenuGroup,
 } from "@/components/ui/context-menu"
 
 /**
@@ -42,6 +44,8 @@ export function WorkspaceSidebar() {
   const { panes, activePaneId, activatePane, closePane, openPane, layoutMode, setLayoutMode } = useWorkspace()
   const { tabsOrientation, setTabsOrientation } = useWorkspaceMode()
   const { isDark, setTheme } = useAppTheme()
+  const { state } = useSidebar()
+  const isCollapsed = state === "collapsed"
   const [configOpen, setConfigOpen] = useState(false)
 
   const handleAddNewTab = () => {
@@ -55,20 +59,24 @@ export function WorkspaceSidebar() {
 
   const sidebarContent = (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shrink-0">
-      <SidebarHeader className="border-b border-sidebar-border/40 py-3.5 px-4 flex-row items-center justify-between">
-        <h2 className="font-serif font-bold text-base tracking-tight truncate group-data-[collapsible=icon]:hidden">
-          Abas
-        </h2>
-        <div className="flex items-center gap-1 group-data-[collapsible=icon]:mx-auto">
-          <button
-            type="button"
-            onClick={handleAddNewTab}
-            title="Nova aba (passage)"
-            className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-          <SidebarTrigger className="hidden md:flex h-7 w-7" />
+      <SidebarHeader className="border-b border-sidebar-border/40 py-3 px-4 flex items-center justify-between min-h-[52px]">
+        {!isCollapsed && (
+          <h2 className="font-serif font-bold text-base tracking-tight truncate">
+            Abas
+          </h2>
+        )}
+        <div className={cn("flex items-center gap-1", isCollapsed && "w-full justify-center")}>
+          {!isCollapsed && (
+            <button
+              type="button"
+              onClick={handleAddNewTab}
+              title="Nova aba"
+              className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          )}
+          <SidebarTrigger className="h-7 w-7" />
         </div>
       </SidebarHeader>
 
@@ -134,35 +142,39 @@ export function WorkspaceSidebar() {
         {sidebarContent}
       </ContextMenuTrigger>
       <ContextMenuContent className="w-52">
-        <ContextMenuLabel>Posição das Abas</ContextMenuLabel>
-        <ContextMenuRadioGroup
-          value={tabsOrientation}
-          onValueChange={(val) => setTabsOrientation(val as TabsOrientation)}
-        >
-          <ContextMenuRadioItem value="horizontal" className="gap-2">
-            <LayoutPanelTop className="h-4 w-4" />
-            <span>Abas no Topo</span>
-          </ContextMenuRadioItem>
-          <ContextMenuRadioItem value="vertical" className="gap-2">
-            <LayoutPanelLeft className="h-4 w-4" />
-            <span>Abas na Lateral</span>
-          </ContextMenuRadioItem>
-        </ContextMenuRadioGroup>
+        <ContextMenuGroup>
+          <ContextMenuLabel>Posição das Abas</ContextMenuLabel>
+          <ContextMenuRadioGroup
+            value={tabsOrientation}
+            onValueChange={(val) => setTabsOrientation(val as TabsOrientation)}
+          >
+            <ContextMenuRadioItem value="horizontal" className="gap-2">
+              <LayoutPanelTop className="h-4 w-4" />
+              <span>Abas no Topo</span>
+            </ContextMenuRadioItem>
+            <ContextMenuRadioItem value="vertical" className="gap-2">
+              <LayoutPanelLeft className="h-4 w-4" />
+              <span>Abas na Lateral</span>
+            </ContextMenuRadioItem>
+          </ContextMenuRadioGroup>
+        </ContextMenuGroup>
         <ContextMenuSeparator />
-        <ContextMenuLabel>Modo de Exibição</ContextMenuLabel>
-        <ContextMenuRadioGroup
-          value={layoutMode}
-          onValueChange={(val) => setLayoutMode(val as LayoutMode)}
-        >
-          <ContextMenuRadioItem value="tabs" className="gap-2">
-            <Monitor className="h-4 w-4" />
-            <span>Modo Abas</span>
-          </ContextMenuRadioItem>
-          <ContextMenuRadioItem value="grid" className="gap-2">
-            <LayoutGrid className="h-4 w-4" />
-            <span>Modo Grade</span>
-          </ContextMenuRadioItem>
-        </ContextMenuRadioGroup>
+        <ContextMenuGroup>
+          <ContextMenuLabel>Modo de Exibição</ContextMenuLabel>
+          <ContextMenuRadioGroup
+            value={layoutMode}
+            onValueChange={(val) => setLayoutMode(val as LayoutMode)}
+          >
+            <ContextMenuRadioItem value="tabs" className="gap-2">
+              <Monitor className="h-4 w-4" />
+              <span>Modo Abas</span>
+            </ContextMenuRadioItem>
+            <ContextMenuRadioItem value="grid" className="gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              <span>Modo Grade</span>
+            </ContextMenuRadioItem>
+          </ContextMenuRadioGroup>
+        </ContextMenuGroup>
       </ContextMenuContent>
     </ContextMenu>
   )
@@ -183,8 +195,11 @@ function SortableSidebarTab({
   onClose,
   total,
 }: SortableSidebarTabProps) {
+  const { state } = useSidebar()
+  const isCollapsed = state === "collapsed"
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: pane.id })
+    useSortable({ id: pane.id, disabled: isCollapsed })
 
   // Lock X-axis: vertical dragging only.
   const style: React.CSSProperties = {
@@ -203,23 +218,38 @@ function SortableSidebarTab({
         "group/tab relative flex items-center select-none rounded-md transition-all border border-transparent",
         isDragging
           ? "opacity-40 scale-95 border-primary/20 bg-primary/5 cursor-grabbing"
-          : "cursor-grab active:cursor-grabbing hover:bg-sidebar-accent/50",
+          : isCollapsed
+            ? "cursor-pointer hover:bg-sidebar-accent/50 justify-center"
+            : "cursor-grab active:cursor-grabbing hover:bg-sidebar-accent/50",
         active && "bg-sidebar-accent/80 text-sidebar-accent-foreground border-sidebar-border/30"
       )}
     >
       <div
-        className="flex-1 flex items-center gap-2 px-2 py-2 text-sm text-left min-w-0"
-        onClick={onActivate}
-        {...attributes}
-        {...listeners}
-      >
-        {total > 1 && (
-          <IconGripVertical className="h-3.5 w-3.5 shrink-0 opacity-20 group-hover/tab:opacity-70 transition-opacity" />
+        className={cn(
+          "flex-1 flex items-center text-sm text-left min-w-0 transition-colors",
+          isCollapsed ? "justify-center py-2.5 px-0" : "gap-2 px-2 py-2"
         )}
-        <span className="truncate flex-1 font-medium select-none">{pane.title}</span>
+        onClick={onActivate}
+        {...(!isCollapsed ? attributes : {})}
+        {...(!isCollapsed ? listeners : {})}
+      >
+        {isCollapsed ? (
+          active ? (
+            <BookOpen className="h-4.5 w-4.5 text-primary shrink-0" />
+          ) : (
+            <Book className="h-4.5 w-4.5 text-muted-foreground shrink-0" />
+          )
+        ) : (
+          <>
+            {total > 1 && (
+              <IconGripVertical className="h-3.5 w-3.5 shrink-0 opacity-20 group-hover/tab:opacity-70 transition-opacity" />
+            )}
+            <span className="truncate flex-1 font-medium select-none">{pane.title}</span>
+          </>
+        )}
       </div>
 
-      {total > 1 && (
+      {!isCollapsed && total > 1 && (
         <button
           type="button"
           aria-label="Fechar aba"

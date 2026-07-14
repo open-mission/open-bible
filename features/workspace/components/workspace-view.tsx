@@ -32,6 +32,7 @@ import {
   ContextMenuRadioItem,
   ContextMenuLabel,
   ContextMenuSeparator,
+  ContextMenuGroup,
 } from "@/components/ui/context-menu"
 import { LayoutPanelTop, LayoutPanelLeft, Monitor, LayoutGrid } from "lucide-react"
 import { BiblePaneView } from "./bible-pane-view"
@@ -207,7 +208,7 @@ export function WorkspaceView() {
               </button>
               {tabsOrientation !== "vertical" && <WorkspaceTabs />}
               <WorkspaceToolbar />
-              <ConfigButton />
+              {tabsOrientation !== "vertical" && <ConfigButton />}
               <button
                 type="button"
                 onClick={toggleHeader}
@@ -220,35 +221,39 @@ export function WorkspaceView() {
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent className="w-52">
-            <ContextMenuLabel>Posição das Abas</ContextMenuLabel>
-            <ContextMenuRadioGroup
-              value={tabsOrientation}
-              onValueChange={(val) => setTabsOrientation(val as TabsOrientation)}
-            >
-              <ContextMenuRadioItem value="horizontal" className="gap-2">
-                <LayoutPanelTop className="h-4 w-4" />
-                <span>Abas no Topo</span>
-              </ContextMenuRadioItem>
-              <ContextMenuRadioItem value="vertical" className="gap-2">
-                <LayoutPanelLeft className="h-4 w-4" />
-                <span>Abas na Lateral</span>
-              </ContextMenuRadioItem>
-            </ContextMenuRadioGroup>
+            <ContextMenuGroup>
+              <ContextMenuLabel>Posição das Abas</ContextMenuLabel>
+              <ContextMenuRadioGroup
+                value={tabsOrientation}
+                onValueChange={(val) => setTabsOrientation(val as TabsOrientation)}
+              >
+                <ContextMenuRadioItem value="horizontal" className="gap-2">
+                  <LayoutPanelTop className="h-4 w-4" />
+                  <span>Abas no Topo</span>
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="vertical" className="gap-2">
+                  <LayoutPanelLeft className="h-4 w-4" />
+                  <span>Abas na Lateral</span>
+                </ContextMenuRadioItem>
+              </ContextMenuRadioGroup>
+            </ContextMenuGroup>
             <ContextMenuSeparator />
-            <ContextMenuLabel>Modo de Exibição</ContextMenuLabel>
-            <ContextMenuRadioGroup
-              value={layoutMode}
-              onValueChange={(val) => setLayoutMode(val as LayoutMode)}
-            >
-              <ContextMenuRadioItem value="tabs" className="gap-2">
-                <Monitor className="h-4 w-4" />
-                <span>Modo Abas</span>
-              </ContextMenuRadioItem>
-              <ContextMenuRadioItem value="grid" className="gap-2">
-                <LayoutGrid className="h-4 w-4" />
-                <span>Modo Grade</span>
-              </ContextMenuRadioItem>
-            </ContextMenuRadioGroup>
+            <ContextMenuGroup>
+              <ContextMenuLabel>Modo de Exibição</ContextMenuLabel>
+              <ContextMenuRadioGroup
+                value={layoutMode}
+                onValueChange={(val) => setLayoutMode(val as LayoutMode)}
+              >
+                <ContextMenuRadioItem value="tabs" className="gap-2">
+                  <Monitor className="h-4 w-4" />
+                  <span>Modo Abas</span>
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="grid" className="gap-2">
+                  <LayoutGrid className="h-4 w-4" />
+                  <span>Modo Grade</span>
+                </ContextMenuRadioItem>
+              </ContextMenuRadioGroup>
+            </ContextMenuGroup>
           </ContextMenuContent>
         </ContextMenu>
       )}
