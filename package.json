@@ -43,6 +43,7 @@
     "@shadcn/react": "^0.1.0",
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
     "@tabler/icons-react": "^3.44.0",
+    "@tauri-apps/api": "^2.11.1",
     "@tiptap/extension-highlight": "^3.27.3",
     "@tiptap/pm": "^3.27.3",
     "@tiptap/react": "^3.27.3",
