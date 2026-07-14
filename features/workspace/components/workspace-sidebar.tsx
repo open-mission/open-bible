@@ -35,6 +35,7 @@ import {
   ContextMenuRadioGroup,
   ContextMenuRadioItem,
   ContextMenuGroup,
+  ContextMenuItem,
 } from "@/components/ui/context-menu"
 import {
   DropdownMenu,
@@ -352,6 +353,13 @@ export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize
               <span>Modo Grade</span>
             </ContextMenuRadioItem>
           </ContextMenuRadioGroup>
+        </ContextMenuGroup>
+        <ContextMenuSeparator />
+        <ContextMenuGroup>
+          <ContextMenuItem onClick={() => setConfigOpen(true)} className="gap-2">
+            <IconSettings className="h-4 w-4" />
+            <span>Configurações</span>
+          </ContextMenuItem>
         </ContextMenuGroup>
       </ContextMenuContent>
     </ContextMenu>
