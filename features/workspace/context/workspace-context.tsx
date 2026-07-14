@@ -306,9 +306,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     if (mode === "grid") {
       setPanes((currentPanes) => {
         setLayout((currentLayout) => {
-          if (!currentLayout || currentPanes.length === 0) return currentLayout
-          const layoutIds = new Set(collectPaneIds(currentLayout))
+          if (currentPanes.length === 0) return null
           const paneIds = currentPanes.map((p) => p.id)
+          if (!currentLayout) {
+            return autoArrange(paneIds, defaultSplitDirection)
+          }
+          const layoutIds = new Set(collectPaneIds(currentLayout))
           if (!paneIds.every((id) => layoutIds.has(id))) {
             return autoArrange(paneIds, defaultSplitDirection)
           }

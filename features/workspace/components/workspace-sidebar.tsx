@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { X, Plus, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical } from "lucide-react"
+import { X, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical } from "lucide-react"
 import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -10,7 +10,7 @@ import { type TabsOrientation } from "../hooks/use-workspace-mode"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { ConfigDialog } from "@/features/config/components/config-dialog"
 import { cn } from "@/lib/utils"
-import type { Pane, BiblePaneState, LayoutMode } from "../types"
+import type { Pane, LayoutMode } from "../types"
 import {
   Sidebar,
   SidebarContent,
@@ -46,6 +46,7 @@ import {
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { PaneTypePicker } from "./pane-type-picker"
 
 interface WorkspaceSidebarProps {
   onOverviewOpen: () => void
@@ -145,20 +146,11 @@ interface WorkspaceSidebarProps {
  * right-click context menu options to toggle layout orientations, theme, and config.
  */
 export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize }: WorkspaceSidebarProps) {
-  const { panes, activePaneId, activatePane, closePane, openPane, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const { panes, activePaneId, activatePane, closePane, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const { isDark, setTheme } = useAppTheme()
-  const { state } = useSidebar()
+  const { state, setOpen } = useSidebar()
   const isCollapsed = state === "collapsed"
   const [configOpen, setConfigOpen] = useState(false)
-
-  const handleAddNewTab = () => {
-    openPane({
-      type: "bible",
-      bookId: "gen",
-      chapter: 1,
-      versionId: "ara",
-    } as BiblePaneState)
-  }
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -166,8 +158,14 @@ export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize
     const startWidth = sidebarWidth
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      const newWidth = Math.max(180, Math.min(480, startWidth + (moveEvent.clientX - startX)))
-      onSidebarResize(newWidth)
+      const targetWidth = startWidth + (moveEvent.clientX - startX)
+      if (targetWidth < 120) {
+        setOpen(false)
+      } else {
+        setOpen(true)
+        const newWidth = Math.max(180, Math.min(480, targetWidth))
+        onSidebarResize(newWidth)
+      }
     }
 
     const handleMouseUp = () => {
@@ -177,11 +175,11 @@ export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize
 
     document.addEventListener("mousemove", handleMouseMove)
     document.addEventListener("mouseup", handleMouseUp)
-  }, [sidebarWidth, onSidebarResize])
+  }, [sidebarWidth, onSidebarResize, setOpen])
 
   const sidebarContent = (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shrink-0 relative">
-      <SidebarHeader className="border-b border-sidebar-border/40 py-2.5 px-3 flex items-center justify-between min-h-[52px] gap-2 bg-sidebar-accent/10">
+      <SidebarHeader className="border-b border-sidebar-border/40 py-2.5 px-3 flex flex-row items-center justify-between min-h-[52px] gap-2 bg-sidebar-accent/10">
         {!isCollapsed ? (
           <>
             {/* Abas vs Grade Layout Mode Toggle using ToggleGroup */}
@@ -238,15 +236,7 @@ export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize
               Painéis abertos
             </span>
             <div className="flex items-center gap-1 group-data-[collapsible=icon]:hidden shrink-0">
-              {/* Plus Button */}
-              <button
-                type="button"
-                onClick={handleAddNewTab}
-                title="Nova aba"
-                className="flex items-center justify-center rounded-md p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors outline-none"
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
+              <PaneTypePicker />
             </div>
           </SidebarGroupLabel>
 
