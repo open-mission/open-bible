@@ -84,7 +84,7 @@ const getPaneIcon = (paneType: string, isActive: boolean) => {
  * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, activePaneId, openPane, closePane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const { activePane, activePaneId, openPane, closePane, splitPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const settings = useReaderSettings()
   const [sidebarWidth, setSidebarWidth] = useState(256)
   const isTauriMacOS = useIsTauriMacOS()
@@ -161,11 +161,17 @@ export function WorkspaceView() {
       }
 
       const isModKey = e.metaKey || e.ctrlKey
+      const isShift = e.shiftKey
 
-      // Create new tab: ⌘/Ctrl + T or Alt + T
+      // Create new tab/split: ⌘/Ctrl (+ Shift) + T or Alt (+ Shift) + T
       if ((isModKey || e.altKey) && e.key.toLowerCase() === "t") {
         e.preventDefault()
-        openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
+        if (panes.length === 0) {
+          openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
+        } else {
+          // If shift is pressed, split vertically (row). Otherwise split horizontally (column).
+          splitPane(activePaneId!, isShift ? "vertical" : "horizontal", { type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
+        }
         return
       }
 
@@ -181,21 +187,24 @@ export function WorkspaceView() {
         return
       }
 
-      // ⌘/Ctrl + Tab  and  ⌘/Ctrl + Shift + Tab  → cycle with switcher UI
-      if (e.key === "Tab" && isModKey) {
+      // Tab switcher toggles: ⌘/Ctrl + Tab or Alt + E
+      const isAltE = e.key.toLowerCase() === "e" && e.altKey
+      const isCtrlTab = e.key === "Tab" && isModKey
+
+      if (isCtrlTab || isAltE) {
         e.preventDefault()
-        const modifier = e.ctrlKey ? "control" : "meta"
+        const modifier = isCtrlTab ? (e.ctrlKey ? "control" : "meta") : "alt"
 
         setSwitcherOpen((prevOpen) => {
           if (!prevOpen) {
             const currentIdx = panes.findIndex((p) => p.id === activePaneId)
-            const nextIdx = (currentIdx + (e.shiftKey ? -1 : 1) + panes.length) % panes.length
+            const nextIdx = (currentIdx + (isShift ? -1 : 1) + panes.length) % panes.length
             setSwitcherSelectedIndex(nextIdx)
             setSwitcherModifier(modifier)
             return true
           } else {
             setSwitcherSelectedIndex((prevIdx) => {
-              const delta = e.shiftKey ? -1 : 1
+              const delta = isShift ? -1 : 1
               return (prevIdx + delta + panes.length) % panes.length
             })
             return true
@@ -213,19 +222,24 @@ export function WorkspaceView() {
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [panes, activePaneId, activatePane, openPane, closePane])
+  }, [panes, activePaneId, activatePane, openPane, closePane, splitPane])
 
-  // Ctrl+Tab KeyUp handler to commit selected tab switch
+  // KeyUp handler to commit selected tab switch
   useEffect(() => {
     if (!switcherOpen || !switcherModifier) return
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      const targetKey = switcherModifier === "control" ? "Control" : "Meta"
-      if (
+      let targetKey = "Control"
+      if (switcherModifier === "meta") targetKey = "Meta"
+      if (switcherModifier === "alt") targetKey = "Alt"
+
+      const isReleased =
         e.key === targetKey ||
         (switcherModifier === "control" && !e.ctrlKey) ||
-        (switcherModifier === "meta" && !e.metaKey)
-      ) {
+        (switcherModifier === "meta" && !e.metaKey) ||
+        (switcherModifier === "alt" && !e.altKey)
+
+      if (isReleased) {
         if (panes[switcherSelectedIndex]) {
           activatePane(panes[switcherSelectedIndex].id)
         }
