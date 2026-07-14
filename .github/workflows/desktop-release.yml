@@ -46,7 +46,7 @@ jobs:
         run: pnpm config set fetch-timeout 120000
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
