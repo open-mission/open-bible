@@ -1,7 +1,9 @@
 "use client"
 
-import { LayoutGrid, Rows3, Columns2, Rows2, SquareStack } from "lucide-react"
-import { useWorkspaceMode, type WorkspaceMode, type WorkspaceLayout } from "../hooks/use-workspace-mode"
+import { useContext } from "react"
+import { LayoutGrid, Rows3, Columns2, Rows2, SquareStack, LayoutPanelTop, LayoutPanelLeft } from "lucide-react"
+import { useWorkspaceMode, type WorkspaceMode, type WorkspaceLayout, type TabsOrientation } from "../hooks/use-workspace-mode"
+import { WorkspaceContext } from "../context/workspace-context"
 import { cn } from "@/lib/utils"
 
 /**
@@ -13,7 +15,12 @@ import { cn } from "@/lib/utils"
  * the next home page load.
  */
 export function WorkspaceModeSetting() {
-  const { mode, setMode, layout, setLayout } = useWorkspaceMode()
+  const workspaceMode = useWorkspaceMode()
+  const workspace = useContext(WorkspaceContext)
+
+  const { mode, setMode, layout, setLayout } = workspaceMode
+  const tabsOrientation = workspace ? workspace.tabsOrientation : workspaceMode.tabsOrientation
+  const setTabsOrientation = workspace ? workspace.setTabsOrientation : workspaceMode.setTabsOrientation
 
   const modeOptions: {
     value: WorkspaceMode
@@ -61,6 +68,26 @@ export function WorkspaceModeSetting() {
     },
   ]
 
+  const orientationOptions: {
+    value: TabsOrientation
+    label: string
+    description: string
+    icon: React.ReactNode
+  }[] = [
+    {
+      value: "horizontal",
+      label: "Horizontal",
+      description: "Abas no topo da página (estilo navegador).",
+      icon: <LayoutPanelTop className="h-5 w-5" />,
+    },
+    {
+      value: "vertical",
+      label: "Vertical",
+      description: "Abas na lateral esquerda (estilo barra lateral).",
+      icon: <LayoutPanelLeft className="h-5 w-5" />,
+    },
+  ]
+
   return (
     <div className="space-y-4">
       <div>
@@ -102,45 +129,89 @@ export function WorkspaceModeSetting() {
       </div>
 
       {mode === "advanced" && (
-        <div className="space-y-3 rounded-xl border border-border bg-card/50 p-4 animate-in fade-in-50 duration-200">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">
-              Layout padrão do workspace
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Escolha como os painéis são organizados ao entrar no modo avançado.
-            </p>
+        <div className="space-y-4 pt-2">
+          {/* Layout Setting */}
+          <div className="space-y-3 rounded-xl border border-border bg-card/50 p-4 animate-in fade-in-50 duration-200">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">
+                Layout padrão do workspace
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Escolha como os painéis são organizados ao entrar no modo avançado.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {layoutOptions.map((opt) => {
+                const active = layout === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setLayout(opt.value)}
+                    aria-pressed={active}
+                    className={cn(
+                      "flex flex-col items-start gap-2 rounded-lg border-2 p-3 text-left transition-colors",
+                      active
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground bg-background",
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      {opt.icon}
+                      <span className={cn("text-sm font-semibold", active && "text-primary")}>
+                        {opt.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {opt.description}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            {layoutOptions.map((opt) => {
-              const active = layout === opt.value
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => setLayout(opt.value)}
-                  aria-pressed={active}
-                  className={cn(
-                    "flex flex-col items-start gap-2 rounded-lg border-2 p-3 text-left transition-colors",
-                    active
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground bg-background",
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    {opt.icon}
-                    <span className={cn("text-sm font-semibold", active && "text-primary")}>
-                      {opt.label}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {opt.description}
-                  </p>
-                </button>
-              )
-            })}
+
+          {/* Tabs Orientation Setting */}
+          <div className="space-y-3 rounded-xl border border-border bg-card/50 p-4 animate-in fade-in-50 duration-200">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">
+                Visualização das Abas
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Escolha se as abas do workspace devem ficar no topo ou na barra lateral esquerda.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {orientationOptions.map((opt) => {
+                const active = tabsOrientation === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTabsOrientation(opt.value)}
+                    aria-pressed={active}
+                    className={cn(
+                      "flex flex-col items-start gap-2 rounded-lg border-2 p-3 text-left transition-colors",
+                      active
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground bg-background",
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      {opt.icon}
+                      <span className={cn("text-sm font-semibold", active && "text-primary")}>
+                        {opt.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {opt.description}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
       )}
     </div>
   )
 }
+
