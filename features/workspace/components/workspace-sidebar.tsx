@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { X, Plus, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical, GripVertical } from "lucide-react"
-import { IconGripVertical, IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
+import { X, Plus, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical } from "lucide-react"
+import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
@@ -45,6 +45,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 interface WorkspaceSidebarProps {
   onOverviewOpen: () => void
@@ -152,7 +153,6 @@ export function WorkspaceSidebar({ onOverviewOpen }: WorkspaceSidebarProps) {
   const { state } = useSidebar()
   const isCollapsed = state === "collapsed"
   const [configOpen, setConfigOpen] = useState(false)
-  const [reorderEnabled, setReorderEnabled] = useState(false)
 
   const handleAddNewTab = () => {
     openPane({
@@ -165,40 +165,35 @@ export function WorkspaceSidebar({ onOverviewOpen }: WorkspaceSidebarProps) {
 
   const sidebarContent = (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shrink-0">
-      <SidebarHeader className="border-b border-sidebar-border/40 py-2.5 px-3 flex items-center justify-between min-h-[52px] gap-2">
+      <SidebarHeader className="border-b border-sidebar-border/40 py-2.5 px-3 flex items-center justify-between min-h-[52px] gap-2 bg-sidebar-accent/10">
         {!isCollapsed ? (
           <>
-            {/* Abas vs Grade Layout Mode Toggle */}
-            <div className="flex-1 flex items-center gap-0.5 rounded-lg bg-background border border-sidebar-border/40 p-0.5 min-w-0">
-              <button
-                type="button"
-                aria-pressed={layoutMode === "tabs"}
-                onClick={() => setLayoutMode("tabs")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium transition-colors min-w-0",
-                  layoutMode === "tabs"
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
+            {/* Abas vs Grade Layout Mode Toggle using ToggleGroup */}
+            <ToggleGroup
+              type="single"
+              value={layoutMode}
+              onValueChange={(val) => {
+                if (val) setLayoutMode(val as LayoutMode)
+              }}
+              spacing={0}
+              variant="outline"
+              className="flex-1 min-w-0"
+            >
+              <ToggleGroupItem
+                value="tabs"
+                className="flex-1 text-[11px] h-7 px-1.5"
               >
-                <Rows3 className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">Abas</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={layoutMode === "grid"}
-                onClick={() => setLayoutMode("grid")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium transition-colors min-w-0",
-                  layoutMode === "grid"
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
+                <Rows3 className="size-3 shrink-0 mr-1" />
+                <span>Abas</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="grid"
+                className="flex-1 text-[11px] h-7 px-1.5"
               >
-                <LayoutGrid className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">Grade</span>
-              </button>
-            </div>
+                <LayoutGrid className="size-3 shrink-0 mr-1" />
+                <span>Grade</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
 
             {/* Three Dots Menu Dropdown */}
             <SidebarHeaderMenu onOverviewOpen={onOverviewOpen} />
@@ -215,22 +210,6 @@ export function WorkspaceSidebar({ onOverviewOpen }: WorkspaceSidebarProps) {
               Painéis abertos
             </span>
             <div className="flex items-center gap-1 group-data-[collapsible=icon]:hidden shrink-0">
-              {/* Reorder Toggle Button */}
-              {panes.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setReorderEnabled(!reorderEnabled)}
-                  title={reorderEnabled ? "Bloquear ordenação" : "Permitir reordenação"}
-                  className={cn(
-                    "flex items-center justify-center rounded-md p-1 transition-colors outline-none",
-                    reorderEnabled
-                      ? "text-primary bg-sidebar-accent"
-                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  )}
-                >
-                  <GripVertical className="h-3.5 w-3.5" />
-                </button>
-              )}
               {/* Plus Button */}
               <button
                 type="button"
@@ -253,7 +232,6 @@ export function WorkspaceSidebar({ onOverviewOpen }: WorkspaceSidebarProps) {
                   onActivate={() => activatePane(pane.id)}
                   onClose={() => closePane(pane.id)}
                   total={panes.length}
-                  reorderEnabled={reorderEnabled}
                 />
               ))}
             </SidebarMenu>
@@ -345,7 +323,6 @@ interface SortableSidebarTabProps {
   onActivate: () => void
   onClose: () => void
   total: number
-  reorderEnabled: boolean
 }
 
 function SortableSidebarTab({
@@ -354,11 +331,10 @@ function SortableSidebarTab({
   onActivate,
   onClose,
   total,
-  reorderEnabled,
 }: SortableSidebarTabProps) {
   const { state } = useSidebar()
   const isCollapsed = state === "collapsed"
-  const isDragDisabled = isCollapsed || !reorderEnabled
+  const isDragDisabled = isCollapsed
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: pane.id, disabled: isDragDisabled })
@@ -380,9 +356,7 @@ function SortableSidebarTab({
         "group/tab relative flex items-center select-none rounded-md transition-all border border-transparent",
         isDragging
           ? "opacity-40 scale-95 border-primary/20 bg-primary/5 cursor-grabbing"
-          : isDragDisabled
-            ? "cursor-pointer hover:bg-sidebar-accent/50 justify-center"
-            : "cursor-grab active:cursor-grabbing hover:bg-sidebar-accent/50",
+          : "cursor-grab active:cursor-grabbing hover:bg-sidebar-accent/50",
         active && "bg-sidebar-accent/80 text-sidebar-accent-foreground border-sidebar-border/30"
       )}
     >
@@ -395,28 +369,20 @@ function SortableSidebarTab({
         {...(!isDragDisabled ? attributes : {})}
         {...(!isDragDisabled ? listeners : {})}
       >
-        {isDragDisabled ? (
-          isCollapsed ? (
-            active ? (
+        {isCollapsed ? (
+          active ? (
+            <BookOpen className="h-4.5 w-4.5 text-primary shrink-0" />
+          ) : (
+            <Book className="h-4.5 w-4.5 text-muted-foreground shrink-0" />
+          )
+        ) : (
+          <>
+            {active ? (
               <BookOpen className="h-4.5 w-4.5 text-primary shrink-0" />
             ) : (
               <Book className="h-4.5 w-4.5 text-muted-foreground shrink-0" />
-            )
-          ) : (
-            <>
-              {active ? (
-                <BookOpen className="h-4.5 w-4.5 text-primary shrink-0" />
-              ) : (
-                <Book className="h-4.5 w-4.5 text-muted-foreground shrink-0" />
-              )}
-              <span className="truncate flex-1 font-medium select-none ml-0.5">{pane.title}</span>
-            </>
-          )
-        ) : (
-          /* Reordering active */
-          <>
-            <IconGripVertical className="h-3.5 w-3.5 shrink-0 opacity-70 group-hover/tab:opacity-100 transition-opacity" />
-            <span className="truncate flex-1 font-medium select-none text-muted-foreground">{pane.title}</span>
+            )}
+            <span className="truncate flex-1 font-medium select-none ml-0.5">{pane.title}</span>
           </>
         )}
       </div>
