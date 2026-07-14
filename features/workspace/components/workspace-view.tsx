@@ -34,7 +34,7 @@ import {
   ContextMenuSeparator,
   ContextMenuGroup,
 } from "@/components/ui/context-menu"
-import { LayoutPanelTop, LayoutPanelLeft, Monitor, LayoutGrid } from "lucide-react"
+import { LayoutPanelTop, LayoutPanelLeft, Monitor, LayoutGrid, BookOpen, Book, Notebook, Presentation } from "lucide-react"
 import { BiblePaneView } from "./bible-pane-view"
 import { NotePaneView } from "./note-pane-view"
 import { SermonPaneView } from "./sermon-pane-view"
@@ -62,6 +62,19 @@ export function useWorkspaceDnd() {
 
 const HEADER_COLLAPSED_KEY = "openbible:workspace-header-collapsed"
 
+const getPaneIcon = (paneType: string, isActive: boolean) => {
+  if (paneType === "bible") {
+    return isActive ? BookOpen : Book
+  }
+  if (paneType === "note") {
+    return Notebook
+  }
+  if (paneType === "sermon") {
+    return Presentation
+  }
+  return Book
+}
+
 /**
  * The workspace content area. On desktop (md+) a single header line combines
  * the tab list with the Abas/Grade toggle and the new-pane picker. The header
@@ -71,13 +84,16 @@ const HEADER_COLLAPSED_KEY = "openbible:workspace-header-collapsed"
  * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const { activePane, activePaneId, openPane, closePane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const settings = useReaderSettings()
   const [sidebarWidth, setSidebarWidth] = useState(256)
   const isTauriMacOS = useIsTauriMacOS()
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
   const [overviewOpen, setOverviewOpen] = useState(false)
+  const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [switcherSelectedIndex, setSwitcherSelectedIndex] = useState(0)
+  const [switcherModifier, setSwitcherModifier] = useState<"control" | "meta" | null>(null)
 
   const strategy = tabsOrientation === "vertical" ? verticalListSortingStrategy : horizontalListSortingStrategy
 
@@ -133,9 +149,7 @@ export function WorkspaceView() {
   // Keyboard shortcuts: ⌘/Ctrl + 1..9 jump to a pane by index; ⌘/Ctrl + Tab
   // (and Shift) cycle through panes. Works in both tabs and grid modes.
   useEffect(() => {
-    if (panes.length === 0) return
     const handler = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey)) return
       const target = e.target as HTMLElement | null
       const tag = target?.tagName
       if (
@@ -146,19 +160,52 @@ export function WorkspaceView() {
         return
       }
 
-      // ⌘/Ctrl + Tab  and  ⌘/Ctrl + Shift + Tab  → cycle
-      if (e.key === "Tab") {
+      const isModKey = e.metaKey || e.ctrlKey
+
+      // Create new tab: ⌘/Ctrl + T or Alt + T
+      if ((isModKey || e.altKey) && e.key.toLowerCase() === "t") {
         e.preventDefault()
-        const idx = panes.findIndex((p) => p.id === activePaneId)
-        const current = idx === -1 ? 0 : idx
-        const delta = e.shiftKey ? -1 : 1
-        const nextIdx = (current + delta + panes.length) % panes.length
-        activatePane(panes[nextIdx].id)
+        openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
+        return
+      }
+
+      // If no panes, other shortcuts don't apply
+      if (panes.length === 0) return
+
+      // Close active tab: ⌘/Ctrl + W or Alt + W
+      if ((isModKey || e.altKey) && e.key.toLowerCase() === "w") {
+        e.preventDefault()
+        if (activePaneId) {
+          closePane(activePaneId)
+        }
+        return
+      }
+
+      // ⌘/Ctrl + Tab  and  ⌘/Ctrl + Shift + Tab  → cycle with switcher UI
+      if (e.key === "Tab" && isModKey) {
+        e.preventDefault()
+        const modifier = e.ctrlKey ? "control" : "meta"
+
+        setSwitcherOpen((prevOpen) => {
+          if (!prevOpen) {
+            const currentIdx = panes.findIndex((p) => p.id === activePaneId)
+            const nextIdx = (currentIdx + (e.shiftKey ? -1 : 1) + panes.length) % panes.length
+            setSwitcherSelectedIndex(nextIdx)
+            setSwitcherModifier(modifier)
+            return true
+          } else {
+            setSwitcherSelectedIndex((prevIdx) => {
+              const delta = e.shiftKey ? -1 : 1
+              return (prevIdx + delta + panes.length) % panes.length
+            })
+            return true
+          }
+        })
         return
       }
 
       // ⌘/Ctrl + 1..9  → jump to that pane
-      if (/^[1-9]$/.test(e.key)) {
+      if (isModKey && /^[1-9]$/.test(e.key)) {
         e.preventDefault()
         const idx = Number(e.key) - 1
         if (idx < panes.length) activatePane(panes[idx].id)
@@ -166,7 +213,30 @@ export function WorkspaceView() {
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [panes, activePaneId, activatePane])
+  }, [panes, activePaneId, activatePane, openPane, closePane])
+
+  // Ctrl+Tab KeyUp handler to commit selected tab switch
+  useEffect(() => {
+    if (!switcherOpen || !switcherModifier) return
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const targetKey = switcherModifier === "control" ? "Control" : "Meta"
+      if (
+        e.key === targetKey ||
+        (switcherModifier === "control" && !e.ctrlKey) ||
+        (switcherModifier === "meta" && !e.metaKey)
+      ) {
+        if (panes[switcherSelectedIndex]) {
+          activatePane(panes[switcherSelectedIndex].id)
+        }
+        setSwitcherOpen(false)
+        setSwitcherModifier(null)
+      }
+    }
+
+    window.addEventListener("keyup", handleKeyUp)
+    return () => window.removeEventListener("keyup", handleKeyUp)
+  }, [switcherOpen, switcherModifier, switcherSelectedIndex, panes, activatePane])
 
   const openFirstPane = () =>
     openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
@@ -346,6 +416,45 @@ export function WorkspaceView() {
           )}
 
           <WorkspaceTabOverview open={overviewOpen} onClose={() => setOverviewOpen(false)} />
+
+          {switcherOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-xs pointer-events-auto" onClick={() => setSwitcherOpen(false)}>
+              <div 
+                className="w-full max-w-sm rounded-lg border border-border/60 bg-background/95 p-2 shadow-2xl backdrop-blur-md outline-none pointer-events-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider">
+                  Alternar Abas
+                </div>
+                <div className="flex flex-col gap-0.5 mt-1">
+                  {panes.map((pane, idx) => {
+                    const isSelected = idx === switcherSelectedIndex
+                    const Icon = getPaneIcon(pane.state.type, pane.id === activePaneId)
+                    return (
+                      <button
+                        key={pane.id}
+                        type="button"
+                        onClick={() => {
+                          activatePane(pane.id)
+                          setSwitcherOpen(false)
+                          setSwitcherModifier(null)
+                        }}
+                        className={cn(
+                          "flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors select-none outline-none",
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "hover:bg-accent hover:text-accent-foreground text-foreground"
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate flex-1">{pane.title}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
 
           {activeDragId && (
             <DragOverlay dropAnimation={null}>
