@@ -291,14 +291,11 @@ export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize
         </SidebarMenu>
 
         {/* Subtle version indicator inside sidebar footer */}
-        <div className="px-2.5 py-1.5 flex items-center justify-between border-t border-sidebar-border/20 mt-1 select-none">
-          <span className="text-[10px] text-muted-foreground/45 font-mono group-data-[collapsible=icon]:hidden">
+        <div className="px-2.5 py-1.5 flex items-center justify-between border-t border-sidebar-border/20 mt-1 select-none group-data-[collapsible=icon]:hidden">
+          <span className="text-[10px] text-muted-foreground/45 font-mono">
             Open Bible v{APP_VERSION}
           </span>
-          <span className="text-[10px] text-muted-foreground/45 font-mono hidden group-data-[collapsible=icon]:inline mx-auto">
-            v{APP_VERSION}
-          </span>
-          {!isCollapsed && isPreRelease && ENV_LABEL[APP_ENV] && (
+          {isPreRelease && ENV_LABEL[APP_ENV] && (
             <Badge variant="secondary" className="h-3.5 px-1 text-[8px] font-medium leading-none">
               {ENV_LABEL[APP_ENV]}
             </Badge>
