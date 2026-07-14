@@ -161,6 +161,7 @@ export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize
       const targetWidth = startWidth + (moveEvent.clientX - startX)
       if (targetWidth < 120) {
         setOpen(false)
+        onSidebarResize(256)
       } else {
         setOpen(true)
         const newWidth = Math.max(180, Math.min(480, targetWidth))
@@ -185,9 +186,9 @@ export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize
             {/* Abas vs Grade Layout Mode Toggle using ToggleGroup */}
             <ToggleGroup
               type="single"
-              value={layoutMode}
+              value={[layoutMode]}
               onValueChange={(val) => {
-                if (val) setLayoutMode(val as LayoutMode)
+                if (val && val[0]) setLayoutMode(val[0] as LayoutMode)
               }}
               spacing={0}
               variant="outline"
