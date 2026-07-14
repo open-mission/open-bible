@@ -14,9 +14,11 @@ import { useState, useEffect, useCallback } from "react"
  */
 export type WorkspaceMode = "simple" | "advanced"
 export type WorkspaceLayout = "tabs" | "columns" | "rows"
+export type TabsOrientation = "horizontal" | "vertical"
 
 const WORKSPACE_MODE_KEY = "openbible:workspace-mode"
 const WORKSPACE_LAYOUT_KEY = "openbible:workspace-layout"
+const TABS_ORIENTATION_KEY = "openbible:tabs-orientation"
 
 function loadMode(): WorkspaceMode {
   if (typeof window === "undefined") return "simple"
@@ -38,15 +40,27 @@ export function loadLayout(): WorkspaceLayout {
   }
 }
 
+function loadTabsOrientation(): TabsOrientation {
+  if (typeof window === "undefined") return "horizontal"
+  try {
+    const v = localStorage.getItem(TABS_ORIENTATION_KEY)
+    return v === "vertical" ? "vertical" : "horizontal"
+  } catch {
+    return "horizontal"
+  }
+}
+
 export function useWorkspaceMode() {
   const [mode, setModeState] = useState<WorkspaceMode>("simple")
   const [layout, setLayoutState] = useState<WorkspaceLayout>("tabs")
+  const [tabsOrientation, setTabsOrientationState] = useState<TabsOrientation>("horizontal")
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setModeState(loadMode())
       setLayoutState(loadLayout())
+      setTabsOrientationState(loadTabsOrientation())
       setLoaded(true)
     }, 0)
     return () => clearTimeout(timer)
@@ -70,5 +84,15 @@ export function useWorkspaceMode() {
     }
   }, [])
 
-  return { mode, setMode, layout, setLayout, loaded }
+  const setTabsOrientation = useCallback((o: TabsOrientation) => {
+    setTabsOrientationState(o)
+    try {
+      localStorage.setItem(TABS_ORIENTATION_KEY, o)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  return { mode, setMode, layout, setLayout, tabsOrientation, setTabsOrientation, loaded }
 }
+
