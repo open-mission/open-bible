@@ -170,7 +170,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setActivePaneId(ws.activePaneId)
       setLayoutModeState(ws.layoutMode)
       setLayout(ws.layout ?? null)
-      setTabsOrientationState(loadTabsOrientation())
+      const orientation = loadTabsOrientation()
+      setTabsOrientationState(orientation)
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("openbible:tabs-orientation-changed"))
+      }
       setLoaded(true)
     }, 0)
     return () => clearTimeout(timer)
@@ -180,6 +184,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setTabsOrientationState(o)
     try {
       localStorage.setItem(TABS_ORIENTATION_KEY, o)
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("openbible:tabs-orientation-changed"))
+      }
     } catch {
       /* ignore */
     }
