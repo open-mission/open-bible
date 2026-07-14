@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable"
 import { useWorkspace } from "../context/workspace-context"
 import { useReaderSettings } from "../hooks/use-reader-settings"
-import { useWorkspaceMode, type TabsOrientation } from "../hooks/use-workspace-mode"
+import { type TabsOrientation } from "../hooks/use-workspace-mode"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { WorkspaceSidebar } from "./workspace-sidebar"
 import {
@@ -71,9 +71,9 @@ const HEADER_COLLAPSED_KEY = "openbible:workspace-header-collapsed"
  * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode } = useWorkspace()
-  const { tabsOrientation, setTabsOrientation } = useWorkspaceMode()
+  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const settings = useReaderSettings()
+  const [sidebarWidth, setSidebarWidth] = useState(256)
   const isTauriMacOS = useIsTauriMacOS()
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
@@ -328,8 +328,15 @@ export function WorkspaceView() {
           strategy={strategy}
         >
           {tabsOrientation === "vertical" && panes.length > 0 ? (
-            <SidebarProvider className="h-full min-h-0">
-              <WorkspaceSidebar onOverviewOpen={() => setOverviewOpen(true)} />
+            <SidebarProvider
+              style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
+              className="h-full min-h-0"
+            >
+              <WorkspaceSidebar
+                onOverviewOpen={() => setOverviewOpen(true)}
+                sidebarWidth={sidebarWidth}
+                onSidebarResize={setSidebarWidth}
+              />
               <SidebarInset className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
                 {workspaceContent}
               </SidebarInset>

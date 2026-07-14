@@ -20,7 +20,19 @@ import {
   autoArrange,
   swapLeaves,
 } from "../lib/layout-tree"
-import { loadLayout } from "../hooks/use-workspace-mode"
+import { loadLayout, type TabsOrientation } from "../hooks/use-workspace-mode"
+
+const TABS_ORIENTATION_KEY = "openbible:tabs-orientation"
+
+function loadTabsOrientation(): TabsOrientation {
+  if (typeof window === "undefined") return "horizontal"
+  try {
+    const v = localStorage.getItem(TABS_ORIENTATION_KEY)
+    return v === "vertical" ? "vertical" : "horizontal"
+  } catch {
+    return "horizontal"
+  }
+}
 
 /**
  * Workspace state: the set of open panes (tabs), which one is active, and the
@@ -49,9 +61,11 @@ interface WorkspaceContextValue {
   setLayoutMode: (mode: LayoutMode) => void
   splitPane: (paneId: string, direction: "horizontal" | "vertical", newState?: PaneState) => string
   activePane: Pane | null
+  tabsOrientation: TabsOrientation
+  setTabsOrientation: (orientation: TabsOrientation) => void
 }
 
-const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
+export const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
 
 function generateId(): string {
   return `pane-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -141,6 +155,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     initialLayout === "tabs" ? "tabs" : "grid",
   )
   const [layout, setLayout] = useState<LayoutNode | null>(null)
+  const [tabsOrientation, setTabsOrientationState] = useState<TabsOrientation>("horizontal")
   const [loaded, setLoaded] = useState(false)
   // Default split direction for grid arrangements: columns => horizontal,
   // rows => vertical, tabs => horizontal (ignored in tabs mode).
@@ -155,9 +170,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setActivePaneId(ws.activePaneId)
       setLayoutModeState(ws.layoutMode)
       setLayout(ws.layout ?? null)
+      setTabsOrientationState(loadTabsOrientation())
       setLoaded(true)
     }, 0)
     return () => clearTimeout(timer)
+  }, [])
+
+  const setTabsOrientation = useCallback((o: TabsOrientation) => {
+    setTabsOrientationState(o)
+    try {
+      localStorage.setItem(TABS_ORIENTATION_KEY, o)
+    } catch {
+      /* ignore */
+    }
   }, [])
 
   // Persist whenever workspace changes (after initial load).
@@ -339,6 +364,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setLayoutMode,
     splitPane,
     activePane,
+    tabsOrientation,
+    setTabsOrientation,
   }
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>

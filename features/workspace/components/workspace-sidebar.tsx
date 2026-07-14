@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { X, Plus, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical } from "lucide-react"
 import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
-import { useWorkspaceMode, type TabsOrientation } from "../hooks/use-workspace-mode"
+import { type TabsOrientation } from "../hooks/use-workspace-mode"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { ConfigDialog } from "@/features/config/components/config-dialog"
 import { cn } from "@/lib/utils"
@@ -62,8 +62,7 @@ function SidebarHeaderMenu({
   collapsed?: boolean
   onOverviewOpen: () => void
 }) {
-  const { tabsOrientation, setTabsOrientation } = useWorkspaceMode()
-  const { layoutMode, setLayoutMode } = useWorkspace()
+  const { tabsOrientation, setTabsOrientation, layoutMode, setLayoutMode } = useWorkspace()
   const { toggleSidebar } = useSidebar()
   const [configOpen, setConfigOpen] = useState(false)
 
@@ -137,15 +136,16 @@ function SidebarHeaderMenu({
 
 interface WorkspaceSidebarProps {
   onOverviewOpen: () => void
+  sidebarWidth: number
+  onSidebarResize: (width: number) => void
 }
 
 /**
  * Sidebar displaying workspace panes vertically, allowing dragging to reorder,
  * right-click context menu options to toggle layout orientations, theme, and config.
  */
-export function WorkspaceSidebar({ onOverviewOpen }: WorkspaceSidebarProps) {
-  const { panes, activePaneId, activatePane, closePane, openPane, layoutMode, setLayoutMode } = useWorkspace()
-  const { tabsOrientation, setTabsOrientation } = useWorkspaceMode()
+export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize }: WorkspaceSidebarProps) {
+  const { panes, activePaneId, activatePane, closePane, openPane, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const { isDark, setTheme } = useAppTheme()
   const { state } = useSidebar()
   const isCollapsed = state === "collapsed"
@@ -160,8 +160,27 @@ export function WorkspaceSidebar({ onOverviewOpen }: WorkspaceSidebarProps) {
     } as BiblePaneState)
   }
 
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const startX = e.clientX
+    const startWidth = sidebarWidth
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const newWidth = Math.max(180, Math.min(480, startWidth + (moveEvent.clientX - startX)))
+      onSidebarResize(newWidth)
+    }
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleMouseUp)
+    }
+
+    document.addEventListener("mousemove", handleMouseMove)
+    document.addEventListener("mouseup", handleMouseUp)
+  }, [sidebarWidth, onSidebarResize])
+
   const sidebarContent = (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shrink-0">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shrink-0 relative">
       <SidebarHeader className="border-b border-sidebar-border/40 py-2.5 px-3 flex items-center justify-between min-h-[52px] gap-2 bg-sidebar-accent/10">
         {!isCollapsed ? (
           <>
@@ -196,7 +215,19 @@ export function WorkspaceSidebar({ onOverviewOpen }: WorkspaceSidebarProps) {
             <SidebarHeaderMenu onOverviewOpen={onOverviewOpen} />
           </>
         ) : (
-          <SidebarHeaderMenu collapsed onOverviewOpen={onOverviewOpen} />
+          /* When collapsed, show only the active layout mode icon to toggle modes directly */
+          <button
+            type="button"
+            onClick={() => setLayoutMode(layoutMode === "tabs" ? "grid" : "tabs")}
+            title={layoutMode === "tabs" ? "Mudar para modo Grade" : "Mudar para modo Abas"}
+            className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring mx-auto"
+          >
+            {layoutMode === "tabs" ? (
+              <Rows3 className="h-4.5 w-4.5 text-primary" />
+            ) : (
+              <LayoutGrid className="h-4.5 w-4.5 text-primary" />
+            )}
+          </button>
         )}
       </SidebarHeader>
 
@@ -267,6 +298,14 @@ export function WorkspaceSidebar({ onOverviewOpen }: WorkspaceSidebarProps) {
         </SidebarMenu>
       </SidebarFooter>
       <ConfigDialog open={configOpen} onOpenChange={setConfigOpen} />
+
+      {/* Drag-to-resize handle */}
+      {!isCollapsed && (
+        <div
+          onMouseDown={handleMouseDown}
+          className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-primary/30 active:bg-primary transition-colors z-50"
+        />
+      )}
     </Sidebar>
   )
 

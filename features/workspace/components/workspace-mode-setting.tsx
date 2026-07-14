@@ -1,7 +1,9 @@
 "use client"
 
+import { useContext } from "react"
 import { LayoutGrid, Rows3, Columns2, Rows2, SquareStack, LayoutPanelTop, LayoutPanelLeft } from "lucide-react"
 import { useWorkspaceMode, type WorkspaceMode, type WorkspaceLayout, type TabsOrientation } from "../hooks/use-workspace-mode"
+import { WorkspaceContext } from "../context/workspace-context"
 import { cn } from "@/lib/utils"
 
 /**
@@ -13,7 +15,12 @@ import { cn } from "@/lib/utils"
  * the next home page load.
  */
 export function WorkspaceModeSetting() {
-  const { mode, setMode, layout, setLayout, tabsOrientation, setTabsOrientation } = useWorkspaceMode()
+  const workspaceMode = useWorkspaceMode()
+  const workspace = useContext(WorkspaceContext)
+
+  const { mode, setMode, layout, setLayout } = workspaceMode
+  const tabsOrientation = workspace ? workspace.tabsOrientation : workspaceMode.tabsOrientation
+  const setTabsOrientation = workspace ? workspace.setTabsOrientation : workspaceMode.setTabsOrientation
 
   const modeOptions: {
     value: WorkspaceMode
