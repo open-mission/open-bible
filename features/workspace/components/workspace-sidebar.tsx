@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, Plus, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen } from "lucide-react"
+import { X, Plus, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3 } from "lucide-react"
 import { IconGripVertical, IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -36,11 +36,15 @@ import {
   ContextMenuGroup,
 } from "@/components/ui/context-menu"
 
+interface WorkspaceSidebarProps {
+  onOverviewOpen: () => void
+}
+
 /**
  * Sidebar displaying workspace panes vertically, allowing dragging to reorder,
  * right-click context menu options to toggle layout orientations, theme, and config.
  */
-export function WorkspaceSidebar() {
+export function WorkspaceSidebar({ onOverviewOpen }: WorkspaceSidebarProps) {
   const { panes, activePaneId, activatePane, closePane, openPane, layoutMode, setLayoutMode } = useWorkspace()
   const { tabsOrientation, setTabsOrientation } = useWorkspaceMode()
   const { isDark, setTheme } = useAppTheme()
@@ -80,7 +84,55 @@ export function WorkspaceSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-3">
+      <SidebarContent className="px-2 py-3 flex flex-col gap-3">
+        {/* Controls Group: Layout Mode Toggle + Overview button (only shown when expanded) */}
+        {!isCollapsed && (
+          <SidebarGroup className="p-0">
+            <SidebarGroupContent className="flex items-center gap-2 px-2 pb-1.5">
+              <button
+                type="button"
+                onClick={onOverviewOpen}
+                aria-label="Ver todas as abas"
+                title="Ver todas as abas (Estilo Safari)"
+                className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground shrink-0 outline-none border border-sidebar-border/40 bg-sidebar"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+
+              <div className="flex-1 flex items-center gap-0.5 rounded-lg bg-sidebar border border-sidebar-border/40 p-0.5 min-w-0">
+                <button
+                  type="button"
+                  aria-pressed={layoutMode === "tabs"}
+                  onClick={() => setLayoutMode("tabs")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1 rounded px-2.5 py-1 text-[11px] font-medium transition-colors min-w-0",
+                    layoutMode === "tabs"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Rows3 className="h-3 w-3 shrink-0" />
+                  <span className="truncate">Abas</span>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={layoutMode === "grid"}
+                  onClick={() => setLayoutMode("grid")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1 rounded px-2.5 py-1 text-[11px] font-medium transition-colors min-w-0",
+                    layoutMode === "grid"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <LayoutGrid className="h-3 w-3 shrink-0" />
+                  <span className="truncate">Grade</span>
+                </button>
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         <SidebarGroup className="p-0">
           <SidebarGroupLabel className="px-2 mb-2 group-data-[collapsible=icon]:hidden text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
             Painéis abertos

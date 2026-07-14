@@ -187,7 +187,7 @@ export function WorkspaceView() {
   const workspaceContent = (
     <div className="relative flex flex-col h-full min-h-0 flex-1 min-w-0">
       {/* Desktop header — tabs + Abas/Grade toggle + picker on one line */}
-      {panes.length > 0 && !headerCollapsed && (
+      {panes.length > 0 && tabsOrientation !== "vertical" && !headerCollapsed && (
         <ContextMenu>
           <ContextMenuTrigger className="w-full">
             <div
@@ -259,7 +259,7 @@ export function WorkspaceView() {
       )}
 
       {/* Floating reveal handle when header is collapsed (desktop) */}
-      {panes.length > 0 && headerCollapsed && (
+      {panes.length > 0 && tabsOrientation !== "vertical" && headerCollapsed && (
         <button
           type="button"
           onClick={toggleHeader}
@@ -329,7 +329,7 @@ export function WorkspaceView() {
         >
           {tabsOrientation === "vertical" && panes.length > 0 ? (
             <SidebarProvider className="h-full min-h-0">
-              <WorkspaceSidebar />
+              <WorkspaceSidebar onOverviewOpen={() => setOverviewOpen(true)} />
               <SidebarInset className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
                 {workspaceContent}
               </SidebarInset>
