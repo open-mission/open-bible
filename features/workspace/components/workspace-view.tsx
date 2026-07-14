@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable"
 import { useWorkspace } from "../context/workspace-context"
 import { useReaderSettings } from "../hooks/use-reader-settings"
-import { useWorkspaceMode, type TabsOrientation } from "../hooks/use-workspace-mode"
+import { type TabsOrientation } from "../hooks/use-workspace-mode"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { WorkspaceSidebar } from "./workspace-sidebar"
 import {
@@ -32,6 +32,7 @@ import {
   ContextMenuRadioItem,
   ContextMenuLabel,
   ContextMenuSeparator,
+  ContextMenuGroup,
 } from "@/components/ui/context-menu"
 import { LayoutPanelTop, LayoutPanelLeft, Monitor, LayoutGrid } from "lucide-react"
 import { BiblePaneView } from "./bible-pane-view"
@@ -70,9 +71,9 @@ const HEADER_COLLAPSED_KEY = "openbible:workspace-header-collapsed"
  * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode } = useWorkspace()
-  const { tabsOrientation, setTabsOrientation } = useWorkspaceMode()
+  const { activePane, activePaneId, openPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const settings = useReaderSettings()
+  const [sidebarWidth, setSidebarWidth] = useState(256)
   const isTauriMacOS = useIsTauriMacOS()
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
@@ -186,7 +187,7 @@ export function WorkspaceView() {
   const workspaceContent = (
     <div className="relative flex flex-col h-full min-h-0 flex-1 min-w-0">
       {/* Desktop header — tabs + Abas/Grade toggle + picker on one line */}
-      {panes.length > 0 && !headerCollapsed && (
+      {panes.length > 0 && tabsOrientation !== "vertical" && !headerCollapsed && (
         <ContextMenu>
           <ContextMenuTrigger className="w-full">
             <div
@@ -207,7 +208,7 @@ export function WorkspaceView() {
               </button>
               {tabsOrientation !== "vertical" && <WorkspaceTabs />}
               <WorkspaceToolbar />
-              <ConfigButton />
+              {tabsOrientation !== "vertical" && <ConfigButton />}
               <button
                 type="button"
                 onClick={toggleHeader}
@@ -220,41 +221,45 @@ export function WorkspaceView() {
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent className="w-52">
-            <ContextMenuLabel>Posição das Abas</ContextMenuLabel>
-            <ContextMenuRadioGroup
-              value={tabsOrientation}
-              onValueChange={(val) => setTabsOrientation(val as TabsOrientation)}
-            >
-              <ContextMenuRadioItem value="horizontal" className="gap-2">
-                <LayoutPanelTop className="h-4 w-4" />
-                <span>Abas no Topo</span>
-              </ContextMenuRadioItem>
-              <ContextMenuRadioItem value="vertical" className="gap-2">
-                <LayoutPanelLeft className="h-4 w-4" />
-                <span>Abas na Lateral</span>
-              </ContextMenuRadioItem>
-            </ContextMenuRadioGroup>
+            <ContextMenuGroup>
+              <ContextMenuLabel>Posição das Abas</ContextMenuLabel>
+              <ContextMenuRadioGroup
+                value={tabsOrientation}
+                onValueChange={(val) => setTabsOrientation(val as TabsOrientation)}
+              >
+                <ContextMenuRadioItem value="horizontal" className="gap-2">
+                  <LayoutPanelTop className="h-4 w-4" />
+                  <span>Abas no Topo</span>
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="vertical" className="gap-2">
+                  <LayoutPanelLeft className="h-4 w-4" />
+                  <span>Abas na Lateral</span>
+                </ContextMenuRadioItem>
+              </ContextMenuRadioGroup>
+            </ContextMenuGroup>
             <ContextMenuSeparator />
-            <ContextMenuLabel>Modo de Exibição</ContextMenuLabel>
-            <ContextMenuRadioGroup
-              value={layoutMode}
-              onValueChange={(val) => setLayoutMode(val as LayoutMode)}
-            >
-              <ContextMenuRadioItem value="tabs" className="gap-2">
-                <Monitor className="h-4 w-4" />
-                <span>Modo Abas</span>
-              </ContextMenuRadioItem>
-              <ContextMenuRadioItem value="grid" className="gap-2">
-                <LayoutGrid className="h-4 w-4" />
-                <span>Modo Grade</span>
-              </ContextMenuRadioItem>
-            </ContextMenuRadioGroup>
+            <ContextMenuGroup>
+              <ContextMenuLabel>Modo de Exibição</ContextMenuLabel>
+              <ContextMenuRadioGroup
+                value={layoutMode}
+                onValueChange={(val) => setLayoutMode(val as LayoutMode)}
+              >
+                <ContextMenuRadioItem value="tabs" className="gap-2">
+                  <Monitor className="h-4 w-4" />
+                  <span>Modo Abas</span>
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="grid" className="gap-2">
+                  <LayoutGrid className="h-4 w-4" />
+                  <span>Modo Grade</span>
+                </ContextMenuRadioItem>
+              </ContextMenuRadioGroup>
+            </ContextMenuGroup>
           </ContextMenuContent>
         </ContextMenu>
       )}
 
       {/* Floating reveal handle when header is collapsed (desktop) */}
-      {panes.length > 0 && headerCollapsed && (
+      {panes.length > 0 && tabsOrientation !== "vertical" && headerCollapsed && (
         <button
           type="button"
           onClick={toggleHeader}
@@ -323,8 +328,15 @@ export function WorkspaceView() {
           strategy={strategy}
         >
           {tabsOrientation === "vertical" && panes.length > 0 ? (
-            <SidebarProvider className="h-full min-h-0">
-              <WorkspaceSidebar />
+            <SidebarProvider
+              style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
+              className="h-full min-h-0"
+            >
+              <WorkspaceSidebar
+                onOverviewOpen={() => setOverviewOpen(true)}
+                sidebarWidth={sidebarWidth}
+                onSidebarResize={setSidebarWidth}
+              />
               <SidebarInset className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
                 {workspaceContent}
               </SidebarInset>
