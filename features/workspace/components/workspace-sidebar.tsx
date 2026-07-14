@@ -70,17 +70,14 @@ function SidebarHeaderMenu({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            title="Opções da barra lateral"
-            className={cn(
-              "flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring",
-              collapsed && "mx-auto"
-            )}
-          >
-            <MoreVertical className="h-4 w-4" />
-          </button>
+        <DropdownMenuTrigger
+          title="Opções da barra lateral"
+          className={cn(
+            "flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring",
+            collapsed && "mx-auto"
+          )}
+        >
+          <MoreVertical className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align={collapsed ? "center" : "end"} className="w-56">
           <DropdownMenuGroup>
