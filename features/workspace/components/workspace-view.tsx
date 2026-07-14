@@ -417,7 +417,6 @@ export function WorkspaceView() {
               className="h-full min-h-0"
             >
               <WorkspaceSidebar
-                onOverviewOpen={() => setOverviewOpen(true)}
                 sidebarWidth={sidebarWidth}
                 onSidebarResize={setSidebarWidth}
               />

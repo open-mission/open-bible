@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { X, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical } from "lucide-react"
+import { X, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react"
 import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -40,7 +40,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
@@ -59,87 +58,57 @@ interface WorkspaceSidebarProps {
  * Sidebar displaying workspace panes vertically, allowing dragging to reorder,
  * right-click context menu options to toggle layout orientations, theme, and config.
  */
-function SidebarHeaderMenu({
-  collapsed = false,
-  onOverviewOpen,
-}: {
-  collapsed?: boolean
-  onOverviewOpen: () => void
-}) {
+function SidebarHeaderMenu() {
   const { tabsOrientation, setTabsOrientation, layoutMode, setLayoutMode } = useWorkspace()
-  const { toggleSidebar } = useSidebar()
-  const [configOpen, setConfigOpen] = useState(false)
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          title="Opções da barra lateral"
-          className={cn(
-            "flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring",
-            collapsed && "mx-auto"
-          )}
-        >
-          <MoreVertical className="h-4 w-4" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align={collapsed ? "center" : "end"} className="w-56">
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => setConfigOpen(true)} className="gap-2">
-              <IconSettings className="size-4 shrink-0" />
-              <span>Configurações</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onOverviewOpen} className="gap-2">
-              <LayoutGrid className="size-4 shrink-0" />
-              <span>Ver todas as abas</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={toggleSidebar} className="gap-2">
-              <LayoutPanelLeft className="size-4 shrink-0" />
-              <span>{collapsed ? "Expandir barra lateral" : "Recolher barra lateral"}</span>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Posição das Abas</DropdownMenuLabel>
-            <DropdownMenuRadioGroup
-              value={tabsOrientation}
-              onValueChange={(val) => setTabsOrientation(val as TabsOrientation)}
-            >
-              <DropdownMenuRadioItem value="horizontal" className="gap-2">
-                <LayoutPanelTop className="h-4 w-4" />
-                <span>Abas no Topo</span>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="vertical" className="gap-2">
-                <LayoutPanelLeft className="h-4 w-4" />
-                <span>Abas na Lateral</span>
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Modo de Exibição</DropdownMenuLabel>
-            <DropdownMenuRadioGroup
-              value={layoutMode}
-              onValueChange={(val) => setLayoutMode(val as LayoutMode)}
-            >
-              <DropdownMenuRadioItem value="tabs" className="gap-2">
-                <Monitor className="h-4 w-4" />
-                <span>Modo Abas</span>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="grid" className="gap-2">
-                <LayoutGrid className="h-4 w-4" />
-                <span>Modo Grade</span>
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <ConfigDialog open={configOpen} onOpenChange={setConfigOpen} />
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        title="Opções da barra lateral"
+        className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      >
+        <MoreVertical className="h-4 w-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Posição das Abas</DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={tabsOrientation}
+            onValueChange={(val) => setTabsOrientation(val as TabsOrientation)}
+          >
+            <DropdownMenuRadioItem value="horizontal" className="gap-2">
+              <LayoutPanelTop className="h-4 w-4" />
+              <span>Abas no Topo</span>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="vertical" className="gap-2">
+              <LayoutPanelLeft className="h-4 w-4" />
+              <span>Abas na Lateral</span>
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Modo de Exibição</DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={layoutMode}
+            onValueChange={(val) => setLayoutMode(val as LayoutMode)}
+          >
+            <DropdownMenuRadioItem value="tabs" className="gap-2">
+              <Monitor className="h-4 w-4" />
+              <span>Modo Abas</span>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="grid" className="gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              <span>Modo Grade</span>
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
 interface WorkspaceSidebarProps {
-  onOverviewOpen: () => void
   sidebarWidth: number
   onSidebarResize: (width: number) => void
 }
@@ -148,7 +117,7 @@ interface WorkspaceSidebarProps {
  * Sidebar displaying workspace panes vertically, allowing dragging to reorder,
  * right-click context menu options to toggle layout orientations, theme, and config.
  */
-export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize }: WorkspaceSidebarProps) {
+export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSidebarProps) {
   const { panes, activePaneId, activatePane, closePane, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const { isDark, setTheme } = useAppTheme()
   const { state, setOpen } = useSidebar()
@@ -214,22 +183,43 @@ export function WorkspaceSidebar({ onOverviewOpen, sidebarWidth, onSidebarResize
             </ToggleGroup>
 
             {/* Three Dots Menu Dropdown */}
-            <SidebarHeaderMenu onOverviewOpen={onOverviewOpen} />
+            <SidebarHeaderMenu />
+
+            {/* Collapse button */}
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              title="Recolher barra lateral"
+              className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
           </>
         ) : (
-          /* When collapsed, show only the active layout mode icon to toggle modes directly */
-          <button
-            type="button"
-            onClick={() => setLayoutMode(layoutMode === "tabs" ? "grid" : "tabs")}
-            title={layoutMode === "tabs" ? "Mudar para modo Grade" : "Mudar para modo Abas"}
-            className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring mx-auto"
-          >
-            {layoutMode === "tabs" ? (
-              <Rows3 className="h-4.5 w-4.5 text-primary" />
-            ) : (
-              <LayoutGrid className="h-4.5 w-4.5 text-primary" />
-            )}
-          </button>
+          /* When collapsed, show vertical stack with expand button and layout toggler */
+          <div className="flex flex-col gap-2 items-center w-full">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              title="Expandir barra lateral"
+              className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring mx-auto"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <div className="w-full border-t border-sidebar-border/30 my-0.5" />
+            <button
+              type="button"
+              onClick={() => setLayoutMode(layoutMode === "tabs" ? "grid" : "tabs")}
+              title={layoutMode === "tabs" ? "Mudar para modo Grade" : "Mudar para modo Abas"}
+              className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring mx-auto"
+            >
+              {layoutMode === "tabs" ? (
+                <Rows3 className="h-4.5 w-4.5 text-primary" />
+              ) : (
+                <LayoutGrid className="h-4.5 w-4.5 text-primary" />
+              )}
+            </button>
+          </div>
         )}
       </SidebarHeader>
 
