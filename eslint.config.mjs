@@ -12,6 +12,7 @@ const eslintConfig = [
       'build/**',
       'public/**',
       'next-env.d.ts',
+      '.worktrees/**',
       // Tauri Rust crate: only .rs/.toml (not linted by ESLint) plus generated
       // build assets under target/ that fail to parse. Keep ESLint off the whole
       // src-tauri tree so `pnpm lint` passes both locally and in CI.
