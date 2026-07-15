@@ -50,7 +50,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVFN0YxRjQ2NTNBMDQ4NUYKUldSZlNLQlRSaDkvN3FObnFFQUhFQldSeWlTNkxYSm9KcFVDbFFIU3k5KzczVE1vQ2JmVFdONnUK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI3MURDRDJGMDM4OEI2QjMKUldTenRvZ0RMODBkdDg4OWVMYXd2b2tnZko3bVpXb3dvdWZFZ21ld2t5WDFSdktmamtLa2ZXZkoK",
       "endpoints": [
         "https://github.com/open-mission/open-bible/releases/latest/download/latest.json"
       ]
