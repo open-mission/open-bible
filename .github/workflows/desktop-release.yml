@@ -60,38 +60,29 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Verify and prepare TAURI signing key
-        shell: bash
+      - name: Prepare TAURI signing key
+        shell: node {0}
+        env:
+          RAW_SECRET: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
-          set -euo pipefail
-          KEY_VAL="${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}"
-          if [ -z "$KEY_VAL" ]; then
-            echo "Error: TAURI_SIGNING_PRIVATE_KEY secret is not set!"
-            exit 1
-          fi
+          const fs = require('fs');
+          const rawSecret = process.env.RAW_SECRET || '';
+          if (!rawSecret) {
+            console.error('Error: TAURI_SIGNING_PRIVATE_KEY secret is not set!');
+            process.exit(1);
+          }
           
-          mkdir -p src-tauri
+          let cleanedKey = '';
+          if (rawSecret.startsWith('untrusted comment:')) {
+            console.log('TAURI_SIGNING_PRIVATE_KEY is stored as raw text. Base64-encoding...');
+            cleanedKey = Buffer.from(rawSecret).toString('base64');
+          } else {
+            console.log('TAURI_SIGNING_PRIVATE_KEY is base64-encoded. Cleaning...');
+            cleanedKey = rawSecret.replace(/[\r\n\s]/g, '');
+          }
           
-          # Check if the secret is base64-encoded or raw
-          if echo "$KEY_VAL" | grep -q "^untrusted comment:"; then
-            echo "TAURI_SIGNING_PRIVATE_KEY is stored as raw text."
-            echo "$KEY_VAL" > src-tauri/tauri-signing.key
-          else
-            echo "TAURI_SIGNING_PRIVATE_KEY is base64-encoded. Decoding..."
-            # Clean base64 value of any whitespace/newlines before decoding
-            CLEANED_B64=$(echo "$KEY_VAL" | tr -d '\r\n ')
-            echo "$CLEANED_B64" | base64 --decode > src-tauri/tauri-signing.key
-          fi
-          
-          # Verify that the generated key file starts with the correct header
-          FIRST_LINE=$(head -n 1 src-tauri/tauri-signing.key)
-          if [[ "$FIRST_LINE" =~ ^untrusted\ comment: ]]; then
-            echo "Success: Prepared signing key starts with valid header: '$FIRST_LINE'"
-          else
-            echo "Error: Decoded key does not start with 'untrusted comment:'! First line: '$FIRST_LINE'"
-            rm -f src-tauri/tauri-signing.key
-            exit 1
-          fi
+          fs.appendFileSync(process.env.GITHUB_ENV, `TAURI_SIGNING_PRIVATE_KEY=${cleanedKey}\n`);
+          console.log('Success: TAURI_SIGNING_PRIVATE_KEY cleaned and set in environment.');
 
       - name: Build and release desktop app
         uses: tauri-apps/tauri-action@v1
@@ -100,7 +91,7 @@ jobs:
           TAURI_BUILD: "1"
           NEXT_PUBLIC_APP_ENV: "production"
           NEXT_PUBLIC_API_ORIGIN: "https://openbible-prod.vercel.app"
-          TAURI_SIGNING_PRIVATE_KEY: ${{ github.workspace }}/src-tauri/tauri-signing.key
+          TAURI_SIGNING_PRIVATE_KEY: ${{ env.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
@@ -108,7 +99,3 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
-
-      - name: Clean up signing key
-        if: always()
-        run: rm -f src-tauri/tauri-signing.key
