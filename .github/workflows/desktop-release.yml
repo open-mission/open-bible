@@ -60,7 +60,7 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Verify TAURI signing key format
+      - name: Verify and prepare TAURI signing key
         shell: bash
         run: |
           set -euo pipefail
@@ -70,24 +70,26 @@ jobs:
             exit 1
           fi
           
+          mkdir -p src-tauri
+          
           # Check if the secret is base64-encoded or raw
           if echo "$KEY_VAL" | grep -q "^untrusted comment:"; then
             echo "TAURI_SIGNING_PRIVATE_KEY is stored as raw text."
-            FIRST_LINE=$(echo "$KEY_VAL" | head -n 1)
+            echo "$KEY_VAL" > src-tauri/tauri-signing.key
           else
             echo "TAURI_SIGNING_PRIVATE_KEY is base64-encoded. Decoding..."
-            DECODED=$(echo "$KEY_VAL" | base64 --decode 2>/dev/null || echo "failed")
-            if [ "$DECODED" = "failed" ] || [ -z "$DECODED" ]; then
-              echo "Error: Failed to base64-decode the key!"
-              exit 1
-            fi
-            FIRST_LINE=$(echo "$DECODED" | head -n 1)
+            # Clean base64 value of any whitespace/newlines before decoding
+            CLEANED_B64=$(echo "$KEY_VAL" | tr -d '\r\n ')
+            echo "$CLEANED_B64" | base64 --decode > src-tauri/tauri-signing.key
           fi
           
+          # Verify that the generated key file starts with the correct header
+          FIRST_LINE=$(head -n 1 src-tauri/tauri-signing.key)
           if [[ "$FIRST_LINE" =~ ^untrusted\ comment: ]]; then
-            echo "Success: Decoded key starts with valid header: '$FIRST_LINE'"
+            echo "Success: Prepared signing key starts with valid header: '$FIRST_LINE'"
           else
             echo "Error: Decoded key does not start with 'untrusted comment:'! First line: '$FIRST_LINE'"
+            rm -f src-tauri/tauri-signing.key
             exit 1
           fi
 
@@ -98,7 +100,7 @@ jobs:
           TAURI_BUILD: "1"
           NEXT_PUBLIC_APP_ENV: "production"
           NEXT_PUBLIC_API_ORIGIN: "https://openbible-prod.vercel.app"
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ github.workspace }}/src-tauri/tauri-signing.key
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
@@ -106,3 +108,7 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Clean up signing key
+        if: always()
+        run: rm -f src-tauri/tauri-signing.key
