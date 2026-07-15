@@ -60,6 +60,37 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Verify TAURI signing key format
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY_VAL="${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}"
+          if [ -z "$KEY_VAL" ]; then
+            echo "Error: TAURI_SIGNING_PRIVATE_KEY secret is not set!"
+            exit 1
+          fi
+          
+          # Check if the secret is base64-encoded or raw
+          if echo "$KEY_VAL" | grep -q "^untrusted comment:"; then
+            echo "TAURI_SIGNING_PRIVATE_KEY is stored as raw text."
+            FIRST_LINE=$(echo "$KEY_VAL" | head -n 1)
+          else
+            echo "TAURI_SIGNING_PRIVATE_KEY is base64-encoded. Decoding..."
+            DECODED=$(echo "$KEY_VAL" | base64 --decode 2>/dev/null || echo "failed")
+            if [ "$DECODED" = "failed" ] || [ -z "$DECODED" ]; then
+              echo "Error: Failed to base64-decode the key!"
+              exit 1
+            fi
+            FIRST_LINE=$(echo "$DECODED" | head -n 1)
+          fi
+          
+          if [[ "$FIRST_LINE" =~ ^untrusted\ comment: ]]; then
+            echo "Success: Decoded key starts with valid header: '$FIRST_LINE'"
+          else
+            echo "Error: Decoded key does not start with 'untrusted comment:'! First line: '$FIRST_LINE'"
+            exit 1
+          fi
+
       - name: Build and release desktop app
         uses: tauri-apps/tauri-action@v1
         env:
