@@ -99,3 +99,37 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Install Flatpak and Flatpak Builder
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Install Flatpak Runtime and SDK
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.gnome.Platform//46 org.gnome.Sdk//46
+
+      - name: Build Flatpak Bundle
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          mkdir -p flatpak/build
+          cp src-tauri/target/release/open-bible flatpak/build/open-bible
+          chmod +x flatpak/build/open-bible
+          cp flatpak/app.openbible.desktop.desktop flatpak/build/
+          cp flatpak/app.openbible.desktop.metainfo.xml flatpak/build/
+          cp src-tauri/icons/128x128.png flatpak/build/icon_128.png
+          cp src-tauri/icons/icon.png flatpak/build/icon_512.png
+          
+          flatpak-builder --user --force-clean --repo=repo build-dir flatpak/app.openbible.desktop.yml
+          flatpak build-bundle repo open-bible.flatpak app.openbible.desktop
+
+      - name: Upload Flatpak to GitHub Release
+        if: matrix.platform == 'ubuntu-24.04'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} open-bible.flatpak --clobber
+
