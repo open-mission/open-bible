@@ -60,6 +60,30 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Prepare TAURI signing key
+        shell: node {0}
+        env:
+          RAW_SECRET: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          const fs = require('fs');
+          const rawSecret = process.env.RAW_SECRET || '';
+          if (!rawSecret) {
+            console.error('Error: TAURI_SIGNING_PRIVATE_KEY secret is not set!');
+            process.exit(1);
+          }
+          
+          let cleanedKey = '';
+          if (rawSecret.startsWith('untrusted comment:')) {
+            console.log('TAURI_SIGNING_PRIVATE_KEY is stored as raw text. Base64-encoding...');
+            cleanedKey = Buffer.from(rawSecret).toString('base64');
+          } else {
+            console.log('TAURI_SIGNING_PRIVATE_KEY is base64-encoded. Cleaning...');
+            cleanedKey = rawSecret.replace(/[\r\n\s]/g, '');
+          }
+          
+          fs.appendFileSync(process.env.GITHUB_ENV, `TAURI_SIGNING_PRIVATE_KEY=${cleanedKey}\n`);
+          console.log('Success: TAURI_SIGNING_PRIVATE_KEY cleaned and set in environment.');
+
       - name: Build and release desktop app
         uses: tauri-apps/tauri-action@v1
         env:
@@ -67,6 +91,8 @@ jobs:
           TAURI_BUILD: "1"
           NEXT_PUBLIC_APP_ENV: "production"
           NEXT_PUBLIC_API_ORIGIN: "https://openbible-prod.vercel.app"
+          TAURI_SIGNING_PRIVATE_KEY: ${{ env.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Open Bible ${{ github.ref_name }}"
