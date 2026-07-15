@@ -1,6 +1,6 @@
 {
   "name": "open-bible",
-  "version": "0.7.1",
+  "version": "0.7.3",
   "private": false,
   "packageManager": "pnpm@10.22.0",
   "scripts": {
@@ -44,6 +44,8 @@
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
     "@tabler/icons-react": "^3.44.0",
     "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-updater": "^2.10.1",
     "@tiptap/extension-highlight": "^3.27.3",
     "@tiptap/pm": "^3.27.3",
     "@tiptap/react": "^3.27.3",
