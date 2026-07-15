@@ -14,7 +14,7 @@ export function BottomDock({ activeTab, onSelect }: BottomDockProps) {
           type="button"
           onClick={() => onSelect("highlights")}
           data-active={activeTab === "highlights" || undefined}
-          className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-accent/60 data-[active]:bg-accent data-[active]:text-foreground data-[active]:shadow-xs"
+          className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-accent/60 data-active:bg-accent data-active:text-foreground data-active:shadow-xs"
         >
           <IconHighlight className="size-3.5" />
           <span>Destaques</span>
@@ -24,7 +24,7 @@ export function BottomDock({ activeTab, onSelect }: BottomDockProps) {
           type="button"
           onClick={() => onSelect("notes")}
           data-active={activeTab === "notes" || undefined}
-          className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-accent/60 data-[active]:bg-accent data-[active]:text-foreground data-[active]:shadow-xs"
+          className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-accent/60 data-active:bg-accent data-active:text-foreground data-active:shadow-xs"
         >
           <IconNotebook className="size-3.5" />
           <span>Notas</span>
