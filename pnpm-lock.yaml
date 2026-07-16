@@ -33,8 +33,8 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1(kysely@0.29.2)
       '@scalar/hono-api-reference':
-        specifier: ^0.11.7
-        version: 0.11.7(hono@4.12.25)
+        specifier: ^0.11.9
+        version: 0.11.9(hono@4.12.25)
       '@shadcn/react':
         specifier: ^0.1.0
         version: 0.1.0(@types/react@19.2.14)(react@19.2.4)
@@ -2230,26 +2230,26 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@scalar/client-side-rendering@0.3.0':
-    resolution: {integrity: sha512-FFpLokNEyKvpKAJesa+eDh+2e+4qdhoexAJp6alhhxUA6SGqhDfTIV4P+0nZBMdMD6WPu4YeVJHa1hRrGKUVMA==}
+  '@scalar/client-side-rendering@0.3.2':
+    resolution: {integrity: sha512-HXgfSnSQSLaTZupSmN2w4O1Gv0wXdFl+GtrZHQEoNQ4HSzgCtk9fKcmSVxaZiPjyx6eon/x3Ic+Ka5T4tXskyA==}
     engines: {node: '>=22'}
 
   '@scalar/helpers@0.9.0':
     resolution: {integrity: sha512-M34CLRCttqC1bXthI/QSzQj0s5C6nrU2PFWf/vOT3RpycbiGDGQbqR+5RfFzpOIQvRqbHfNdcRbeiZBw+vCbkQ==}
     engines: {node: '>=22'}
 
-  '@scalar/hono-api-reference@0.11.7':
-    resolution: {integrity: sha512-XhQbhhHP9R2CknVIjuqKie7+fkbLWuZzKoXMKPefYGkL+tji7CfametAwvzyb/WzaPktZBl7ZxqpC3pAve0Y7A==}
+  '@scalar/hono-api-reference@0.11.9':
+    resolution: {integrity: sha512-/Rx/kozi18sfWLP6y9qK/xhjO68i667o2aFXWnRfxW0TKL2D6A+LGtWCHQTgTONPKZe0TX9iSMSWf0vy0UOsbA==}
     engines: {node: '>=22'}
     peerDependencies:
       hono: 4.12.25
 
-  '@scalar/schemas@0.7.0':
-    resolution: {integrity: sha512-Roj0e7S29yTbGojwdx/b8C1H5arVN4h/VSPrtQ5vb9NT2ZAbrfPQVmpQYrF845rKOWX7kSzIvyBwrKNEMIAkxA==}
+  '@scalar/schemas@0.7.2':
+    resolution: {integrity: sha512-6Ble6WcbiKgD3ypIva+wgZv1qIClmeEjXA6jrOo1bKpYUu6sh4e89LZxDK+LULa2jQl/2O5GEaa6aZ0ImlpkHg==}
     engines: {node: '>=22'}
 
-  '@scalar/types@0.16.0':
-    resolution: {integrity: sha512-26OSrvZjKWZ7F236wWmJajBGDVFJuvXFJqKPFqbt/PxlgZKXQXfJsZorASRQmdNogT576nxYalQ7oaYWEnQwfw==}
+  '@scalar/types@0.16.2':
+    resolution: {integrity: sha512-QAlCtDVRsX/UV1N9ctLqPsKQy84eceFf4dMnTZM0JhaRfwS/Ovwp8oFf3POSpqQILNiqLFZLE6IV6p/5rNoAag==}
     engines: {node: '>=22'}
 
   '@scalar/validation@0.6.0':
@@ -6093,8 +6093,8 @@ packages:
     resolution: {integrity: sha512-t0rzBq87m3fVcduHDUFhKmyyX+9eo6WQjZvf51Ea/M0Q7+T374Jp1aUiyUl0GKxp8M/OETVHSDvmkyPgvX+X2w==}
     engines: {node: '>=10'}
 
-  type-fest@5.7.0:
-    resolution: {integrity: sha512-1URUxUqfHFM1c+zfSPsa3gnkO7Aq21qyH75SIduNYz4SzY964rn1X2vCMQaHSHhktiw+0kPa2iyb6PUpXqB6Vg==}
+  type-fest@5.8.0:
+    resolution: {integrity: sha512-YGYEVz3Fm5iy/AybuA0oyNFq7H4CgQNfRp/qfe8nurE1kuCeNm3/vfm9X4Mtl+qLyaKJUh5xrFZwogr41SMjYA==}
     engines: {node: '>=20'}
 
   type-is@2.1.0:
@@ -8454,29 +8454,29 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@scalar/client-side-rendering@0.3.0':
+  '@scalar/client-side-rendering@0.3.2':
     dependencies:
-      '@scalar/schemas': 0.7.0
-      '@scalar/types': 0.16.0
+      '@scalar/schemas': 0.7.2
+      '@scalar/types': 0.16.2
       '@scalar/validation': 0.6.0
 
   '@scalar/helpers@0.9.0': {}
 
-  '@scalar/hono-api-reference@0.11.7(hono@4.12.25)':
+  '@scalar/hono-api-reference@0.11.9(hono@4.12.25)':
     dependencies:
-      '@scalar/client-side-rendering': 0.3.0
+      '@scalar/client-side-rendering': 0.3.2
       hono: 4.12.25
 
-  '@scalar/schemas@0.7.0':
+  '@scalar/schemas@0.7.2':
     dependencies:
       '@scalar/helpers': 0.9.0
       '@scalar/validation': 0.6.0
 
-  '@scalar/types@0.16.0':
+  '@scalar/types@0.16.2':
     dependencies:
       '@scalar/helpers': 0.9.0
       nanoid: 5.1.16
-      type-fest: 5.7.0
+      type-fest: 5.8.0
       zod: 4.4.3
 
   '@scalar/validation@0.6.0': {}
@@ -12486,7 +12486,7 @@ snapshots:
 
   type-fest@0.21.3: {}
 
-  type-fest@5.7.0:
+  type-fest@5.8.0:
     dependencies:
       tagged-tag: 1.0.0
 
