@@ -173,13 +173,15 @@ export function ConfigContent() {
           <LayoutGrid className="h-4 w-4" />
           <span>Leitura</span>
         </TabsTrigger>
-        <TabsTrigger
-          value="shortcuts"
+        {isDesktop && (
+          <TabsTrigger
+            value="shortcuts"
           className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
         >
           <Keyboard className="h-4 w-4" />
           <span>Atalhos</span>
-        </TabsTrigger>
+          </TabsTrigger>
+          )}
         {isTauri && (
           <TabsTrigger
             value="updates"
@@ -362,7 +364,8 @@ export function ConfigContent() {
         </TabsContent>
 
         {/* ── Keyboard Shortcuts ────────────────── */}
-        <TabsContent value="shortcuts" className="space-y-6 animate-in fade-in-50 duration-200">
+        {isDesktop && (
+          <TabsContent value="shortcuts" className="space-y-6 animate-in fade-in-50 duration-200">
           <div>
             <h2 className="text-lg font-serif font-medium text-foreground mb-1">
               Atalhos do Teclado
@@ -431,7 +434,8 @@ export function ConfigContent() {
               </div>
             ))}
           </div>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {isTauri && (
           <TabsContent value="updates" className="space-y-6 animate-in fade-in-50 duration-200">
