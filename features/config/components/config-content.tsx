@@ -176,12 +176,12 @@ export function ConfigContent() {
         {isDesktop && (
           <TabsTrigger
             value="shortcuts"
-          className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
-        >
-          <Keyboard className="h-4 w-4" />
-          <span>Atalhos</span>
+            className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+          >
+            <Keyboard className="h-4 w-4" />
+            <span>Atalhos</span>
           </TabsTrigger>
-          )}
+        )}
         {isTauri && (
           <TabsTrigger
             value="updates"
@@ -366,74 +366,74 @@ export function ConfigContent() {
         {/* ── Keyboard Shortcuts ────────────────── */}
         {isDesktop && (
           <TabsContent value="shortcuts" className="space-y-6 animate-in fade-in-50 duration-200">
-          <div>
-            <h2 className="text-lg font-serif font-medium text-foreground mb-1">
-              Atalhos do Teclado
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Acelere sua navegação pelo workspace usando os comandos rápidos listados abaixo.
-            </p>
-          </div>
+            <div>
+              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+                Atalhos do Teclado
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Acelere sua navegação pelo workspace usando os comandos rápidos listados abaixo.
+              </p>
+            </div>
 
-          <div className="divide-y divide-border/40 border-y border-border/40">
-            {[
-              {
-                desc: "Criar Nova Aba (Horizontal / Coluna)",
-                keys: isMac ? ["⌘", "T"] : ["Ctrl", "T"],
-                altKeys: ["Alt", "T"],
-              },
-              {
-                desc: "Criar Nova Aba (Vertical / Linha)",
-                keys: isMac ? ["⌘", "Shift", "T"] : ["Ctrl", "Shift", "T"],
-                altKeys: ["Alt", "Shift", "T"],
-              },
-              {
-                desc: "Fechar Aba Ativa",
-                keys: isMac ? ["⌘", "W"] : ["Ctrl", "W"],
-                altKeys: ["Alt", "W"],
-              },
-              {
-                desc: "Alternar Abas (Seletor de Abas)",
-                keys: ["Ctrl", "Tab"],
-                altKeys: ["Alt", "E"],
-              },
-              {
-                desc: "Ir para Aba Específica (1 a 9)",
-                keys: isMac ? ["⌘", "1..9"] : ["Ctrl", "1..9"],
-              },
-            ].map((shortcut, idx) => (
-              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between py-3.5 gap-2">
-                <span className="text-sm font-medium text-foreground/80">{shortcut.desc}</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    {shortcut.keys.map((k, ki) => (
-                      <kbd
-                        key={ki}
-                        className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 font-mono text-[11px] font-semibold text-foreground/90 bg-muted border border-border/80 rounded shadow-xs"
-                      >
-                        {k}
-                      </kbd>
-                    ))}
+            <div className="divide-y divide-border/40 border-y border-border/40">
+              {[
+                {
+                  desc: "Criar Nova Aba (Horizontal / Coluna)",
+                  keys: isMac ? ["⌘", "T"] : ["Ctrl", "T"],
+                  altKeys: ["Alt", "T"],
+                },
+                {
+                  desc: "Criar Nova Aba (Vertical / Linha)",
+                  keys: isMac ? ["⌘", "Shift", "T"] : ["Ctrl", "Shift", "T"],
+                  altKeys: ["Alt", "Shift", "T"],
+                },
+                {
+                  desc: "Fechar Aba Ativa",
+                  keys: isMac ? ["⌘", "W"] : ["Ctrl", "W"],
+                  altKeys: ["Alt", "W"],
+                },
+                {
+                  desc: "Alternar Abas (Seletor de Abas)",
+                  keys: ["Ctrl", "Tab"],
+                  altKeys: ["Alt", "E"],
+                },
+                {
+                  desc: "Ir para Aba Específica (1 a 9)",
+                  keys: isMac ? ["⌘", "1..9"] : ["Ctrl", "1..9"],
+                },
+              ].map((shortcut, idx) => (
+                <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between py-3.5 gap-2">
+                  <span className="text-sm font-medium text-foreground/80">{shortcut.desc}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {shortcut.keys.map((k, ki) => (
+                        <kbd
+                          key={ki}
+                          className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 font-mono text-[11px] font-semibold text-foreground/90 bg-muted border border-border/80 rounded shadow-xs"
+                        >
+                          {k}
+                        </kbd>
+                      ))}
+                    </div>
+                    {shortcut.altKeys && (
+                      <>
+                        <span className="text-xs text-muted-foreground/50">ou</span>
+                        <div className="flex gap-1">
+                          {shortcut.altKeys.map((ak, aki) => (
+                            <kbd
+                              key={aki}
+                              className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 font-mono text-[11px] font-semibold text-muted-foreground/85 bg-muted/45 border border-border/50 rounded shadow-xs"
+                            >
+                              {ak}
+                            </kbd>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
-                  {shortcut.altKeys && (
-                    <>
-                      <span className="text-xs text-muted-foreground/50">ou</span>
-                      <div className="flex gap-1">
-                        {shortcut.altKeys.map((ak, aki) => (
-                          <kbd
-                            key={aki}
-                            className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 font-mono text-[11px] font-semibold text-muted-foreground/85 bg-muted/45 border border-border/50 rounded shadow-xs"
-                          >
-                            {ak}
-                          </kbd>
-                        ))}
-                      </div>
-                    </>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           </TabsContent>
         )}
 
