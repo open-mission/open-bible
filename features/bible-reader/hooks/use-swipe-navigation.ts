@@ -7,10 +7,13 @@ const SWIPE_THRESHOLD = 50;
 export function useSwipeNavigation(
   onPrev: () => void,
   onNext: () => void,
+  enabled = true,
 ) {
   const startRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
+
     function handleTouchStart(e: TouchEvent) {
       if (e.touches.length !== 1) return;
       startRef.current = {
@@ -41,5 +44,5 @@ export function useSwipeNavigation(
       document.removeEventListener("touchstart", handleTouchStart);
       document.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [onPrev, onNext]);
+  }, [onPrev, onNext, enabled]);
 }
