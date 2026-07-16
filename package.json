@@ -1,6 +1,6 @@
 {
   "name": "open-bible",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "private": false,
   "packageManager": "pnpm@10.22.0",
   "scripts": {
