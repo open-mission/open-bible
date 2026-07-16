@@ -47,6 +47,7 @@ import { ConfigButton } from "./config-button"
 import { IconLayoutGrid } from "@tabler/icons-react"
 import { WorkspaceTabOverview } from "./workspace-tab-overview"
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
+import { PaneTypePicker } from "./pane-type-picker"
 import { cn } from "@/lib/utils"
 import { useIsTauriMacOS } from "@/features/layout/hooks/use-is-tauri-macos"
 import type { BiblePaneState, LayoutMode } from "../types"
@@ -384,11 +385,27 @@ export function WorkspaceView() {
       {/* Content */}
       <div className="relative flex-1 min-h-0 h-full overflow-hidden pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
         {panes.length === 0 ? (
-          <ReaderEmpty onOpenSidebar={openFirstPane} />
+          <ReaderEmpty
+            onOpenSidebar={openFirstPane}
+            action={
+              <PaneTypePicker className="flex items-center gap-2 rounded-md px-4 py-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium">
+                <Plus className="h-4 w-4" />
+                <span>Nova aba</span>
+              </PaneTypePicker>
+            }
+          />
         ) : layoutMode === "grid" ? (
           <WorkspaceGrid />
         ) : !activePane ? (
-          <ReaderEmpty onOpenSidebar={openFirstPane} />
+          <ReaderEmpty
+            onOpenSidebar={openFirstPane}
+            action={
+              <PaneTypePicker className="flex items-center gap-2 rounded-md px-4 py-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium">
+                <Plus className="h-4 w-4" />
+                <span>Nova aba</span>
+              </PaneTypePicker>
+            }
+          />
         ) : activePane.state.type === "bible" ? (
           <BiblePaneView
             key={activePane.id}
