@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, createContext, useContext, useMemo } from "react"
-import { ChevronUp, ChevronDown, X, FolderX } from "lucide-react"
+import { ChevronUp, ChevronDown, Plus, X, FolderX } from "lucide-react"
 import {
   DndContext,
   DragOverlay,
