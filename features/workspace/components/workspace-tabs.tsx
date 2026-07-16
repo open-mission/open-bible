@@ -121,7 +121,7 @@ function SortableTab({
           }}
           // Prevent drag from triggering on the close button.
           onPointerDown={(e) => e.stopPropagation()}
-          className="ml-1 rounded p-0.5 text-muted-foreground/70 opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100 focus:opacity-100 focus:outline-none"
+          className="ml-1 rounded p-0.5 text-muted-foreground/70 opacity-50 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100 focus:opacity-100 focus:outline-none"
         >
           <X className="h-3.5 w-3.5" />
         </button>

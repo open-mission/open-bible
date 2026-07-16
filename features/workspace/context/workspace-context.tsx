@@ -54,6 +54,7 @@ interface WorkspaceContextValue {
   layout: LayoutNode | null
   openPane: (state: PaneState) => string
   closePane: (id: string) => void
+  closeAllPanes: () => void
   activatePane: (id: string) => void
   reorderPanes: (newOrderIds: string[]) => void
   swapPanes: (idA: string, idB: string) => void
@@ -243,6 +244,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setLayout((prev) => (prev ? removeLeaf(prev, id) : null))
   }, [])
 
+  const closeAllPanes = useCallback(() => {
+    setPanes([])
+    setLayout(null)
+    setActivePaneId(null)
+  }, [])
+
   const activatePane = useCallback((id: string) => {
     setActivePaneId(id)
   }, [])
@@ -367,6 +374,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     layout,
     openPane,
     closePane,
+    closeAllPanes,
     activatePane,
     reorderPanes,
     swapPanes,

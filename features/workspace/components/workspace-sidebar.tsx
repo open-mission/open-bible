@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { X, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react"
+import { X, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical, ChevronLeft, ChevronRight, FolderX } from "lucide-react"
 import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -118,7 +118,7 @@ interface WorkspaceSidebarProps {
  * right-click context menu options to toggle layout orientations, theme, and config.
  */
 export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSidebarProps) {
-  const { panes, activePaneId, activatePane, closePane, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const { panes, activePaneId, activatePane, closePane, closeAllPanes, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const { isDark, setTheme } = useAppTheme()
   const { state, setOpen } = useSidebar()
   const isCollapsed = state === "collapsed"
@@ -230,6 +230,17 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
               Painéis abertos
             </span>
             <div className="flex items-center gap-1 group-data-[collapsible=icon]:hidden shrink-0">
+              {panes.length > 0 && (
+                <button
+                  type="button"
+                  onClick={closeAllPanes}
+                  aria-label="Fechar todas as abas"
+                  title="Fechar todas as abas"
+                  className="flex items-center justify-center rounded-md p-1 hover:bg-sidebar-accent hover:text-destructive text-muted-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <FolderX className="h-4 w-4" />
+                </button>
+              )}
               <PaneTypePicker />
             </div>
           </SidebarGroupLabel>
