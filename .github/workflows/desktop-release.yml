@@ -46,7 +46,7 @@ jobs:
         run: pnpm config set fetch-timeout 120000
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -60,6 +60,30 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Prepare TAURI signing key
+        shell: node {0}
+        env:
+          RAW_SECRET: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          const fs = require('fs');
+          const rawSecret = process.env.RAW_SECRET || '';
+          if (!rawSecret) {
+            console.error('Error: TAURI_SIGNING_PRIVATE_KEY secret is not set!');
+            process.exit(1);
+          }
+          
+          let cleanedKey = '';
+          if (rawSecret.startsWith('untrusted comment:')) {
+            console.log('TAURI_SIGNING_PRIVATE_KEY is stored as raw text. Base64-encoding...');
+            cleanedKey = Buffer.from(rawSecret).toString('base64');
+          } else {
+            console.log('TAURI_SIGNING_PRIVATE_KEY is base64-encoded. Cleaning...');
+            cleanedKey = rawSecret.replace(/[\r\n\s]/g, '');
+          }
+          
+          fs.appendFileSync(process.env.GITHUB_ENV, `TAURI_SIGNING_PRIVATE_KEY=${cleanedKey}\n`);
+          console.log('Success: TAURI_SIGNING_PRIVATE_KEY cleaned and set in environment.');
+
       - name: Build and release desktop app
         uses: tauri-apps/tauri-action@v1
         env:
@@ -67,9 +91,45 @@ jobs:
           TAURI_BUILD: "1"
           NEXT_PUBLIC_APP_ENV: "production"
           NEXT_PUBLIC_API_ORIGIN: "https://openbible-prod.vercel.app"
+          TAURI_SIGNING_PRIVATE_KEY: ${{ env.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Open Bible ${{ github.ref_name }}"
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Install Flatpak and Flatpak Builder
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Install Flatpak Runtime and SDK
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.gnome.Platform//46 org.gnome.Sdk//46
+
+      - name: Build Flatpak Bundle
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          mkdir -p flatpak/build
+          cp src-tauri/target/release/open-bible flatpak/build/open-bible
+          chmod +x flatpak/build/open-bible
+          cp flatpak/app.openbible.desktop.desktop flatpak/build/
+          cp flatpak/app.openbible.desktop.metainfo.xml flatpak/build/
+          cp src-tauri/icons/128x128.png flatpak/build/icon_128.png
+          cp src-tauri/icons/icon.png flatpak/build/icon_512.png
+          
+          flatpak-builder --user --force-clean --repo=repo build-dir flatpak/app.openbible.desktop.yml
+          flatpak build-bundle repo open-bible.flatpak app.openbible.desktop
+
+      - name: Upload Flatpak to GitHub Release
+        if: matrix.platform == 'ubuntu-24.04'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} open-bible.flatpak --clobber
+
