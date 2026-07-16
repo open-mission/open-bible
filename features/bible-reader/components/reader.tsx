@@ -414,12 +414,6 @@ function ReaderContent({
         />
       )}
 
-      <div
-        className={cn(
-          "w-full bg-linear-to-t z-10 from-background to-transparent absolute bottom-0",
-          open ? "h-50" : "h-30",
-        )}
-      ></div>
 
       {/* Floating navigation: bottom on mobile, sides on desktop */}
       {!dockView && !open && (
