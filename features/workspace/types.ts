@@ -16,6 +16,7 @@ export interface BiblePaneState {
   bookId: string
   chapter: number
   versionId: string
+  isNew?: boolean
 }
 
 /** A note pane (Phase 3). */
