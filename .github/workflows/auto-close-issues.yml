@@ -1,0 +1,45 @@
+name: Auto-close Issues on Merge to develop
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [develop]
+
+jobs:
+  close-issues:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || '';
+            const title = context.payload.pull_request.title || '';
+            const combined = body;
+
+            // Padrões suportados: "Closes #123", "Closes #123, #456", "Fixes #123"
+            const pattern = /(?:Closes?|Fixes?|Resolves?)\s+#(\d+)/gi;
+            const matches = [...combined.matchAll(pattern)];
+
+            if (matches.length === 0) {
+              console.log('Nenhuma issue referenciada no corpo do PR.');
+              return;
+            }
+
+            const issueNumbers = [...new Set(matches.map(m => parseInt(m[1])))];
+
+            for (const issueNumber of issueNumbers) {
+              try {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  state: 'closed',
+                });
+                console.log(`Issue #${issueNumber} fechada com sucesso.`);
+              } catch (error) {
+                console.log(`Erro ao fechar issue #${issueNumber}: ${error.message}`);
+              }
+            }
