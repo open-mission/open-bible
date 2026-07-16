@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid } from "lucide-react"
+import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw } from "lucide-react"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/features/theme/utils/theme"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { WorkspaceModeSetting } from "@/features/workspace/components/workspace-mode-setting"
+import { isTauri } from "@/lib/is-tauri"
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
 
@@ -26,6 +27,99 @@ export function ConfigContent() {
   const { defaultVersionId, setDefaultVersionId, availableVersions, installedVersions } = useBibleVersion()
   const [versions, setVersions] = useState<{ id: string; name: string }[]>([])
   const [isDesktop, setIsDesktop] = useState(false)
+  const [isMac] = useState(() => {
+    if (typeof window === "undefined") return false
+    return /Mac|iPod|iPhone|iPad/.test(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+  })
+
+  // States for Tauri auto-updater
+  const [appVersion, setAppVersion] = useState<string>("")
+  const [updateStatus, setUpdateStatus] = useState<
+    "idle" | "checking" | "available" | "no-update" | "downloading" | "downloaded" | "error"
+  >("idle")
+  const [updateInfo, setUpdateInfo] = useState<{
+    version: string
+    date?: string
+    body?: string
+  } | null>(null)
+  const [downloadProgress, setDownloadProgress] = useState<number>(0)
+  const [errorMessage, setErrorMessage] = useState<string>("")
+  const [updateObject, setUpdateObject] = useState<any>(null)
+
+  // Fetch app version on mount inside Tauri
+  useEffect(() => {
+    if (!isTauri) return
+
+    async function fetchVersion() {
+      try {
+        const { getVersion } = await import("@tauri-apps/api/app")
+        const version = await getVersion()
+        setAppVersion(version)
+      } catch (err) {
+        console.error("Erro ao obter versão do app:", err)
+      }
+    }
+    fetchVersion()
+  }, [])
+
+  const handleCheckUpdate = async () => {
+    if (!isTauri) return
+    setUpdateStatus("checking")
+    setErrorMessage("")
+    try {
+      const { check } = await import("@tauri-apps/plugin-updater")
+      const update = await check()
+      if (update) {
+        setUpdateInfo({
+          version: update.version,
+          date: update.date,
+          body: update.body,
+        })
+        setUpdateObject(update)
+        setUpdateStatus("available")
+      } else {
+        setUpdateStatus("no-update")
+      }
+    } catch (err: any) {
+      console.error("Erro ao verificar atualizações:", err)
+      setUpdateStatus("error")
+      setErrorMessage(err?.toString() || "Erro desconhecido ao verificar atualizações")
+    }
+  }
+
+  const handleDownloadInstall = async () => {
+    if (!updateObject) return
+    setUpdateStatus("downloading")
+    setDownloadProgress(0)
+    try {
+      await updateObject.downloadAndInstall((event: any) => {
+        if (event?.event === "Started") {
+          setDownloadProgress(0)
+        } else if (event?.event === "Progress") {
+          if (event.data?.contentLength) {
+            const pct = Math.round((event.data.progress / event.data.contentLength) * 100)
+            setDownloadProgress(pct)
+          }
+        } else if (event?.event === "Finished") {
+          setDownloadProgress(100)
+        }
+      })
+      setUpdateStatus("downloaded")
+    } catch (err: any) {
+      console.error("Erro ao baixar e instalar atualização:", err)
+      setUpdateStatus("error")
+      setErrorMessage(err?.toString() || "Erro ao baixar e instalar atualização")
+    }
+  }
+
+  const handleRelaunch = async () => {
+    try {
+      const { relaunch } = await import("@tauri-apps/plugin-process")
+      await relaunch()
+    } catch (err) {
+      console.error("Erro ao reiniciar o aplicativo:", err)
+    }
+  }
 
   useEffect(() => {
     const installed = installedVersions.map((v) => ({ id: v.id, name: v.name }))
@@ -79,6 +173,22 @@ export function ConfigContent() {
           <LayoutGrid className="h-4 w-4" />
           <span>Leitura</span>
         </TabsTrigger>
+        <TabsTrigger
+          value="shortcuts"
+          className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+        >
+          <Keyboard className="h-4 w-4" />
+          <span>Atalhos</span>
+        </TabsTrigger>
+        {isTauri && (
+          <TabsTrigger
+            value="updates"
+            className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>Atualizações</span>
+          </TabsTrigger>
+        )}
       </TabsList>
 
       <div className="flex-1 min-w-0 bg-card border border-border/60 rounded-xl p-6 shadow-sm">
@@ -250,6 +360,216 @@ export function ConfigContent() {
         <TabsContent value="workspace" className="space-y-8 animate-in fade-in-50 duration-200">
           <WorkspaceModeSetting />
         </TabsContent>
+
+        {/* ── Keyboard Shortcuts ────────────────── */}
+        <TabsContent value="shortcuts" className="space-y-6 animate-in fade-in-50 duration-200">
+          <div>
+            <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              Atalhos do Teclado
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Acelere sua navegação pelo workspace usando os comandos rápidos listados abaixo.
+            </p>
+          </div>
+
+          <div className="divide-y divide-border/40 border-y border-border/40">
+            {[
+              {
+                desc: "Criar Nova Aba (Horizontal / Coluna)",
+                keys: isMac ? ["⌘", "T"] : ["Ctrl", "T"],
+                altKeys: ["Alt", "T"],
+              },
+              {
+                desc: "Criar Nova Aba (Vertical / Linha)",
+                keys: isMac ? ["⌘", "Shift", "T"] : ["Ctrl", "Shift", "T"],
+                altKeys: ["Alt", "Shift", "T"],
+              },
+              {
+                desc: "Fechar Aba Ativa",
+                keys: isMac ? ["⌘", "W"] : ["Ctrl", "W"],
+                altKeys: ["Alt", "W"],
+              },
+              {
+                desc: "Alternar Abas (Seletor de Abas)",
+                keys: ["Ctrl", "Tab"],
+                altKeys: ["Alt", "E"],
+              },
+              {
+                desc: "Ir para Aba Específica (1 a 9)",
+                keys: isMac ? ["⌘", "1..9"] : ["Ctrl", "1..9"],
+              },
+            ].map((shortcut, idx) => (
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between py-3.5 gap-2">
+                <span className="text-sm font-medium text-foreground/80">{shortcut.desc}</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    {shortcut.keys.map((k, ki) => (
+                      <kbd
+                        key={ki}
+                        className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 font-mono text-[11px] font-semibold text-foreground/90 bg-muted border border-border/80 rounded shadow-xs"
+                      >
+                        {k}
+                      </kbd>
+                    ))}
+                  </div>
+                  {shortcut.altKeys && (
+                    <>
+                      <span className="text-xs text-muted-foreground/50">ou</span>
+                      <div className="flex gap-1">
+                        {shortcut.altKeys.map((ak, aki) => (
+                          <kbd
+                            key={aki}
+                            className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 font-mono text-[11px] font-semibold text-muted-foreground/85 bg-muted/45 border border-border/50 rounded shadow-xs"
+                          >
+                            {ak}
+                          </kbd>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+
+        {isTauri && (
+          <TabsContent value="updates" className="space-y-6 animate-in fade-in-50 duration-200">
+            <div>
+              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+                Atualizações do Aplicativo
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Verifique se há novas versões do Open Bible e mantenha seu app atualizado.
+              </p>
+            </div>
+
+            <div className="border border-border/80 rounded-lg p-5 bg-card/40 space-y-4">
+              <div className="flex justify-between items-center text-sm border-b border-border/40 pb-3">
+                <span className="text-muted-foreground font-medium">Versão atual:</span>
+                <span className="font-mono bg-muted px-2 py-0.5 rounded text-foreground font-semibold">
+                  v{appVersion || "..."}
+                </span>
+              </div>
+
+              {updateStatus === "idle" && (
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleCheckUpdate}
+                    className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg flex items-center gap-2 cursor-pointer shadow-xs"
+                  >
+                    Verificar Atualizações
+                  </button>
+                </div>
+              )}
+
+              {updateStatus === "checking" && (
+                <div className="flex items-center gap-3 py-2">
+                  <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Buscando novas atualizações...</span>
+                </div>
+              )}
+
+              {updateStatus === "no-update" && (
+                <div className="space-y-4">
+                  <p className="text-sm text-emerald-500 font-medium flex items-center gap-2">
+                    <Check className="h-4 w-4" />
+                    Você já está utilizando a versão mais recente!
+                  </p>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleCheckUpdate}
+                      className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                    >
+                      Verificar Novamente
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {updateStatus === "available" && updateInfo && (
+                <div className="space-y-4">
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      Nova versão disponível: <span className="font-mono text-primary">v{updateInfo.version}</span>
+                    </h3>
+                    {updateInfo.date && (
+                      <p className="text-xs text-muted-foreground">
+                        Lançada em: {updateInfo.date}
+                      </p>
+                    )}
+                    {updateInfo.body && (
+                      <div className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap font-sans">
+                        {updateInfo.body}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleDownloadInstall}
+                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs"
+                    >
+                      Baixar e Instalar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {updateStatus === "downloading" && (
+                <div className="space-y-3 py-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Baixando atualização...</span>
+                    <span className="font-semibold text-primary">{downloadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-primary h-full transition-all duration-300 rounded-full"
+                      style={{ width: `${downloadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {updateStatus === "downloaded" && (
+                <div className="space-y-4">
+                  <p className="text-sm text-emerald-500 font-medium">
+                    Atualização baixada com sucesso! O aplicativo precisa ser reiniciado para aplicar as mudanças.
+                  </p>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleRelaunch}
+                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs animate-pulse"
+                    >
+                      Reiniciar Agora
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {updateStatus === "error" && (
+                <div className="space-y-4">
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                    <p className="text-sm font-semibold text-destructive mb-1">
+                      Falha ao processar atualização
+                    </p>
+                    <p className="text-xs text-muted-foreground font-mono truncate">
+                      {errorMessage}
+                    </p>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={handleCheckUpdate}
+                      className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                    >
+                      Tentar Novamente
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        )}
       </div>
     </Tabs>
   )

@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Open Bible",
-  "version": "0.6.2",
+  "version": "0.7.3",
   "identifier": "app.openbible.desktop",
   "build": {
     "frontendDist": "../out",
@@ -19,8 +19,7 @@
         "minWidth": 400,
         "minHeight": 600,
         "resizable": true,
-        "fullscreen": false,
-        "titleBarStyle": "Overlay"
+        "fullscreen": false
       }
     ],
     "security": {
@@ -36,6 +35,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
       "icons/32x32.png",
@@ -46,6 +46,14 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI3MURDRDJGMDM4OEI2QjMKUldTenRvZ0RMODBkdDg4OWVMYXd2b2tnZko3bVpXb3dvdWZFZ21ld2t5WDFSdktmamtLa2ZXZkoK",
+      "endpoints": [
+        "https://github.com/open-mission/open-bible/releases/latest/download/latest.json"
+      ]
     }
   }
 }
