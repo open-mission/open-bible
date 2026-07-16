@@ -226,7 +226,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const openPane = useCallback((state: PaneState): string => {
     const id = generateId()
-    const pane: Pane = { id, title: paneTitleFor(state), state }
+    const paneState = state.type === "bible" ? { ...state, isNew: true } : state
+    const pane: Pane = { id, title: paneTitleFor(paneState), state: paneState }
     setPanes((prev) => [...prev, pane])
     setActivePaneId(id)
     // Keep layout tree in sync: append the new pane as a leaf.
