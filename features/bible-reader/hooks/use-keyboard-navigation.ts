@@ -5,8 +5,11 @@ import { useEffect } from "react";
 export function useKeyboardNavigation(
   onPrev: () => void,
   onNext: () => void,
+  enabled = true,
 ) {
   useEffect(() => {
+    if (!enabled) return;
+
     function handleKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
       if (
@@ -28,5 +31,5 @@ export function useKeyboardNavigation(
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onPrev, onNext]);
+  }, [onPrev, onNext, enabled]);
 }

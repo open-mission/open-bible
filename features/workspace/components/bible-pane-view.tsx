@@ -58,7 +58,7 @@ export function BiblePaneView({
   const { inspectorOpen, setInspectorOpen } = usePanelState()
   const [notesTarget, setNotesTarget] = useState<NoteTarget | null>(null)
   const [notesOpen, setNotesOpen] = useState(false)
-  const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(false)
+  const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(!!state.isNew)
   /** Captures the book chosen in the dialog before the chapter is selected. */
   const pendingBookRef = useRef<string | null>(null)
 
@@ -69,7 +69,7 @@ export function BiblePaneView({
   const handleSelectChapter = useCallback(
     (chapter: number) => {
       const bookId = pendingBookRef.current ?? state.bookId
-      onPaneUpdate(pane.id, { bookId, chapter })
+      onPaneUpdate(pane.id, { bookId, chapter, isNew: false })
       pendingBookRef.current = null
     },
     [pane.id, state.bookId, onPaneUpdate],
@@ -138,7 +138,12 @@ export function BiblePaneView({
 
             <BookChapterDialog
               open={bookChapterDialogOpen}
-              onClose={() => setBookChapterDialogOpen(false)}
+              onClose={() => {
+                setBookChapterDialogOpen(false)
+                if (state.isNew) {
+                  onPaneUpdate(pane.id, { isNew: false })
+                }
+              }}
               onSelectBook={handleSelectBook}
               onSelectChapter={handleSelectChapter}
               selectedBookId={state.bookId}

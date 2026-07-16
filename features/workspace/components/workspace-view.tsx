@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, createContext, useContext, useMemo } from "react"
-import { ChevronUp, ChevronDown } from "lucide-react"
+import { ChevronUp, ChevronDown, Plus } from "lucide-react"
 import {
   DndContext,
   DragOverlay,
@@ -46,6 +46,7 @@ import { ConfigButton } from "./config-button"
 import { IconLayoutGrid } from "@tabler/icons-react"
 import { WorkspaceTabOverview } from "./workspace-tab-overview"
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
+import { PaneTypePicker } from "./pane-type-picker"
 import { cn } from "@/lib/utils"
 import { useIsTauriMacOS } from "@/features/layout/hooks/use-is-tauri-macos"
 import type { BiblePaneState, LayoutMode } from "../types"
@@ -150,6 +151,9 @@ export function WorkspaceView() {
   // (and Shift) cycle through panes. Works in both tabs and grid modes.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Block workspace shortcuts while the tab overview modal is open
+      if (overviewOpen) return
+
       const target = e.target as HTMLElement | null
       const tag = target?.tagName
       if (
@@ -222,7 +226,7 @@ export function WorkspaceView() {
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [panes, activePaneId, activatePane, openPane, closePane, splitPane])
+  }, [panes, activePaneId, activatePane, openPane, closePane, splitPane, overviewOpen])
 
   // KeyUp handler to commit selected tab switch
   useEffect(() => {
@@ -364,11 +368,27 @@ export function WorkspaceView() {
       {/* Content */}
       <div className="relative flex-1 min-h-0 h-full overflow-hidden pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
         {panes.length === 0 ? (
-          <ReaderEmpty onOpenSidebar={openFirstPane} />
+          <ReaderEmpty
+            onOpenSidebar={openFirstPane}
+            action={
+              <PaneTypePicker className="flex items-center gap-2 rounded-md px-4 py-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium">
+                <Plus className="h-4 w-4" />
+                <span>Nova aba</span>
+              </PaneTypePicker>
+            }
+          />
         ) : layoutMode === "grid" ? (
           <WorkspaceGrid />
         ) : !activePane ? (
-          <ReaderEmpty onOpenSidebar={openFirstPane} />
+          <ReaderEmpty
+            onOpenSidebar={openFirstPane}
+            action={
+              <PaneTypePicker className="flex items-center gap-2 rounded-md px-4 py-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium">
+                <Plus className="h-4 w-4" />
+                <span>Nova aba</span>
+              </PaneTypePicker>
+            }
+          />
         ) : activePane.state.type === "bible" ? (
           <BiblePaneView
             key={activePane.id}
