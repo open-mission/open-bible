@@ -150,6 +150,9 @@ export function WorkspaceView() {
   // (and Shift) cycle through panes. Works in both tabs and grid modes.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Block workspace shortcuts while the tab overview modal is open
+      if (overviewOpen) return
+
       const target = e.target as HTMLElement | null
       const tag = target?.tagName
       if (
@@ -222,7 +225,7 @@ export function WorkspaceView() {
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [panes, activePaneId, activatePane, openPane, closePane, splitPane])
+  }, [panes, activePaneId, activatePane, openPane, closePane, splitPane, overviewOpen])
 
   // KeyUp handler to commit selected tab switch
   useEffect(() => {

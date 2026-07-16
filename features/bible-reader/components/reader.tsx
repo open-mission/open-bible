@@ -262,8 +262,8 @@ function ReaderContent({
     };
   }, [selectedVerseIds, verses]);
 
-  useKeyboardNavigation(prevChapter, nextChapter);
-  useSwipeNavigation(prevChapter, nextChapter);
+  useKeyboardNavigation(prevChapter, nextChapter, isActive);
+  useSwipeNavigation(prevChapter, nextChapter, isActive);
 
   if (!book) return null;
 
