@@ -8,18 +8,21 @@ import { IconSparkles } from "@tabler/icons-react";
 import { ConfigDialog } from "@/features/config/components/config-dialog";
 
 export function ReleaseNotesToast() {
-  const { hasUpdate, latestVersion, summary, dismiss } = useReleaseNotes();
+  const {
+    hasUpdate,
+    hasPwaUpdate,
+    hasAppUpdate,
+    latestVersion,
+    summary,
+    dismiss,
+    updatePwa,
+  } = useReleaseNotes();
   const [configOpen, setConfigOpen] = useState(false);
   const [configFocus, setConfigFocus] = useState<"changelog" | undefined>(undefined);
 
   if (!hasUpdate) return null;
 
-  const handleUpdate = () => {
-    setConfigFocus(undefined);
-    setConfigOpen(true);
-  };
-
-  const handleVerTudo = () => {
+  const handleVerMudancas = () => {
     setConfigFocus("changelog");
     setConfigOpen(true);
   };
@@ -40,10 +43,10 @@ export function ReleaseNotesToast() {
               <IconSparkles className="size-4" />
             </span>
             <CardTitle className="text-sm font-semibold tracking-tight leading-none">
-              Nova versão v{latestVersion} disponível
+              {hasAppUpdate ? `Nova versão v${latestVersion} disponível` : "Nova versão disponível"}
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-4 py-2">
+          <CardContent className="px-4 py-2 hidden md:block">
             {displaySummary.length > 0 ? (
               <ul className="list-disc pl-4 space-y-1 text-xs text-muted-foreground max-h-[150px] overflow-y-auto custom-scrollbar">
                 {displaySummary.map((item, idx) => (
@@ -62,12 +65,16 @@ export function ReleaseNotesToast() {
             <Button variant="ghost" size="sm" onClick={handleDismiss} className="text-xs h-8 cursor-pointer">
               Agora não
             </Button>
-            <Button variant="outline" size="sm" onClick={handleVerTudo} className="text-xs h-8 cursor-pointer">
-              Ver tudo
-            </Button>
-            <Button size="sm" onClick={handleUpdate} className="text-xs h-8 cursor-pointer">
-              Atualizar
-            </Button>
+            {hasAppUpdate && (
+              <Button variant="outline" size="sm" onClick={handleVerMudancas} className="text-xs h-8 cursor-pointer">
+                Ver mudanças
+              </Button>
+            )}
+            {hasPwaUpdate && (
+              <Button size="sm" onClick={updatePwa} className="text-xs h-8 cursor-pointer">
+                Atualizar
+              </Button>
+            )}
           </CardFooter>
         </Card>
       </div>

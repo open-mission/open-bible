@@ -3,20 +3,26 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getAppVersion, compareSemver, getLastSeenVersion, setLastSeenVersion } from "@/lib/release-notes/version";
 import { summarizeLatest, changelogSrc } from "@/lib/release-notes/changelog";
+import { useServiceWorkerUpdate } from "@/features/service-worker/hooks/use-sw-update";
 
 interface ReleaseNotesContextType {
   hasUpdate: boolean;
+  hasPwaUpdate: boolean;
+  hasAppUpdate: boolean;
   latestVersion: string;
   summary: string[];
   dismiss: () => void;
+  updatePwa: () => void;
 }
 
 const ReleaseNotesContext = createContext<ReleaseNotesContextType | undefined>(undefined);
 
 export function ReleaseNotesProvider({ children }: { children: React.ReactNode }) {
-  const [hasUpdate, setHasUpdate] = useState(false);
+  const { isUpdateAvailable: hasPwaUpdate, updateNow } = useServiceWorkerUpdate();
+  const [hasAppUpdate, setHasAppUpdate] = useState(false);
   const [latestVersion, setLatestVersion] = useState("0.0.0");
   const [summary, setSummary] = useState<string[]>([]);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
     async function checkVersion() {
@@ -38,11 +44,12 @@ export function ReleaseNotesProvider({ children }: { children: React.ReactNode }
           ? remoteVersion
           : appVersion;
 
+      setLatestVersion(latest);
+
       const lastSeen = getLastSeenVersion();
 
       if (compareSemver(latest, lastSeen) > 0) {
-        setHasUpdate(true);
-        setLatestVersion(latest);
+        setHasAppUpdate(true);
         setSummary(summarizeLatest(changelogSrc));
       }
     }
@@ -50,13 +57,31 @@ export function ReleaseNotesProvider({ children }: { children: React.ReactNode }
     checkVersion();
   }, []);
 
+  const hasUpdate = (hasAppUpdate || hasPwaUpdate) && !isDismissed;
+
+  const updatePwa = () => {
+    updateNow();
+  };
+
   const dismiss = () => {
-    setLastSeenVersion(latestVersion);
-    setHasUpdate(false);
+    if (hasAppUpdate) {
+      setLastSeenVersion(latestVersion);
+    }
+    setIsDismissed(true);
   };
 
   return (
-    <ReleaseNotesContext.Provider value={{ hasUpdate, latestVersion, summary, dismiss }}>
+    <ReleaseNotesContext.Provider
+      value={{
+        hasUpdate,
+        hasPwaUpdate,
+        hasAppUpdate,
+        latestVersion,
+        summary,
+        dismiss,
+        updatePwa,
+      }}
+    >
       {children}
     </ReleaseNotesContext.Provider>
   );
