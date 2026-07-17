@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw, Sparkles } from "lucide-react"
+import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw, Sparkles, ChevronRight, ChevronLeft } from "lucide-react"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/features/theme/utils/theme"
@@ -33,11 +33,21 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
     return /Mac|iPod|iPhone|iPad/.test(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
   })
 
-  const [activeTab, setActiveTab] = useState(defaultTab)
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (typeof window !== "undefined" && !window.matchMedia("(min-width: 768px)").matches) {
+      return defaultTab === "version" ? "menu" : defaultTab
+    }
+    return defaultTab
+  })
 
   useEffect(() => {
     if (defaultTab) {
-      setActiveTab(defaultTab)
+      const isMobile = !window.matchMedia("(min-width: 768px)").matches
+      if (isMobile && defaultTab === "version") {
+        setActiveTab("menu")
+      } else {
+        setActiveTab(defaultTab)
+      }
     }
   }, [defaultTab])
 
@@ -147,14 +157,30 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
     const media = window.matchMedia("(min-width: 768px)")
     const timer = setTimeout(() => {
       setIsDesktop(media.matches)
+      if (media.matches && activeTab === "menu") {
+        setActiveTab(defaultTab === "menu" ? "version" : (defaultTab || "version"))
+      }
     }, 0)
-    const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    const listener = (e: MediaQueryListEvent) => {
+      setIsDesktop(e.matches)
+      if (e.matches && activeTab === "menu") {
+        setActiveTab(defaultTab === "menu" ? "version" : (defaultTab || "version"))
+      }
+    }
     media.addEventListener("change", listener)
     return () => {
       media.removeEventListener("change", listener)
       clearTimeout(timer)
     }
-  }, [])
+  }, [defaultTab, activeTab])
+
+  const menuItems = [
+    { value: "version", label: "Versão Bíblica", icon: <BookOpen className="h-4 w-4" /> },
+    { value: "theme", label: "Tema", icon: <Palette className="h-4 w-4" /> },
+    { value: "workspace", label: "Leitura", icon: <LayoutGrid className="h-4 w-4" /> },
+    ...(isTauri ? [{ value: "updates", label: "Atualizações", icon: <RefreshCw className="h-4 w-4" /> }] : []),
+    { value: "changelog", label: "Novidades", icon: <Sparkles className="h-4 w-4" /> },
+  ]
 
   return (
     <Tabs
@@ -163,56 +189,86 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
       orientation={isDesktop ? "vertical" : "horizontal"}
       className="w-full gap-6 md:gap-8 flex flex-col md:flex-row"
     >
-      <TabsList className="w-full md:w-56 shrink-0 flex flex-row md:flex-col justify-start items-stretch bg-muted/50 p-1 md:p-2 rounded-xl h-auto">
-        <TabsTrigger
-          value="version"
-          className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
-        >
-          <BookOpen className="h-4 w-4" />
-          <span>Versão Bíblica</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="theme"
-          className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
-        >
-          <Palette className="h-4 w-4" />
-          <span>Tema</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="workspace"
-          className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
-        >
-          <LayoutGrid className="h-4 w-4" />
-          <span>Leitura</span>
-        </TabsTrigger>
-        {isDesktop && (
+      {isDesktop ? (
+        <TabsList className="w-full md:w-56 shrink-0 flex flex-row md:flex-col justify-start items-stretch bg-muted/50 p-1 md:p-2 rounded-xl h-auto">
           <TabsTrigger
-            value="shortcuts"
+            value="version"
             className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
           >
-            <Keyboard className="h-4 w-4" />
-            <span>Atalhos</span>
+            <BookOpen className="h-4 w-4" />
+            <span>Versão Bíblica</span>
           </TabsTrigger>
-        )}
-        {isTauri && (
           <TabsTrigger
-            value="updates"
+            value="theme"
             className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
           >
-            <RefreshCw className="h-4 w-4" />
-            <span>Atualizações</span>
+            <Palette className="h-4 w-4" />
+            <span>Tema</span>
           </TabsTrigger>
-        )}
-        <TabsTrigger
-          value="changelog"
-          className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
-        >
-          <Sparkles className="h-4 w-4" />
-          <span>Novidades</span>
-        </TabsTrigger>
-      </TabsList>
+          <TabsTrigger
+            value="workspace"
+            className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+          >
+            <LayoutGrid className="h-4 w-4" />
+            <span>Leitura</span>
+          </TabsTrigger>
+          {isDesktop && (
+            <TabsTrigger
+              value="shortcuts"
+              className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+            >
+              <Keyboard className="h-4 w-4" />
+              <span>Atalhos</span>
+            </TabsTrigger>
+          )}
+          {isTauri && (
+            <TabsTrigger
+              value="updates"
+              className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>Atualizações</span>
+            </TabsTrigger>
+          )}
+          <TabsTrigger
+            value="changelog"
+            className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span>Novidades</span>
+          </TabsTrigger>
+        </TabsList>
+      ) : (
+        activeTab === "menu" && (
+          <div className="w-full flex flex-col bg-card border border-border/60 rounded-xl overflow-hidden divide-y divide-border/60 shadow-xs">
+            {menuItems.map((item) => (
+              <button
+                key={item.value}
+                onClick={() => setActiveTab(item.value)}
+                className="flex items-center justify-between w-full px-4 py-3.5 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left text-foreground cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-muted-foreground">{item.icon}</span>
+                  <span className="text-sm font-medium">{item.label}</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
+              </button>
+            ))}
+          </div>
+        )
+      )}
 
-      <div className="flex-1 min-w-0 bg-card border border-border/60 rounded-xl p-6 shadow-sm">
+      {(isDesktop || activeTab !== "menu") && (
+        <div className="flex-1 min-w-0 bg-card border border-border/60 rounded-xl p-6 shadow-sm">
+          {!isDesktop && (
+            <button
+              onClick={() => setActiveTab("menu")}
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground mb-6 -ml-1 cursor-pointer transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Voltar</span>
+            </button>
+          )}
         {/* ── Default Bible version ──────────────────────────────────────── */}
         <TabsContent value="version" className="space-y-4">
           <div>
@@ -652,6 +708,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           </section>
         </TabsContent>
       </div>
+      )}
     </Tabs>
   )
 }
