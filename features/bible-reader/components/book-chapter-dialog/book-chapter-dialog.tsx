@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { BookOpen } from "lucide-react"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { getBook, OLD_TESTAMENT, NEW_TESTAMENT } from "@/features/bible-reader/utils/bible-data"
 import { useIsMobile } from "@/lib/use-media-query"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
+import { parseBibleRef } from "@/features/bible-reader/utils/parse-bible-ref"
 import { BookChapterDialogOverlay } from "./book-chapter-dialog-overlay"
 import { BookChapterDialogSearchHeader } from "./book-chapter-dialog-search-header"
 import { BookChapterDialogBookList } from "./book-chapter-dialog-book-list"
@@ -59,6 +60,8 @@ export function BookChapterDialog({
   const isSearching = query.trim().length > 0
   const shouldShowBooks = !showChapters || isSearching
 
+  const quickNavResult = useMemo(() => parseBibleRef(query), [query])
+
   const filteredBooks = useMemo(() => {
     if (!query) return null
     const q = query.toLowerCase()
@@ -66,6 +69,13 @@ export function BookChapterDialog({
       (b) => b.name.toLowerCase().includes(q) || b.abbreviation.toLowerCase().includes(q)
     )
   }, [query])
+
+  const handleQuickNav = useCallback(() => {
+    if (!quickNavResult) return
+    onSelectBook(quickNavResult.book.id)
+    onSelectChapter(quickNavResult.chapter)
+    onClose()
+  }, [quickNavResult, onSelectBook, onSelectChapter, onClose])
 
   const allVersions = useMemo(() => installedVersions, [installedVersions])
 
@@ -105,6 +115,8 @@ export function BookChapterDialog({
           allVersions={allVersions}
           onVersionChange={setVersionId}
           onClose={handleClose}
+          quickNavResult={quickNavResult}
+          onQuickNav={handleQuickNav}
         />
       )}
 
