@@ -598,7 +598,16 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           <section id="changelog-section" className="space-y-4">
             <div>
               <h2 className="text-lg font-serif font-medium text-foreground mb-1">
-                Novidades (v{latestEntry.version})
+                Novidades (
+                <a
+                  href={`https://github.com/open-mission/open-bible/releases/tag/v${latestEntry.version}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline"
+                >
+                  v{latestEntry.version}
+                </a>
+                )
               </h2>
               {latestEntry.date && (
                 <p className="text-xs text-muted-foreground mb-4">
