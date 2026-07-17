@@ -23,7 +23,7 @@ export function useBibleVerses(bookId: string | null, chapter: number | null) {
     lastKey.current = key
 
     setLoading(true)
-    getVerses(bookId, chapter)
+    getVerses(bookId, chapter, versionId)
       .then((result) => {
         setVerses(result)
         setLoading(false)

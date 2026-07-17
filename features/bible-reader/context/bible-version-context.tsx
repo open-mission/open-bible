@@ -69,7 +69,7 @@ interface BibleVersionContextValue {
   availableVersions: AvailableVersion[]
   installVersion: (id: string) => Promise<void>
   uninstallVersion: (id: string) => Promise<void>
-  getVerses: (bookId: string, chapter: number) => Promise<Verse[]>
+  getVerses: (bookId: string, chapter: number, specificVersionId?: string) => Promise<Verse[]>
   refreshInstalled: () => Promise<void>
   isVersionsLoaded: boolean
 }
@@ -267,10 +267,10 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const getVerses = useCallback(
-    async (bookId: string, chapter: number): Promise<Verse[]> => {
+    async (bookId: string, chapter: number, specificVersionId?: string): Promise<Verse[]> => {
       try {
         await database.initialize()
-        const currentVersion = versionId || defaultVersionId || "ara"
+        const currentVersion = specificVersionId || versionId || defaultVersionId || "ara"
 
         // Use ref to avoid re-creating this callback when installedVersions changes
         const isInstalled = installedVersionsRef.current.some((v) => v.id === currentVersion)
