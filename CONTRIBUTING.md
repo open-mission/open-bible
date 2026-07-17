@@ -1,90 +1,90 @@
-# Contribuindo com o Open Bible
+# Contributing to Open Bible
 
-Obrigado por querer contribuir! Este guia explica como manter o repositório organizado e profissional.
+Thank you for wanting to contribute! This guide explains how to keep the repository organized and professional.
 
 ---
 
-## 📦 Setup do Ambiente
+## 📦 Environment Setup
 
 ```bash
-# Clone o repositório
+# Clone the repository
 git clone git@github.com:open-mission/open-bible.git
 cd open-bible
 
-# Instale as dependências (inclui husky e commitlint)
+# Install dependencies (includes husky and commitlint)
 pnpm install
 
-# Configure as variáveis de ambiente
-cp .env.local.example .env.local   # edite com suas chaves
+# Configure environment variables
+cp .env.local.example .env.local   # edit with your keys
 
-# Inicie o servidor de desenvolvimento
+# Start the development server
 pnpm dev
 ```
 
-> **Nota**: O `pnpm install` executa automaticamente o script `prepare`, que instala os git hooks do Husky.
+> **Note**: `pnpm install` automatically runs the `prepare` script, which installs Husky git hooks.
 
 ---
 
-## 🌿 Padrão de Branches
+## 🌿 Branch Convention
 
-Use o formato `<tipo>/<descricao-curta>` com letras minúsculas e hífens:
+Use the format `<type>/<short-description>` with lowercase letters and hyphens:
 
-| Prefixo | Quando usar | Exemplo |
+| Prefix | When to use | Example |
 |---------|-------------|---------|
-| `feat/` | Nova funcionalidade | `feat/offline-sync` |
-| `fix/` | Correção de bug | `fix/ios-scroll-crash` |
-| `docs/` | Documentação | `docs/api-reference` |
-| `refactor/` | Refatoração | `refactor/bible-database` |
+| `feat/` | New feature | `feat/offline-sync` |
+| `fix/` | Bug fix | `fix/ios-scroll-crash` |
+| `docs/` | Documentation | `docs/api-reference` |
+| `refactor/` | Refactoring | `refactor/bible-database` |
 | `perf/` | Performance | `perf/verse-loading` |
-| `chore/` | Manutenção | `chore/update-deps` |
+| `chore/` | Maintenance | `chore/update-deps` |
 | `ci/` | CI/CD | `ci/add-lint-workflow` |
 
-### Fluxo de Branches
+### Branch Flow
 
 ```
-main          ← produção (protegida, deploy automático via Vercel)
- └── develop  ← integração (base para PRs)
-       └── feat/minha-feature   ← branches de trabalho
-       └── fix/bug-critico
+main          ← production (protected, auto-deploy via Vercel)
+ └── develop  ← integration (base for PRs)
+       └── feat/my-feature        ← working branches
+       └── fix/critical-bug
 ```
 
-- Crie suas branches sempre a partir de `develop`
-- PRs devem ser abertos para `develop`, não para `main`
-- O merge de `develop` → `main` gera um release
+- Always create your branches from `develop`
+- PRs should be opened against `develop`, not `main`
+- Merging `develop` → `main` creates a release
 
 ---
 
-## 💬 Padrão de Commits (Conventional Commits)
+## 💬 Commit Convention (Conventional Commits)
 
-Este projeto usa **[Conventional Commits](https://www.conventionalcommits.org/)** validado automaticamente via `commitlint` no hook `commit-msg`.
+This project uses **[Conventional Commits](https://www.conventionalcommits.org/)** automatically validated via `commitlint` in the `commit-msg` hook.
 
-### Formato
+### Format
 
 ```
-<tipo>(<escopo opcional>): <descrição curta>
+<type>(<optional scope>): <short description>
 
-[corpo opcional]
+[optional body]
 
-[rodapé opcional — ex: BREAKING CHANGE, Closes #123]
+[optional footer — e.g.: BREAKING CHANGE, Closes #123]
 ```
 
-### Tipos Permitidos
+### Allowed Types
 
-| Tipo | Quando usar | Impacto na versão |
-|------|-------------|-------------------|
-| `feat` | Nova funcionalidade | `minor` (0.X.0) |
-| `fix` | Correção de bug | `patch` (0.0.X) |
-| `docs` | Apenas documentação | nenhum |
-| `style` | Formatação sem lógica | nenhum |
-| `refactor` | Refatoração sem feat/fix | nenhum |
-| `perf` | Melhoria de performance | `patch` |
-| `test` | Adição ou correção de testes | nenhum |
-| `chore` | Manutenção, CI, deps | nenhum |
-| `ci` | Mudanças de pipeline CI/CD | nenhum |
-| `revert` | Reverter commit anterior | depende |
-| `wip` | Work in progress (apenas local) | nenhum |
+| Type | When to use | Version impact |
+|------|-------------|----------------|
+| `feat` | New feature | `minor` (0.X.0) |
+| `fix` | Bug fix | `patch` (0.0.X) |
+| `docs` | Documentation only | none |
+| `style` | Formatting without logic | none |
+| `refactor` | Refactoring without feat/fix | none |
+| `perf` | Performance improvement | `patch` |
+| `test` | Adding or fixing tests | none |
+| `chore` | Maintenance, CI, deps | none |
+| `ci` | CI/CD pipeline changes | none |
+| `revert` | Revert a previous commit | depends |
+| `wip` | Work in progress (local only) | none |
 
-### Exemplos de Commits Válidos
+### Valid Commit Examples
 
 ```bash
 feat(reader): add font size adjustment slider
@@ -94,10 +94,10 @@ chore(deps): upgrade next to 16.3.0
 perf(search): cache verse lookup results in memory
 refactor(database): extract BibleDatabase class to own module
 
-# Breaking change (incrementa MAJOR):
+# Breaking change (increments MAJOR):
 feat!: redesign Bible version selection API
 
-# Com escopo e corpo:
+# With scope and body:
 fix(ios): prevent keyboard from hiding verse input
 
 Fixes an issue where the soft keyboard would obscure
@@ -107,66 +107,66 @@ viewport meta adjustments.
 Closes #42
 ```
 
-### Usando o CLI Interativo
+### Using the Interactive CLI
 
 ```bash
-pnpm commit   # abre o Commitizen — guia você pelo formato correto
+pnpm commit   # opens Commitizen — guides you through the correct format
 ```
 
-### Commits Inválidos (rejeitados pelo hook)
+### Invalid Commits (rejected by hook)
 
 ```bash
-git commit -m "fix bug"          # ❌ sem tipo convencional
-git commit -m "Fix: something"   # ❌ maiúscula no tipo
-git commit -m "feat(SCOPE): x"   # ❌ escopo em maiúscula
+git commit -m "fix bug"          # ❌ no conventional type
+git commit -m "Fix: something"   # ❌ uppercase type
+git commit -m "feat(SCOPE): x"   # ❌ uppercase scope
 ```
 
 ---
 
-## 🚀 Criando um Release
+## 🚀 Creating a Release
 
 ```bash
-pnpm release           # interativo — escolhe patch/minor/major
-pnpm release patch     # bump direto de patch
-pnpm release minor     # bump de minor
-pnpm release major     # bump de major
-pnpm release --dry-run # simula sem fazer nada
+pnpm release           # interactive — choose patch/minor/major
+pnpm release patch     # direct patch bump
+pnpm release minor     # direct minor bump
+pnpm release major     # direct major bump
+pnpm release --dry-run # simulate without making changes
 ```
 
-O script automaticamente:
-1. Valida que o diretório está limpo
-2. Faz bump da versão no `package.json`
-3. Cria commit `chore(release): vX.Y.Z`
-4. Cria tag anotada `vX.Y.Z`
-5. Faz push do branch e da tag
-6. Cria GitHub Release com notas geradas automaticamente
+The script automatically:
+1. Validates that the working directory is clean
+2. Bumps the version in `package.json`
+3. Creates a `chore(release): vX.Y.Z` commit
+4. Creates an annotated `vX.Y.Z` tag
+5. Pushes the branch and tag
+6. Creates a GitHub Release with auto-generated notes
 
 ---
 
-## 🔍 Revisão de Código
+## 🔍 Code Review
 
-- PRs devem ter descrição clara do que muda e por quê
-- Use o template de PR disponível em `.github/pull_request_template.md`
-- Prefira PRs pequenos e focados a PRs grandes
-- Adicione screenshots para mudanças de UI
+- PRs must have a clear description of what changes and why
+- Use the PR template available at `.github/pull_request_template.md`
+- Prefer small, focused PRs over large ones
+- Add screenshots for UI changes
 
 ---
 
-## 📂 Estrutura do Projeto
+## 📂 Project Structure
 
 ```
 open-bible/
 ├── app/                    # Next.js App Router (server components)
 │   ├── api/                # Hono API routes
-│   ├── layout.tsx          # Root layout com providers
-│   └── page.tsx            # Página principal (reader)
-├── components/             # Componentes React
+│   ├── layout.tsx          # Root layout with providers
+│   └── page.tsx            # Main page (reader)
+├── components/             # React components
 │   └── ui/                 # shadcn/ui base-nova
 ├── hooks/                  # Custom React hooks
-├── lib/                    # Utilitários e lógica de negócio
+├── lib/                    # Utilities and business logic
 │   ├── database/           # SQLite WASM + Drizzle ORM
 │   └── auth.ts             # Better Auth config
-├── public/                 # Assets estáticos (wasm, service worker)
-├── scripts/                # Scripts de manutenção
-└── resources/              # Bíblias em SQLite (não commitadas)
+├── public/                 # Static assets (wasm, service worker)
+├── scripts/                # Maintenance scripts
+└── resources/              # Bibles in SQLite (not committed)
 ```
