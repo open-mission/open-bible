@@ -1,4 +1,4 @@
-![Open Bible](public/hero.svg)
+![Open Bible](public/hero-pt.png)
 
 <p align="center">
   <h1 align="center"><b>Open Bible</b></h1>
