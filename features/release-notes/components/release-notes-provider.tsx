@@ -1,7 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getAppVersion, compareSemver, getLastSeenVersion, setLastSeenVersion } from "@/lib/release-notes/version";
+import {
+  getAppVersion,
+  compareSemver,
+  getLastSeenVersion,
+  setLastSeenVersion,
+  getPwaUpdatedVersion,
+  setPwaUpdatedVersion,
+  getPwaDismissedVersion,
+  setPwaDismissedVersion,
+} from "@/lib/release-notes/version";
 import { summarizeLatest, changelogSrc } from "@/lib/release-notes/changelog";
 import { useServiceWorkerUpdate } from "@/features/service-worker/hooks/use-sw-update";
 
@@ -23,6 +32,11 @@ export function ReleaseNotesProvider({ children }: { children: React.ReactNode }
   const [latestVersion, setLatestVersion] = useState("0.0.0");
   const [summary, setSummary] = useState<string[]>([]);
   const [isDismissed, setIsDismissed] = useState(false);
+
+  const appVersion = getAppVersion();
+  const pwaUpdated = getPwaUpdatedVersion() === appVersion;
+  const pwaDismissed = getPwaDismissedVersion() === appVersion;
+  const showPwa = hasPwaUpdate && !pwaDismissed && !pwaUpdated;
 
   useEffect(() => {
     async function checkVersion() {
@@ -57,15 +71,19 @@ export function ReleaseNotesProvider({ children }: { children: React.ReactNode }
     checkVersion();
   }, []);
 
-  const hasUpdate = (hasAppUpdate || hasPwaUpdate) && !isDismissed;
+  const hasUpdate = (hasAppUpdate || showPwa) && !isDismissed;
 
   const updatePwa = () => {
+    setPwaUpdatedVersion(getAppVersion());
     updateNow();
   };
 
   const dismiss = () => {
     if (hasAppUpdate) {
       setLastSeenVersion(latestVersion);
+    }
+    if (hasPwaUpdate) {
+      setPwaDismissedVersion(getAppVersion());
     }
     setIsDismissed(true);
   };

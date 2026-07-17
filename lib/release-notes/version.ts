@@ -44,3 +44,53 @@ export function setLastSeenVersion(v: string): void {
     console.error("Error setting localStorage:", error);
   }
 }
+
+const PWA_UPDATED_KEY = "openbible:pwa-updated";
+const PWA_DISMISSED_KEY = "openbible:pwa-dismissed-version";
+
+export function getPwaUpdatedVersion(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    return window.localStorage.getItem(PWA_UPDATED_KEY);
+  } catch (error) {
+    console.error("Error accessing localStorage:", error);
+    return null;
+  }
+}
+
+export function setPwaUpdatedVersion(v: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.setItem(PWA_UPDATED_KEY, v);
+  } catch (error) {
+    console.error("Error setting localStorage:", error);
+  }
+}
+
+export function getPwaDismissedVersion(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    return window.localStorage.getItem(PWA_DISMISSED_KEY);
+  } catch (error) {
+    console.error("Error accessing localStorage:", error);
+    return null;
+  }
+}
+
+export function setPwaDismissedVersion(v: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.setItem(PWA_DISMISSED_KEY, v);
+  } catch (error) {
+    console.error("Error setting localStorage:", error);
+  }
+}
+
