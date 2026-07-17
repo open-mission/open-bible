@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/features/theme/components/theme-provider";
 import { BibleVersionProvider } from "@/features/bible-reader/context/bible-version-context";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
-import { UpdateBanner } from "@/features/service-worker/components/update-banner";
 import { VersionLabel } from "@/features/layout/components/version-label";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -90,7 +89,6 @@ export default function RootLayout({
           </BibleVersionProvider>
         </ThemeProvider>
         <ServiceWorkerRegister />
-        <UpdateBanner />
         <AnalyticsGate />
       </body>
     </html>
