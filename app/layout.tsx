@@ -12,6 +12,8 @@ import { VersionLabel } from "@/features/layout/components/version-label";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { ReleaseNotesProvider } from "@/features/release-notes/components/release-notes-provider";
+import { ReleaseNotesToast } from "@/features/release-notes/components/release-notes-toast";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -78,7 +80,10 @@ export default function RootLayout({
         <ThemeProvider>
           <BibleVersionProvider>
             <TooltipProvider>
-              {children}
+              <ReleaseNotesProvider>
+                {children}
+                <ReleaseNotesToast />
+              </ReleaseNotesProvider>
               <OpfsStatusGate />
               <Toaster position="bottom-right" />
             </TooltipProvider>

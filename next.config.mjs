@@ -44,6 +44,10 @@ const nextConfig = {
     if (!dev) {
       config.cache = false
     }
+    config.module.rules.push({
+      resourceQuery: /raw/,
+      type: "asset/source",
+    })
     return config
   },
   transpilePackages: ["@open-bible/ui"],
