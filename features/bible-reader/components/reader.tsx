@@ -29,6 +29,8 @@ interface ReaderProps {
   chapter: number;
   onChapterChange: (chapter: number) => void;
   onBookChapterClick: () => void;
+  /** Called when the chapter number is clicked specifically. */
+  onChapterClick?: () => void;
   readerMode: "narrow" | "medium" | "wide";
   onChangeReaderMode: (mode: "narrow" | "medium" | "wide") => void;
   fontSize: number;
@@ -49,6 +51,7 @@ function ReaderContent({
   chapter,
   onChapterChange,
   onBookChapterClick,
+  onChapterClick,
   readerMode,
   onChangeReaderMode,
   fontSize,
@@ -287,6 +290,7 @@ function ReaderContent({
         chapter={chapter}
         readerMode={readerMode}
         onBookChapterClick={onBookChapterClick}
+        onChapterClick={onChapterClick}
         onChangeReaderMode={onChangeReaderMode}
         fontSize={fontSize}
         onChangeFontSize={onChangeFontSize}
