@@ -168,6 +168,34 @@ describe("parseBibleRef", () => {
       expect(result!.book.id).toBe("psa")
       expect(result!.chapter).toBe(23)
     })
+
+    it("matches 'sl3' (no separator)", () => {
+      const result = parseBibleRef("sl3")
+      expect(result).not.toBeNull()
+      expect(result!.book.id).toBe("psa")
+      expect(result!.chapter).toBe(3)
+    })
+
+    it("matches 'gn1' (no separator)", () => {
+      const result = parseBibleRef("gn1")
+      expect(result).not.toBeNull()
+      expect(result!.book.id).toBe("gen")
+      expect(result!.chapter).toBe(1)
+    })
+
+    it("matches '1co13' (numeric prefix, no separator)", () => {
+      const result = parseBibleRef("1co13")
+      expect(result).not.toBeNull()
+      expect(result!.book.id).toBe("1co")
+      expect(result!.chapter).toBe(13)
+    })
+
+    it("matches 'rt4' (no separator)", () => {
+      const result = parseBibleRef("rt4")
+      expect(result).not.toBeNull()
+      expect(result!.book.id).toBe("rut")
+      expect(result!.chapter).toBe(4)
+    })
   })
 
   describe("invalid chapter numbers", () => {

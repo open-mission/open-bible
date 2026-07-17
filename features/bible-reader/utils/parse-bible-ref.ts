@@ -37,7 +37,7 @@ function normalize(str: string): string {
  *  [1] = parte textual do livro (pode começar com dígito, ex: "1co")
  *  [2] = número do capítulo
  */
-const REF_PATTERN = /^(\d?\s*[a-zA-ZÀ-ÿ]+)\s*[:\s.]\s*(\d+)$/
+const REF_PATTERN = /^(\d?\s*[a-zA-ZÀ-ÿ]+)[:\s.]*(\d+)$/
 
 /**
  * Faz o parsing de uma query de busca bíblica e retorna o livro + capítulo
