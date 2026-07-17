@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { BookOpen } from "lucide-react"
 import { BottomSheet } from "@/components/ui/bottom-sheet"
 import { getBook, OLD_TESTAMENT, NEW_TESTAMENT } from "@/features/bible-reader/utils/bible-data"
 import { useIsMobile } from "@/lib/use-media-query"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
+import { parseBibleRef } from "@/features/bible-reader/utils/parse-bible-ref"
 import { BookChapterDialogOverlay } from "./book-chapter-dialog-overlay"
 import { BookChapterDialogSearchHeader } from "./book-chapter-dialog-search-header"
 import { BookChapterDialogBookList } from "./book-chapter-dialog-book-list"
@@ -19,6 +20,8 @@ interface BookChapterDialogProps {
   selectedBookId: string | null
   selectedChapter: number | null
   versionAbbreviation?: string
+  /** When "chapters", opens directly on the chapter grid for the selected book. */
+  initialView?: "books" | "chapters"
 }
 
 /**
@@ -37,6 +40,7 @@ export function BookChapterDialog({
   selectedBookId,
   selectedChapter,
   versionAbbreviation,
+  initialView = "books",
 }: BookChapterDialogProps) {
   const isMobile = useIsMobile()
   const { versionId, setVersionId, installedVersions } = useBibleVersion()
@@ -48,16 +52,39 @@ export function BookChapterDialog({
     if (open) {
       const timer = setTimeout(() => {
         setActiveBookId(selectedBookId)
-        setShowChapters(false)
+        // When initialView is "chapters" and we have a selected book,
+        // skip straight to the chapter grid.
+        setShowChapters(initialView === "chapters" && !!selectedBookId)
         setQuery("")
       }, 0)
       return () => clearTimeout(timer)
     }
-  }, [open, selectedBookId])
+  }, [open, selectedBookId, initialView])
+
+  // Escape key: if on chapters → back to books; if on books → close dialog
+  useEffect(() => {
+    if (!open) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault()
+        e.stopPropagation()
+        if (showChapters) {
+          setShowChapters(false)
+        } else {
+          handleClose()
+        }
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, showChapters])
 
   const activeBook = activeBookId ? getBook(activeBookId) : null
   const isSearching = query.trim().length > 0
   const shouldShowBooks = !showChapters || isSearching
+
+  const quickNavResult = useMemo(() => parseBibleRef(query), [query])
 
   const filteredBooks = useMemo(() => {
     if (!query) return null
@@ -66,6 +93,13 @@ export function BookChapterDialog({
       (b) => b.name.toLowerCase().includes(q) || b.abbreviation.toLowerCase().includes(q)
     )
   }, [query])
+
+  const handleQuickNav = useCallback(() => {
+    if (!quickNavResult) return
+    onSelectBook(quickNavResult.book.id)
+    onSelectChapter(quickNavResult.chapter)
+    onClose()
+  }, [quickNavResult, onSelectBook, onSelectChapter, onClose])
 
   const allVersions = useMemo(() => installedVersions, [installedVersions])
 
@@ -105,6 +139,8 @@ export function BookChapterDialog({
           allVersions={allVersions}
           onVersionChange={setVersionId}
           onClose={handleClose}
+          quickNavResult={quickNavResult}
+          onQuickNav={handleQuickNav}
         />
       )}
 

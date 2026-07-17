@@ -38,6 +38,8 @@ interface ReaderHeaderProps {
   chapter: number;
   readerMode: "narrow" | "medium" | "wide";
   onBookChapterClick: () => void;
+  /** Called when the chapter number is clicked specifically (opens chapter grid). */
+  onChapterClick?: () => void;
   onChangeReaderMode: (mode: "narrow" | "medium" | "wide") => void;
   fontSize: number;
   onChangeFontSize: (size: number) => void;
@@ -58,6 +60,7 @@ export function ReaderHeader({
   chapter,
   readerMode,
   onBookChapterClick,
+  onChapterClick,
   onChangeReaderMode,
   fontSize,
   onChangeFontSize,
@@ -138,7 +141,7 @@ export function ReaderHeader({
               <span className="text-sm font-semibold mx-1">{book.name}</span>
             </Button>
             <Button
-              onClick={onBookChapterClick}
+              onClick={onChapterClick ?? onBookChapterClick}
               variant="ghost"
               className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs"
             >

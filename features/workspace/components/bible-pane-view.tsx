@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { Reader } from "@/features/bible-reader/components/reader"
 import { PanelLayout } from "@/features/layout/components/panel-layout"
 import { InspectorPanel } from "@/features/bible-reader/components/inspector-panel"
@@ -59,8 +59,25 @@ export function BiblePaneView({
   const [notesTarget, setNotesTarget] = useState<NoteTarget | null>(null)
   const [notesOpen, setNotesOpen] = useState(false)
   const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(!!state.isNew)
+  const [dialogInitialView, setDialogInitialView] = useState<"books" | "chapters">("books")
   /** Captures the book chosen in the dialog before the chapter is selected. */
   const pendingBookRef = useRef<string | null>(null)
+
+  // Cmd+K / Ctrl+K keyboard shortcut to toggle the dialog (desktop only)
+  useEffect(() => {
+    if (isMobile) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault()
+        setBookChapterDialogOpen((prev) => {
+          if (!prev) setDialogInitialView("books")
+          return !prev
+        })
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [isMobile])
 
   const handleSelectBook = useCallback((bookId: string) => {
     pendingBookRef.current = bookId
@@ -110,7 +127,14 @@ export function BiblePaneView({
                     bookId={state.bookId}
                     chapter={state.chapter}
                     onChapterChange={(ch) => onPaneUpdate(pane.id, { chapter: ch })}
-                    onBookChapterClick={() => setBookChapterDialogOpen(true)}
+                    onBookChapterClick={() => {
+                      setDialogInitialView("books")
+                      setBookChapterDialogOpen(true)
+                    }}
+                    onChapterClick={() => {
+                      setDialogInitialView("chapters")
+                      setBookChapterDialogOpen(true)
+                    }}
                     readerMode={readerMode}
                     onChangeReaderMode={onChangeReaderMode}
                     fontSize={fontSize}
@@ -149,6 +173,7 @@ export function BiblePaneView({
               selectedBookId={state.bookId}
               selectedChapter={state.chapter}
               versionAbbreviation={state.versionId.toUpperCase()}
+              initialView={dialogInitialView}
             />
           </SidebarInset>
         </SidebarProvider>
