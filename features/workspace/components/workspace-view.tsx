@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, createContext, useContext, useMemo } from "react"
-import { ChevronUp, ChevronDown, Plus } from "lucide-react"
+import { ChevronUp, ChevronDown, Plus, X, FolderX } from "lucide-react"
 import {
   DndContext,
   DragOverlay,
@@ -33,6 +33,7 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuGroup,
+  ContextMenuItem,
 } from "@/components/ui/context-menu"
 import { LayoutPanelTop, LayoutPanelLeft, Monitor, LayoutGrid, BookOpen, Book, Notebook, Presentation } from "lucide-react"
 import { BiblePaneView } from "./bible-pane-view"
@@ -85,7 +86,7 @@ const getPaneIcon = (paneType: string, isActive: boolean) => {
  * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, activePaneId, openPane, closePane, splitPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const { activePane, activePaneId, openPane, closePane, closeAllPanes, splitPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const settings = useReaderSettings()
   const [sidebarWidth, setSidebarWidth] = useState(256)
   const isTauriMacOS = useIsTauriMacOS()
@@ -294,6 +295,15 @@ export function WorkspaceView() {
               >
                 <IconLayoutGrid className="h-4 w-4" />
               </button>
+              <button
+                type="button"
+                onClick={closeAllPanes}
+                aria-label="Fechar todas as abas"
+                title="Fechar todas as abas"
+                className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-background/60 hover:text-destructive shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <FolderX className="h-4 w-4" />
+              </button>
               {tabsOrientation !== "vertical" && <WorkspaceTabs />}
               <WorkspaceToolbar />
               {tabsOrientation !== "vertical" && <ConfigButton />}
@@ -341,6 +351,13 @@ export function WorkspaceView() {
                   <span>Modo Grade</span>
                 </ContextMenuRadioItem>
               </ContextMenuRadioGroup>
+            </ContextMenuGroup>
+            <ContextMenuSeparator />
+            <ContextMenuGroup>
+              <ContextMenuItem onClick={closeAllPanes} className="gap-2 text-destructive focus:text-destructive">
+                <X className="h-4 w-4" />
+                <span>Fechar todas as abas</span>
+              </ContextMenuItem>
             </ContextMenuGroup>
           </ContextMenuContent>
         </ContextMenu>

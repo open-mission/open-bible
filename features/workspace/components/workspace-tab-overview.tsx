@@ -27,7 +27,7 @@ export function WorkspaceTabOverview({
   open: boolean
   onClose: () => void
 }) {
-  const { panes, activatePane, closePane } = useWorkspace()
+  const { panes, activatePane, closePane, closeAllPanes } = useWorkspace()
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -47,6 +47,18 @@ export function WorkspaceTabOverview({
             <span className="text-sm text-muted-foreground">{panes.length}</span>
           </div>
           <div className="flex items-center gap-1">
+            {panes.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  closeAllPanes()
+                  onClose()
+                }}
+                className="rounded-md px-2.5 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 outline-none focus-visible:ring-2 focus-visible:ring-ring mr-1"
+              >
+                Fechar todas
+              </button>
+            )}
             <PaneTypePicker />
             <button
               type="button"

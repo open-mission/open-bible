@@ -20,6 +20,7 @@ import { ConfigContent } from "./config-content"
 interface ConfigDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  focus?: "changelog"
 }
 
 /**
@@ -27,7 +28,7 @@ interface ConfigDialogProps {
  * mobile. Replaces the standalone /config page navigation for a smoother,
  * PWA-safe experience (no new browser tab / route change).
  */
-export function ConfigDialog({ open, onOpenChange }: ConfigDialogProps) {
+export function ConfigDialog({ open, onOpenChange, focus }: ConfigDialogProps) {
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") return true
     return window.matchMedia("(min-width: 768px)").matches
@@ -40,6 +41,20 @@ export function ConfigDialog({ open, onOpenChange }: ConfigDialogProps) {
     return () => media.removeEventListener("change", listener)
   }, [])
 
+  useEffect(() => {
+    if (open && focus === "changelog") {
+      const timer = setTimeout(() => {
+        const element = document.getElementById("changelog-section")
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
+      }, 150)
+      return () => clearTimeout(timer)
+    }
+  }, [open, focus])
+
+  const defaultTab = focus === "changelog" ? "changelog" : "version"
+
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -50,7 +65,7 @@ export function ConfigDialog({ open, onOpenChange }: ConfigDialogProps) {
               Personalize a versão bíblica, o tema e o modo de leitura.
             </DialogDescription>
           </DialogHeader>
-          <ConfigContent />
+          <ConfigContent defaultTab={defaultTab} />
         </DialogContent>
       </Dialog>
     )
@@ -66,7 +81,7 @@ export function ConfigDialog({ open, onOpenChange }: ConfigDialogProps) {
           </DrawerDescription>
         </DrawerHeader>
         <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-8">
-          <ConfigContent />
+          <ConfigContent defaultTab={defaultTab} />
         </div>
       </DrawerContent>
     </Drawer>

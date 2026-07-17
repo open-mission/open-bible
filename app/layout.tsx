@@ -7,11 +7,12 @@ import { ThemeProvider } from "@/features/theme/components/theme-provider";
 import { BibleVersionProvider } from "@/features/bible-reader/context/bible-version-context";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
-import { UpdateBanner } from "@/features/service-worker/components/update-banner";
 import { VersionLabel } from "@/features/layout/components/version-label";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { ReleaseNotesProvider } from "@/features/release-notes/components/release-notes-provider";
+import { ReleaseNotesToast } from "@/features/release-notes/components/release-notes-toast";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -78,14 +79,16 @@ export default function RootLayout({
         <ThemeProvider>
           <BibleVersionProvider>
             <TooltipProvider>
-              {children}
+              <ReleaseNotesProvider>
+                {children}
+                <ReleaseNotesToast />
+              </ReleaseNotesProvider>
               <OpfsStatusGate />
               <Toaster position="bottom-right" />
             </TooltipProvider>
           </BibleVersionProvider>
         </ThemeProvider>
         <ServiceWorkerRegister />
-        <UpdateBanner />
         <AnalyticsGate />
       </body>
     </html>

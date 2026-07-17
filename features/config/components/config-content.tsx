@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw } from "lucide-react"
+import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw, Sparkles } from "lucide-react"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/features/theme/utils/theme"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { WorkspaceModeSetting } from "@/features/workspace/components/workspace-mode-setting"
 import { isTauri } from "@/lib/is-tauri"
+import { parseLatestEntry, changelogSrc } from "@/lib/release-notes/changelog"
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
 
@@ -22,7 +23,7 @@ const MODES: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
  * be rendered inside a Dialog (desktop) or Drawer (mobile) as well as the
  * standalone /config page.
  */
-export function ConfigContent() {
+export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string }) {
   const { mode, color, palette, setTheme, setColor, setPalette } = useAppTheme()
   const { defaultVersionId, setDefaultVersionId, availableVersions, installedVersions } = useBibleVersion()
   const [versions, setVersions] = useState<{ id: string; name: string }[]>([])
@@ -31,6 +32,16 @@ export function ConfigContent() {
     if (typeof window === "undefined") return false
     return /Mac|iPod|iPhone|iPad/.test(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
   })
+
+  const [activeTab, setActiveTab] = useState(defaultTab)
+
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveTab(defaultTab)
+    }
+  }, [defaultTab])
+
+  const latestEntry = parseLatestEntry(changelogSrc)
 
   // States for Tauri auto-updater
   const [appVersion, setAppVersion] = useState<string>("")
@@ -147,7 +158,8 @@ export function ConfigContent() {
 
   return (
     <Tabs
-      defaultValue="version"
+      value={activeTab}
+      onValueChange={setActiveTab}
       orientation={isDesktop ? "vertical" : "horizontal"}
       className="w-full gap-6 md:gap-8 flex flex-col md:flex-row"
     >
@@ -191,6 +203,13 @@ export function ConfigContent() {
             <span>Atualizações</span>
           </TabsTrigger>
         )}
+        <TabsTrigger
+          value="changelog"
+          className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+        >
+          <Sparkles className="h-4 w-4" />
+          <span>Novidades</span>
+        </TabsTrigger>
       </TabsList>
 
       <div className="flex-1 min-w-0 bg-card border border-border/60 rounded-xl p-6 shadow-sm">
@@ -574,6 +593,55 @@ export function ConfigContent() {
             </div>
           </TabsContent>
         )}
+
+        <TabsContent value="changelog" className="space-y-6 animate-in fade-in-50 duration-200">
+          <section id="changelog-section" className="space-y-4">
+            <div>
+              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+                Novidades (v{latestEntry.version})
+              </h2>
+              {latestEntry.date && (
+                <p className="text-xs text-muted-foreground mb-4">
+                  Lançada em {latestEntry.date}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {Object.entries(latestEntry.sections).map(([title, items]) => {
+                if (!items || items.length === 0) return null
+
+                const titleMap: Record<string, string> = {
+                  Added: "Novos Recursos",
+                  Changed: "Alterações",
+                  Fixed: "Correções",
+                }
+                const displayTitle = titleMap[title] || title
+
+                return (
+                  <div key={title} className="border border-border/80 rounded-lg p-4 bg-card/45 space-y-2">
+                    <h3 className="text-sm font-semibold text-primary">
+                      {displayTitle}
+                    </h3>
+                    <ul className="list-disc pl-4 space-y-1.5 text-sm text-muted-foreground">
+                      {items.map((item, idx) => (
+                        <li key={idx} className="leading-relaxed">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              })}
+
+              {Object.keys(latestEntry.sections).length === 0 && (
+                <p className="text-sm text-muted-foreground/60 py-4 text-center">
+                  Nenhuma informação de alteração disponível para esta versão.
+                </p>
+              )}
+            </div>
+          </section>
+        </TabsContent>
       </div>
     </Tabs>
   )
