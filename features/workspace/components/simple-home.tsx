@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Reader } from "@/features/bible-reader/components/reader"
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
@@ -50,6 +50,23 @@ export function SimpleHome() {
   const [notesTarget, setNotesTarget] = useState<NoteTarget | null>(null)
   const [notesOpen, setNotesOpen] = useState(false)
   const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(false)
+  const [dialogInitialView, setDialogInitialView] = useState<"books" | "chapters">("books")
+
+  // Cmd+K / Ctrl+K keyboard shortcut to toggle the dialog (desktop only)
+  useEffect(() => {
+    if (isMobile) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault()
+        setBookChapterDialogOpen((prev) => {
+          if (!prev) setDialogInitialView("books")
+          return !prev
+        })
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [isMobile])
 
   const handleSelectBook = useCallback(
     (bookId: string) => {
@@ -100,7 +117,14 @@ export function SimpleHome() {
                     bookId={selectedBookId}
                     chapter={selectedChapter}
                     onChapterChange={setSelectedChapter}
-                    onBookChapterClick={() => setBookChapterDialogOpen(true)}
+                    onBookChapterClick={() => {
+                      setDialogInitialView("books")
+                      setBookChapterDialogOpen(true)
+                    }}
+                    onChapterClick={() => {
+                      setDialogInitialView("chapters")
+                      setBookChapterDialogOpen(true)
+                    }}
                     readerMode={readerMode}
                     onChangeReaderMode={setReaderMode}
                     fontSize={fontSize}
@@ -139,6 +163,7 @@ export function SimpleHome() {
             selectedBookId={selectedBookId}
             selectedChapter={selectedChapter}
             versionAbbreviation={versionId.toUpperCase()}
+            initialView={dialogInitialView}
           />
         </SidebarInset>
       </SidebarProvider>

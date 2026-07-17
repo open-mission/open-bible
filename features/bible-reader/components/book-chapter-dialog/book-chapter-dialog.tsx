@@ -20,6 +20,8 @@ interface BookChapterDialogProps {
   selectedBookId: string | null
   selectedChapter: number | null
   versionAbbreviation?: string
+  /** When "chapters", opens directly on the chapter grid for the selected book. */
+  initialView?: "books" | "chapters"
 }
 
 /**
@@ -38,6 +40,7 @@ export function BookChapterDialog({
   selectedBookId,
   selectedChapter,
   versionAbbreviation,
+  initialView = "books",
 }: BookChapterDialogProps) {
   const isMobile = useIsMobile()
   const { versionId, setVersionId, installedVersions } = useBibleVersion()
@@ -49,12 +52,33 @@ export function BookChapterDialog({
     if (open) {
       const timer = setTimeout(() => {
         setActiveBookId(selectedBookId)
-        setShowChapters(false)
+        // When initialView is "chapters" and we have a selected book,
+        // skip straight to the chapter grid.
+        setShowChapters(initialView === "chapters" && !!selectedBookId)
         setQuery("")
       }, 0)
       return () => clearTimeout(timer)
     }
-  }, [open, selectedBookId])
+  }, [open, selectedBookId, initialView])
+
+  // Escape key: if on chapters → back to books; if on books → close dialog
+  useEffect(() => {
+    if (!open) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault()
+        e.stopPropagation()
+        if (showChapters) {
+          setShowChapters(false)
+        } else {
+          handleClose()
+        }
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, showChapters])
 
   const activeBook = activeBookId ? getBook(activeBookId) : null
   const isSearching = query.trim().length > 0
