@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="50%" stop-color="#16213e"/>
+      <stop offset="100%" stop-color="#0f3460"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5c6bc0"/>
+      <stop offset="100%" stop-color="#26c6da"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="50%" y1="50%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5c6bc0" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#26c6da" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+    <clipPath id="screen">
+      <rect x="680" y="135" width="460" height="360" rx="20"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid pattern -->
+  <g opacity="0.03">
+    <line x1="0" y1="100" x2="1200" y2="100" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="200" x2="1200" y2="200" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="300" x2="1200" y2="300" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="400" x2="1200" y2="400" stroke="#fff" stroke-width="0.5"/>
+    <line x1="0" y1="500" x2="1200" y2="500" stroke="#fff" stroke-width="0.5"/>
+    <line x1="200" y1="0" x2="200" y2="630" stroke="#fff" stroke-width="0.5"/>
+    <line x1="400" y1="0" x2="400" y2="630" stroke="#fff" stroke-width="0.5"/>
+    <line x1="600" y1="0" x2="600" y2="630" stroke="#fff" stroke-width="0.5"/>
+    <line x1="800" y1="0" x2="800" y2="630" stroke="#fff" stroke-width="0.5"/>
+    <line x1="1000" y1="0" x2="1000" y2="630" stroke="#fff" stroke-width="0.5"/>
+  </g>
+
+  <!-- Glow effect -->
+  <ellipse cx="300" cy="315" rx="400" ry="300" fill="url(#glow)"/>
+
+  <!-- Left side: Content -->
+  <!-- Logo area -->
+  <g transform="translate(80, 140)">
+    <!-- Book icon -->
+    <rect x="0" y="0" width="64" height="64" rx="16" fill="url(#accent)" opacity="0.15"/>
+    <g transform="translate(16, 16)">
+      <path d="M0 8C0 3.58 3.58 0 8 0H24C28.42 0 32 3.58 32 8V24H8C3.58 24 0 27.58 0 32V8Z" fill="url(#accent)" opacity="0.8"/>
+      <rect x="8" y="10" width="14" height="2" rx="1" fill="#fff" opacity="0.9"/>
+      <rect x="8" y="15" width="10" height="2" rx="1" fill="#fff" opacity="0.6"/>
+    </g>
+  </g>
+
+  <!-- Title -->
+  <text x="80" y="250" font-family="Georgia, serif" font-size="52" font-weight="bold" fill="#ffffff" letter-spacing="-0.5">
+    Open Bible
+  </text>
+  <text x="80" y="295" font-family="system-ui, sans-serif" font-size="20" fill="#94a3b8" letter-spacing="0.3">
+    A Bíblia Sagrada offline-first para a web e desktop
+  </text>
+
+  <!-- Features list -->
+  <g transform="translate(80, 330)" font-family="system-ui, sans-serif" font-size="16" fill="#cbd5e1">
+    <circle cx="0" cy="-4" r="4" fill="#5c6bc0"/>
+    <text x="16" y="2">18 versões da Bíblia em Português</text>
+
+    <circle cx="0" cy="28" r="4" fill="#26c6da"/>
+    <text x="16" y="34">SQLite WASM offline com OPFS</text>
+
+    <circle cx="0" cy="60" r="4" fill="#5c6bc0"/>
+    <text x="16" y="66">PWA instalável + App Desktop (Tauri)</text>
+
+    <circle cx="0" cy="92" r="4" fill="#26c6da"/>
+    <text x="16" y="98">Tema escuro/claro com 15 cores personalizáveis</text>
+  </g>
+
+  <!-- Right side: Mockup -->
+  <!-- Browser frame -->
+  <g filter="url(#shadow)">
+    <rect x="680" y="100" width="460" height="430" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <!-- Title bar -->
+    <rect x="680" y="100" width="460" height="40" rx="12" fill="#1e293b"/>
+    <rect x="680" y="124" width="460" height="16" fill="#1e293b"/>
+    <!-- Traffic lights -->
+    <circle cx="706" cy="120" r="6" fill="#ef4444"/>
+    <circle cx="726" cy="120" r="6" fill="#eab308"/>
+    <circle cx="746" cy="120" r="6" fill="#22c55e"/>
+    <!-- URL bar -->
+    <rect x="800" y="112" width="280" height="18" rx="9" fill="#334155"/>
+    <text x="900" y="125" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">openbible-prod.vercel.app</text>
+  </g>
+
+  <!-- App content mockup inside screen -->
+  <g clip-path="url(#screen)">
+    <!-- Background of app -->
+    <rect x="680" y="135" width="460" height="360" fill="#f8fafc"/>
+
+    <!-- Header -->
+    <rect x="680" y="135" width="460" height="56" fill="#ffffff"/>
+    <rect x="680" y="135" width="460" height="1" fill="#e2e8f0"/>
+
+    <!-- Sidebar -->
+    <rect x="680" y="135" width="64" height="360" fill="#ffffff"/>
+    <rect x="681" y="135" width="1" height="360" fill="#e2e8f0"/>
+
+    <!-- Sidebar icons -->
+    <circle cx="712" cy="175" r="10" fill="#5c6bc0" opacity="0.15"/>
+    <circle cx="712" cy="215" r="10" fill="#5c6bc0" opacity="0.1"/>
+    <circle cx="712" cy="255" r="10" fill="#5c6bc0" opacity="0.1"/>
+    <circle cx="712" cy="295" r="10" fill="#5c6bc0" opacity="0.1"/>
+
+    <!-- Bible reader content -->
+    <rect x="764" y="195" width="360" height="16" rx="3" fill="#334155" opacity="0.15"/>
+    <rect x="764" y="220" width="320" height="16" rx="3" fill="#334155" opacity="0.08"/>
+    <rect x="764" y="245" width="350" height="16" rx="3" fill="#334155" opacity="0.08"/>
+    <rect x="764" y="270" width="280" height="16" rx="3" fill="#334155" opacity="0.08"/>
+    <rect x="764" y="300" width="310" height="16" rx="3" fill="#334155" opacity="0.08"/>
+    <rect x="764" y="325" width="340" height="16" rx="3" fill="#334155" opacity="0.08"/>
+
+    <!-- Chapter navigation -->
+    <rect x="764" y="355" width="360" height="40" rx="8" fill="#f1f5f9"/>
+
+    <!-- Verse numbers -->
+    <rect x="768" y="160" width="24" height="12" rx="2" fill="#5c6bc0" opacity="0.15"/>
+    <rect x="776" y="370" width="24" height="12" rx="2" fill="#5c6bc0" opacity="0.15"/>
+    <rect x="868" y="370" width="24" height="12" rx="2" fill="#5c6bc0" opacity="0.15"/>
+    <rect x="960" y="370" width="24" height="12" rx="2" fill="#5c6bc0" opacity="0.15"/>
+    <rect x="1056" y="370" width="24" height="12" rx="2" fill="#5c6bc0" opacity="0.15"/>
+
+    <!-- Bottom nav -->
+    <rect x="680" y="470" width="460" height="25" fill="#ffffff"/>
+    <rect x="680" y="470" width="460" height="1" fill="#e2e8f0"/>
+  </g>
+
+  <!-- Prompt badges -->
+  <g transform="translate(80, 480)" font-family="system-ui, sans-serif" font-size="13">
+    <rect x="0" y="0" width="auto" height="32" rx="16" fill="#5c6bc0" opacity="0.15"/>
+    <text x="16" y="21" fill="#5c6bc0" font-weight="600">Next.js 16</text>
+
+    <rect x="100" y="0" width="auto" height="32" rx="16" fill="#26c6da" opacity="0.15"/>
+    <text x="116" y="21" fill="#26c6da" font-weight="600">SQLite WASM</text>
+
+    <rect x="210" y="0" width="auto" height="32" rx="16" fill="#5c6bc0" opacity="0.15"/>
+    <text x="226" y="21" fill="#5c6bc0" font-weight="600">Tauri v2</text>
+
+    <rect x="290" y="0" width="auto" height="32" rx="16" fill="#26c6da" opacity="0.15"/>
+    <text x="306" y="21" fill="#26c6da" font-weight="600">PWA</text>
+  </g>
+
+  <!-- CTA -->
+  <g transform="translate(80, 545)" font-family="system-ui, sans-serif">
+    <rect x="0" y="0" width="180" height="44" rx="22" fill="url(#accent)" opacity="0.9"/>
+    <text x="90" y="27" fill="#ffffff" font-size="14" font-weight="600" text-anchor="middle">🌐 Abrir App</text>
+  </g>
+
+  <!-- Version badge -->
+  <text x="1060" y="585" font-family="system-ui, sans-serif" font-size="12" fill="#64748b" text-anchor="end">v0.8.1 · open-mission</text>
+</svg>
