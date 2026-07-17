@@ -1,23 +1,40 @@
-<div align="center">
+![Open Bible](public/hero.svg)
 
-<img src="public/icon.png" alt="Open Bible Logo" width="96" height="96" />
+<p align="center">
+  <h1 align="center"><b>Open Bible</b></h1>
+  <p align="center">
+    The offline-first Holy Bible for web, mobile, and desktop
+    <br />
+    <a href="https://openbible-prod.vercel.app"><strong>🌐 Open App »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/open-mission/open-bible/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/open-mission/open-bible/issues">Feature Request</a>
+    ·
+    <a href="CONTRIBUTING.md">Contributing</a>
+  </p>
+</p>
 
-# Open Bible
+<p align="center">
+  <a href="https://github.com/open-mission/open-bible/releases">
+    <img src="https://img.shields.io/github/v/release/open-mission/open-bible?style=for-the-badge&logo=github&color=5c6bc0" alt="Version" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/open-mission/open-bible?style=for-the-badge&color=26c6da" alt="License" />
+  </a>
+  <a href="https://nextjs.org">
+    <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  </a>
+  <a href="https://openbible-prod.vercel.app">
+    <img src="https://img.shields.io/badge/PWA-Offline--First-5c6bc0?style=for-the-badge&logo=pwa" alt="PWA" />
+  </a>
+  <img src="https://img.shields.io/github/last-commit/open-mission/open-bible/develop?style=for-the-badge&label=updated" alt="Last Commit" />
+</p>
 
-**Offline-first Holy Bible for web and mobile devices**
-
-[![Version](https://img.shields.io/github/v/release/open-mission/open-bible?style=for-the-badge&logo=github&color=5c6bc0)](https://github.com/open-mission/open-bible/releases)
-[![License](https://img.shields.io/github/license/open-mission/open-bible?style=for-the-badge&color=26c6da)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](CONTRIBUTING.md)
-[![Last Commit](https://img.shields.io/github/last-commit/open-mission/open-bible/develop?style=for-the-badge&label=updated)](https://github.com/open-mission/open-bible/commits/develop)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![PWA](https://img.shields.io/badge/PWA-Offline--First-5c6bc0?style=for-the-badge&logo=pwa)](https://web.dev/progressive-web-apps/)
-
-[**🌐 Open App**](https://open-bible.vercel.app) · [**🐛 Report Bug**](https://github.com/open-mission/open-bible/issues/new?template=bug_report.md) · [**✨ Feature Request**](https://github.com/open-mission/open-bible/issues/new?template=feature_request.md)
-
-[🇧🇷 **Português**](README.pt-BR.md)
-
-</div>
+<p align="center">
+  <a href="README.pt-BR.md">🇧🇷 Português</a>
+</p>
 
 ---
 
