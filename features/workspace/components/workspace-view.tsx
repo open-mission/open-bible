@@ -90,7 +90,13 @@ export function WorkspaceView() {
   const settings = useReaderSettings()
   const [sidebarWidth, setSidebarWidth] = useState(256)
   const isTauriMacOS = useIsTauriMacOS()
-  const [headerCollapsed, setHeaderCollapsed] = useState(false)
+  const [headerCollapsed, setHeaderCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(HEADER_COLLAPSED_KEY) === "1"
+    } catch {
+      return false
+    }
+  })
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
   const [overviewOpen, setOverviewOpen] = useState(false)
   const [switcherOpen, setSwitcherOpen] = useState(false)
@@ -126,15 +132,6 @@ export function WorkspaceView() {
       reorderPanes(arrayMove(ids, from, to))
     }
   }
-
-  // Load persisted collapse preference (client-only).
-  useEffect(() => {
-    try {
-      setHeaderCollapsed(localStorage.getItem(HEADER_COLLAPSED_KEY) === "1")
-    } catch {
-      /* ignore */
-    }
-  }, [])
 
   const toggleHeader = () => {
     setHeaderCollapsed((prev) => {
