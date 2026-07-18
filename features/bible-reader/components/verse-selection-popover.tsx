@@ -225,7 +225,7 @@ export function VerseSelectionPopover({
               chapter={chapter}
               versionId={versionId}
               isMobile={isMobile}
-              onCreateHighlight={createHighlight}
+              onCreateHighlight={async (...args) => { await createHighlight(...args); }}
               onUpdateHighlight={updateHighlight}
               onDeleteHighlight={deleteHighlight}
               listCategories={listCategories}

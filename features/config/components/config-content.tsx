@@ -69,7 +69,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
   const [downloadProgress, setDownloadProgress] = useState<number>(0)
   const [errorMessage, setErrorMessage] = useState<string>("")
   const [updateObject, setUpdateObject] = useState<{
-    downloadAndInstall: (cb: (event: { event: string; data?: { contentLength?: number; progress?: number } }) => void) => Promise<void>
+    downloadAndInstall: (cb: (event: { event: string; data?: Record<string, number> }) => void) => Promise<void>
   } | null>(null)
 
   // Fetch app version on mount inside Tauri
@@ -101,7 +101,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           date: update.date,
           body: update.body,
         })
-        setUpdateObject(update)
+        setUpdateObject({ downloadAndInstall: update.downloadAndInstall })
         setUpdateStatus("available")
       } else {
         setUpdateStatus("no-update")
@@ -122,7 +122,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
         if (event?.event === "Started") {
           setDownloadProgress(0)
         } else if (event?.event === "Progress") {
-          if (event.data?.contentLength) {
+          if (event.data?.contentLength && event.data?.progress != null) {
             const pct = Math.round((event.data.progress / event.data.contentLength) * 100)
             setDownloadProgress(pct)
           }

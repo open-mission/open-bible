@@ -441,7 +441,7 @@ app.get("/api/bibles/download/:version", async (c) => {
     c.header("Content-Length", String(compressed.length));
     c.header("Cache-Control", "no-store");
 
-    return c.body(compressed as Uint8Array);
+    return c.body(compressed as unknown as Uint8Array<ArrayBuffer>);
   } catch (e) {
     console.error(`Falha no proxy de download para ${version}:`, e);
     return c.text("Erro interno no servidor de proxy de download", 500);
@@ -469,7 +469,7 @@ app.get("/api/debug/bibles-data", async (c) => {
     );
     
     return c.json({
-      versions: versions.rows.map((v) => ({
+      versions: versions.rows.map((v: [string, string, number, string | null]) => ({
         id: v[0],
         name: v[1],
         totalBooks: v[2],
@@ -479,7 +479,7 @@ app.get("/api/debug/bibles-data", async (c) => {
       booksPerVersion: booksPerVersion.rows,
       totalBooksInBibleBooks: totalBooks.rows[0]?.[0] ?? 0,
       totalVersesInBibleVerses: totalVerses.rows[0]?.[0] ?? 0,
-      sampleDownloadUrls: sampleDownloadUrls.rows.map((r) => ({
+      sampleDownloadUrls: sampleDownloadUrls.rows.map((r: [string, string | null]) => ({
         id: r[0],
         url: r[1] ? String(r[1]).substring(0, 100) + "..." : null,
       })),
