@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, StickyNote } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
 import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
@@ -11,7 +11,6 @@ import { VerseSelectionPopover } from "./verse-selection-popover";
 import { useKeyboardNavigation } from "../hooks/use-keyboard-navigation";
 import { useSwipeNavigation } from "../hooks/use-swipe-navigation";
 import { ReaderHeader } from "./reader-header";
-import { cn } from "@/lib/utils";
 import { HighlightsProvider, useHighlightsContext } from "@/features/highlights/context/highlights-context";
 import { useNotesContext } from "@/features/notes/context/notes-context";
 import { HighlightEditor } from "@/features/highlights/components/highlight-editor";
@@ -90,9 +89,12 @@ function ReaderContent({
    *  only the focused pane shows a selection popover. */
   useEffect(() => {
     if (!isActive) {
-      setSelectedVerseIds(new Set());
-      setActiveVerseId(null);
-      setShowToolbar(false);
+      const raf = requestAnimationFrame(() => {
+        setSelectedVerseIds(new Set());
+        setActiveVerseId(null);
+        setShowToolbar(false);
+      });
+      return () => cancelAnimationFrame(raf);
     }
   }, [isActive]);
 

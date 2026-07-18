@@ -43,11 +43,14 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
   useEffect(() => {
     if (defaultTab) {
       const isMobile = !window.matchMedia("(min-width: 768px)").matches
-      if (isMobile && defaultTab === "version") {
-        setActiveTab("menu")
-      } else {
-        setActiveTab(defaultTab)
-      }
+      const raf = requestAnimationFrame(() => {
+        if (isMobile && defaultTab === "version") {
+          setActiveTab("menu")
+        } else {
+          setActiveTab(defaultTab)
+        }
+      })
+      return () => cancelAnimationFrame(raf)
     }
   }, [defaultTab])
 
@@ -65,7 +68,9 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
   } | null>(null)
   const [downloadProgress, setDownloadProgress] = useState<number>(0)
   const [errorMessage, setErrorMessage] = useState<string>("")
-  const [updateObject, setUpdateObject] = useState<any>(null)
+  const [updateObject, setUpdateObject] = useState<{
+    downloadAndInstall: (cb: (event: { event: string; data?: { contentLength?: number; progress?: number } }) => void) => Promise<void>
+  } | null>(null)
 
   // Fetch app version on mount inside Tauri
   useEffect(() => {
@@ -101,10 +106,10 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
       } else {
         setUpdateStatus("no-update")
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao verificar atualizações:", err)
       setUpdateStatus("error")
-      setErrorMessage(err?.toString() || "Erro desconhecido ao verificar atualizações")
+      setErrorMessage((err instanceof Error ? err : new Error(String(err))).toString() || "Erro desconhecido ao verificar atualizações")
     }
   }
 
@@ -113,7 +118,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
     setUpdateStatus("downloading")
     setDownloadProgress(0)
     try {
-      await updateObject.downloadAndInstall((event: any) => {
+      await updateObject.downloadAndInstall((event: { event: string; data?: { contentLength?: number; progress?: number } }) => {
         if (event?.event === "Started") {
           setDownloadProgress(0)
         } else if (event?.event === "Progress") {
@@ -126,10 +131,10 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
         }
       })
       setUpdateStatus("downloaded")
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao baixar e instalar atualização:", err)
       setUpdateStatus("error")
-      setErrorMessage(err?.toString() || "Erro ao baixar e instalar atualização")
+      setErrorMessage((err instanceof Error ? err : new Error(String(err))).toString() || "Erro ao baixar e instalar atualização")
     }
   }
 

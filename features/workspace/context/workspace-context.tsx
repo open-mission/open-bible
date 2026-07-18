@@ -203,10 +203,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // back to the last pane (or null if empty).
   useEffect(() => {
     if (!loaded) return
+    let next: string | null = null
     if (panes.length === 0) {
-      if (activePaneId !== null) setActivePaneId(null)
+      next = null
     } else if (!panes.some((p) => p.id === activePaneId)) {
-      setActivePaneId(panes[panes.length - 1].id)
+      next = panes[panes.length - 1].id
+    }
+    if (next !== activePaneId) {
+      const raf = requestAnimationFrame(() => {
+        setActivePaneId(next)
+      })
+      return () => cancelAnimationFrame(raf)
     }
   }, [panes, activePaneId, loaded])
 

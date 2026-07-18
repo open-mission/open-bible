@@ -27,6 +27,10 @@ Portuguese Bible PWA — Next.js 16, TursoDB (Server), SQLite WASM + OPFS + Driz
 > **Skills (`.agents/skills/`)**: ao iniciar qualquer feature/fix/melhoria, use a skill
 > **`feature-dev`** — ela orquestra spec → plano → branch isolada (worktree de `develop`) →
 > implementação, usando o superpowers quando disponível. A mecânica de git está em **`dev-workflow`**.
+>
+> **`deslop`** — **OBRIGATÓRIO**: carregue e execute `skill_view(name='deslop')` antes de
+> todo commit e PR para remover AI slop (comentários desnecessários, casts `any`,
+> try/catch defensivos, código profundamente aninhado).
 
 ### Criando Issues
 - **Bug**: Usar template "Bug Report" → `gh issue create --template bug_report.md`
