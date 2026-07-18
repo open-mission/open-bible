@@ -37,10 +37,10 @@ export async function listVersions(): Promise<Version[]> {
     const result = await turso.execute(
       "SELECT id, name, total_books FROM bible_versions ORDER BY id"
     )
-    return result.rows.map((row) => ({
-      id: row[0] as string,
-      name: row[1] as string,
-      totalBooks: row[2] as number,
+    return result.rows.map((row: [string, string, number]) => ({
+      id: row[0],
+      name: row[1],
+      totalBooks: row[2],
     }))
   })
 }
@@ -59,12 +59,12 @@ export async function getVersionDetail(versionId: string): Promise<VersionDetail
     )
 
     const totalBooks = verResult.rows[0][2] as number
-    const books = booksResult.rows.map((row) => ({
-      id: row[0] as string,
-      name: row[1] as string,
-      abbreviation: row[2] as string,
+    const books = booksResult.rows.map((row: [string, string, string, string, number]) => ({
+      id: row[0],
+      name: row[1],
+      abbreviation: row[2],
       testament: row[3] as "old" | "new",
-      chapters: row[4] as number,
+      chapters: row[4],
     }))
 
     // Warn when version exists but has no books in bible_books table
@@ -106,11 +106,11 @@ export async function getChapterVerses(
 
     return {
       bookName,
-      verses: versesResult.rows.map((row) => ({
-        bookId: row[0] as string,
-        chapter: row[1] as number,
-        verse: row[2] as number,
-        text: row[3] as string,
+      verses: versesResult.rows.map((row: [string, number, number, string]) => ({
+        bookId: row[0],
+        chapter: row[1],
+        verse: row[2],
+        text: row[3],
       })),
     }
   })
@@ -163,13 +163,13 @@ export async function searchVerses(
       [versionId, `%${query}%`, limit]
     )
 
-    return result.rows.map((row) => ({
-      bookId: row[0] as string,
-      chapter: row[1] as number,
-      verse: row[2] as number,
-      text: row[3] as string,
-      bookName: row[4] as string,
-      bookAbbreviation: row[5] as string,
+    return result.rows.map((row: [string, number, number, string, string, string]) => ({
+      bookId: row[0],
+      chapter: row[1],
+      verse: row[2],
+      text: row[3],
+      bookName: row[4],
+      bookAbbreviation: row[5],
       reference: `${row[5]} ${row[1]}:${row[2]}`,
     }))
   })

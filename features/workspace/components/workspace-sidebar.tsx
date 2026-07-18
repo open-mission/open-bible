@@ -157,7 +157,6 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
           <>
             {/* Abas vs Grade Layout Mode Toggle using ToggleGroup */}
             <ToggleGroup
-              type="single"
               value={[layoutMode]}
               onValueChange={(val) => {
                 if (val && val[0]) setLayoutMode(val[0] as LayoutMode)

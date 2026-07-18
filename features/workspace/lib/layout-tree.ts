@@ -1,4 +1,5 @@
 import type {
+  Pane,
   LayoutNode,
   LayoutLeaf,
   LayoutSplit,

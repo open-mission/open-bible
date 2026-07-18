@@ -144,6 +144,14 @@ function ReaderContent({
   const selectedVerses = verses.filter((v) => selectedVerseIds.has(v.id));
   const versionAbbr = versionId.toUpperCase();
 
+  const handleDeleteHighlight = useCallback(
+    async (id: string) => {
+      await deleteHighlight(id);
+      return true;
+    },
+    [deleteHighlight],
+  );
+
   const dockEditHighlight = useCallback(
     async (highlightId: string) => {
       setDockView(null);
@@ -524,7 +532,7 @@ function ReaderContent({
                 showCloseButton
                 onClose={() => setDockView(null)}
                 onEdit={dockEditHighlight}
-                onDelete={deleteHighlight}
+                onDelete={handleDeleteHighlight}
               />
             )}
           </div>
@@ -546,7 +554,7 @@ function ReaderContent({
                 showCloseButton
                 onClose={() => setDockView(null)}
                 onEdit={dockEditHighlight}
-                onDelete={deleteHighlight}
+                onDelete={handleDeleteHighlight}
               />
             )}
           </div>

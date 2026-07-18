@@ -17,12 +17,12 @@ export interface NoteRangeQuery {
 /** Inclusive overlap test between two verse ranges within one chapter. */
 export function rangesOverlap(
   queryStart: number,
-  queryEnd: number,
+  queryEnd: number | null,
   refStart: number,
-  refEnd: number,
+  refEnd: number | null,
 ): boolean {
-  const qEnd = queryEnd || queryStart
-  const rEnd = refEnd || refStart
+  const qEnd = queryEnd ?? queryStart
+  const rEnd = refEnd ?? refStart
   return refStart <= qEnd && rEnd >= queryStart
 }
 

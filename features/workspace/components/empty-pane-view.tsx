@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/empty"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "../context/workspace-context"
-import type { PaneState } from "../types"
+import type { BiblePaneState, PaneState } from "../types"
 
 const PANE_OPTIONS: {
   type: PaneState["type"]
@@ -63,7 +63,7 @@ export function EmptyPaneView({ paneId }: { paneId: string }) {
               <Button
                 key={opt.type}
                 variant={i === 0 ? "default" : "outline"}
-                onClick={() => updatePaneState(paneId, opt.state)}
+                onClick={() => updatePaneState(paneId, opt.state as unknown as Partial<BiblePaneState>)}
                 className="flex-1"
               >
                 <opt.icon data-icon="inline-start" />

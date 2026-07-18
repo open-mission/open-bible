@@ -66,8 +66,6 @@ function SortableTab({
     <div
       ref={setNodeRef}
       style={style}
-      role="tab"
-      tabIndex={0}
       aria-selected={active}
       title={
         index < 9
@@ -77,6 +75,8 @@ function SortableTab({
       // The entire tab is the drag handle — listeners are on the wrapper.
       {...attributes}
       {...listeners}
+      role="tab"
+      tabIndex={0}
       onClick={onActivate}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {

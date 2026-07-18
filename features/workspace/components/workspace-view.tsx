@@ -101,7 +101,7 @@ export function WorkspaceView() {
   const [overviewOpen, setOverviewOpen] = useState(false)
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [switcherSelectedIndex, setSwitcherSelectedIndex] = useState(0)
-  const [switcherModifier, setSwitcherModifier] = useState<"control" | "meta" | null>(null)
+  const [switcherModifier, setSwitcherModifier] = useState<"control" | "meta" | "alt" | null>(null)
 
   const strategy = tabsOrientation === "vertical" ? verticalListSortingStrategy : horizontalListSortingStrategy
 
@@ -301,9 +301,9 @@ export function WorkspaceView() {
               >
                 <FolderX className="h-4 w-4" />
               </button>
-              {tabsOrientation !== "vertical" && <WorkspaceTabs />}
+              {tabsOrientation === "horizontal" && <WorkspaceTabs />}
               <WorkspaceToolbar />
-              {tabsOrientation !== "vertical" && <ConfigButton />}
+              {tabsOrientation === "horizontal" && <ConfigButton />}
               <button
                 type="button"
                 onClick={toggleHeader}
@@ -453,6 +453,7 @@ export function WorkspaceView() {
               <WorkspaceSidebar
                 sidebarWidth={sidebarWidth}
                 onSidebarResize={setSidebarWidth}
+                onOverviewOpen={() => setOverviewOpen(true)}
               />
               <SidebarInset className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
                 {workspaceContent}

@@ -4,11 +4,11 @@ import { useCallback } from "react"
 import { IconPencil, IconTrash } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { getNeonStyle, getColorName } from "../utils/highlight-colors"
-import type { HighlightData } from "../context/highlights-context"
 import { getBookName } from "@/lib/books"
+import type { AllHighlightEntry } from "../hooks/use-all-highlights"
 
 interface HighlightCardProps {
-  entry: HighlightData
+  entry: AllHighlightEntry
   onEdit: (id: string) => void
   onDelete: (id: string) => void
 }
