@@ -41,10 +41,6 @@ function getBracketStyles(
   const { paddingTop, paddingBottom, gap } = spacingConfig[verseSpacing] || spacingConfig.medium
   const isLeft = gutterPosition === "left"
 
-  // Position horizontal ticks based on gutter position
-  const leftVal = isLeft ? "4px" : "auto"
-  const rightVal = isLeft ? "auto" : "4px"
-
   switch (position) {
     case "single":
       return {
@@ -58,9 +54,8 @@ function getBracketStyles(
         borderBottomRightRadius: isLeft ? "0px" : "3px",
         top: 0,
         bottom: 0,
-        left: leftVal,
-        right: rightVal,
-        width: "6px",
+        left: isLeft ? "4px" : 0,
+        right: isLeft ? 0 : "4px",
         position: "absolute",
       }
     case "top":
@@ -72,9 +67,8 @@ function getBracketStyles(
         borderTopRightRadius: isLeft ? "0px" : "3px",
         top: paddingTop,
         bottom: `-${gap}`,
-        left: leftVal,
-        right: rightVal,
-        width: "6px",
+        left: isLeft ? "4px" : 0,
+        right: isLeft ? 0 : "4px",
         position: "absolute",
       }
     case "middle":
@@ -83,8 +77,8 @@ function getBracketStyles(
         borderRight: isLeft ? "none" : borderStyle,
         top: 0,
         bottom: `-${gap}`,
-        left: leftVal,
-        right: rightVal,
+        left: isLeft ? "4px" : "auto",
+        right: isLeft ? "auto" : "4px",
         width: "0px",
         position: "absolute",
       }
@@ -97,9 +91,8 @@ function getBracketStyles(
         borderBottomRightRadius: isLeft ? "0px" : "3px",
         top: 0,
         bottom: paddingBottom,
-        left: leftVal,
-        right: rightVal,
-        width: "6px",
+        left: isLeft ? "4px" : 0,
+        right: isLeft ? 0 : "4px",
         position: "absolute",
       }
     default:
@@ -130,10 +123,22 @@ export function GutterIndicator({
     ? (mobileInteraction === "drawer") 
     : (desktopInteraction === "drawer")
 
+  // Common styling for dot aligning to left/right center lane symmetrically
+  const dotStyle: React.CSSProperties = {
+    top: "50%",
+    backgroundColor: style.hex,
+    boxShadow: isActive ? `0 0 0 2px white, ${style.glow}` : style.glow,
+    zIndex: isActive ? 10 : 1,
+    position: "absolute",
+    ...(isLeft 
+      ? { left: "5px", transform: "translate(-50%, -50%)" } 
+      : { right: "5px", transform: "translate(50%, -50%)" })
+  }
+
   return (
     <div
       className="absolute top-0 bottom-0 pointer-events-none"
-      style={isLeft ? { left: `${offsetPos}px`, width: "16px" } : { right: `${offsetPos}px`, width: "16px" }}
+      style={isLeft ? { left: `${offsetPos}px`, right: 0 } : { right: `${offsetPos}px`, left: 0 }}
     >
       {/* Bracket Line */}
       <div 
@@ -150,17 +155,8 @@ export function GutterIndicator({
               e.stopPropagation()
               onActivate(highlight.highlight.id)
             }}
-            className="absolute h-2 w-2 rounded-full cursor-pointer active:scale-95 transition-transform pointer-events-auto"
-            style={{
-              top: "50%",
-              left: position === "single" 
-                ? (isLeft ? "4px" : "12px") 
-                : (isLeft ? "5px" : "11px"),
-              transform: "translate(-50%, -50%)",
-              backgroundColor: style.hex,
-              boxShadow: isActive ? `0 0 0 2px white, ${style.glow}` : style.glow,
-              zIndex: isActive ? 10 : 1,
-            }}
+            className="h-2 w-2 rounded-full cursor-pointer active:scale-95 transition-transform pointer-events-auto"
+            style={dotStyle}
             aria-label={highlight.category?.name ?? "Destaque"}
           />
           <Drawer
@@ -203,17 +199,8 @@ export function GutterIndicator({
             onClick={(e) => {
               e.stopPropagation()
             }}
-            className="absolute h-2 w-2 rounded-full cursor-pointer hover:scale-125 transition-transform pointer-events-auto"
-            style={{
-              top: "50%",
-              left: position === "single" 
-                ? (isLeft ? "4px" : "12px") 
-                : (isLeft ? "5px" : "11px"),
-              transform: "translate(-50%, -50%)",
-              backgroundColor: style.hex,
-              boxShadow: isActive ? `0 0 0 2px white, ${style.glow}` : style.glow,
-              zIndex: isActive ? 10 : 1,
-            }}
+            className="h-2 w-2 rounded-full cursor-pointer hover:scale-125 transition-transform pointer-events-auto"
+            style={dotStyle}
             aria-label={highlight.category?.name ?? "Destaque"}
           />
           <PopoverContent 
