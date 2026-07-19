@@ -22,9 +22,61 @@ interface HighlightsContextValue {
   setMobileInteraction: (val: "popover" | "drawer") => void
   desktopInteraction: "popover" | "drawer"
   setDesktopInteraction: (val: "popover" | "drawer") => void
+  getHighlightLane: (highlightId: string) => number
 }
 
 const HighlightsContext = createContext<HighlightsContextValue | null>(null)
+
+// Symmetrical interval coloring algorithm to assign consistent lanes
+function computeLanes(highlights: HighlightData[]): Map<string, number> {
+  const uniqueMap = new Map<string, HighlightData>()
+  for (const h of highlights) {
+    uniqueMap.set(h.highlight.id, h)
+  }
+  const uniqueList = Array.from(uniqueMap.values())
+
+  const ranges = uniqueList.map((h) => {
+    const sorted = [...h.verses].sort((x, y) => x.verse - y.verse)
+    const min = sorted[0]?.verse ?? 0
+    const max = sorted[sorted.length - 1]?.verse ?? 0
+    return {
+      id: h.highlight.id,
+      min,
+      max,
+      len: min === 0 ? 0 : max - min + 1
+    }
+  })
+
+  // Sort: shorter ranges first, then start verse ascending
+  ranges.sort((a, b) => {
+    if (a.len !== b.len) return a.len - b.len
+    return a.min - b.min
+  })
+
+  const laneMap = new Map<string, number>()
+  const laneRanges: { min: number; max: number }[][] = []
+
+  for (const r of ranges) {
+    let assignedLane = 0
+    while (true) {
+      const overlaps = (laneRanges[assignedLane] ?? []).some(
+        (existing) => r.min <= existing.max && r.max >= existing.min
+      )
+      if (!overlaps) {
+        break
+      }
+      assignedLane++
+    }
+
+    if (!laneRanges[assignedLane]) {
+      laneRanges[assignedLane] = []
+    }
+    laneRanges[assignedLane].push({ min: r.min, max: r.max })
+    laneMap.set(r.id, assignedLane)
+  }
+
+  return laneMap
+}
 
 export function HighlightsProvider({
   bookId,
@@ -38,6 +90,7 @@ export function HighlightsProvider({
   children: React.ReactNode
 }) {
   const [highlightsByVerse, setHighlightsByVerse] = useState<Map<string, HighlightData[]>>(new Map())
+  const [highlightLanes, setHighlightLanes] = useState<Map<string, number>>(new Map())
   const [loading, setLoading] = useState(true)
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null)
 
@@ -74,6 +127,10 @@ export function HighlightsProvider({
     setDesktopInteractionState(val)
     try { localStorage.setItem("openbible:highlight-desktop-interaction", val) } catch {}
   }
+
+  const getHighlightLane = useCallback((highlightId: string) => {
+    return highlightLanes.get(highlightId) ?? 0
+  }, [highlightLanes])
 
   const loadHighlights = useCallback(async () => {
     setActiveHighlightId(null)
@@ -117,7 +174,15 @@ export function HighlightsProvider({
         result.set(verseId, existing)
       }
 
+      // Collect all flat highlight instances to build lanes
+      const flatList: HighlightData[] = []
+      for (const list of result.values()) {
+        flatList.push(...list)
+      }
+      const computedLanes = computeLanes(flatList)
+
       setHighlightsByVerse(result)
+      setHighlightLanes(computedLanes)
     } catch (e) {
       console.error("[Highlights] Failed to load:", e)
     } finally {
@@ -144,7 +209,8 @@ export function HighlightsProvider({
       mobileInteraction,
       setMobileInteraction,
       desktopInteraction,
-      setDesktopInteraction
+      setDesktopInteraction,
+      getHighlightLane
     }}>
       {children}
     </HighlightsContext.Provider>
@@ -163,6 +229,7 @@ const DEFAULT_CONTEXT: HighlightsContextValue = {
   setMobileInteraction: () => {},
   desktopInteraction: "popover",
   setDesktopInteraction: () => {},
+  getHighlightLane: () => 0,
 }
 
 export function useHighlightsContext() {

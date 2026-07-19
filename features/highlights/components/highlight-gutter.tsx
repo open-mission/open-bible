@@ -56,26 +56,17 @@ export function HighlightGutter({
   chapter,
   verseSpacing,
 }: HighlightGutterProps) {
-  const { activeHighlightId, setActiveHighlightId, gutterPosition } = useHighlightsContext()
+  const { activeHighlightId, setActiveHighlightId, gutterPosition, getHighlightLane } = useHighlightsContext()
   const isLeft = gutterPosition === "left"
 
-  // Sort highlights: longer ranges on the outside (lane 0), shorter ranges on the inside (closest to text)
+  // Sort highlights by their assigned global lane index to ensure correct rendering order in DOM
   const sortedHighlights = React.useMemo(() => {
     return [...highlights].sort((a, b) => {
-      const aSorted = [...a.verses].sort((x, y) => x.verse - y.verse)
-      const bSorted = [...b.verses].sort((x, y) => x.verse - y.verse)
-      const aLen = aSorted.length > 0 ? (aSorted[aSorted.length - 1].verse - aSorted[0].verse + 1) : 0
-      const bLen = bSorted.length > 0 ? (bSorted[bSorted.length - 1].verse - bSorted[0].verse + 1) : 0
-      
-      if (aLen !== bLen) {
-        return bLen - aLen // Descending (longer first)
-      }
-      
-      const aStart = aSorted[0]?.verse ?? 0
-      const bStart = bSorted[0]?.verse ?? 0
-      return aStart - bStart
+      const aLane = getHighlightLane(a.highlight.id)
+      const bLane = getHighlightLane(b.highlight.id)
+      return aLane - bLane
     })
-  }, [highlights])
+  }, [highlights, getHighlightLane])
 
   return (
     <div 
@@ -87,15 +78,17 @@ export function HighlightGutter({
       )}
       data-highlight-gutter
     >
-      {sortedHighlights.map((h, i) => {
-        // Calculate dynamic dot placement (exactly one dot per highlight, staggered based on lane)
+      {sortedHighlights.map((h) => {
+        const globalLane = getHighlightLane(h.highlight.id)
+
+        // Calculate dynamic dot placement (exactly one dot per highlight, staggered based on globalLane)
         const sorted = [...h.verses].sort((a, b) => a.verse - b.verse)
         let showDot = false
         if (sorted.length > 0) {
           const min = sorted[0].verse
           const max = sorted[sorted.length - 1].verse
           const rangeLength = max - min + 1
-          const dotOffset = i % rangeLength
+          const dotOffset = globalLane % rangeLength
           const dotVerse = min + dotOffset
           showDot = currentVerse === dotVerse
         }
@@ -105,7 +98,7 @@ export function HighlightGutter({
             key={h.highlight.id}
             highlight={h}
             position={computePosition(h, currentVerse)}
-            lane={i}
+            lane={globalLane}
             isActive={activeHighlightId === h.highlight.id}
             onActivate={(id) => setActiveHighlightId(id)}
             onDeactivate={() => setActiveHighlightId(null)}
