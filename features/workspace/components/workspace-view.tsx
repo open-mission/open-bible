@@ -13,12 +13,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core"
-import {
-  SortableContext,
-  arrayMove,
-  horizontalListSortingStrategy,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
+import { arrayMove } from "@dnd-kit/sortable"
 import { useWorkspace } from "../context/workspace-context"
 import { useReaderSettings } from "../hooks/use-reader-settings"
 import { type TabsOrientation } from "../hooks/use-workspace-mode"
@@ -50,7 +45,7 @@ import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
 import { PaneTypePicker } from "./pane-type-picker"
 import { cn } from "@/lib/utils"
 import { useIsTauriMacOS } from "@/features/layout/hooks/use-is-tauri-macos"
-import type { BiblePaneState, LayoutMode } from "../types"
+import type { BiblePaneState, LayoutMode, Pane } from "../types"
 
 /** Shares the currently dragged pane id so tabs/grid panes can render an overlay. */
 const WorkspaceDndContext = createContext<{
@@ -86,7 +81,7 @@ const getPaneIcon = (paneType: string, isActive: boolean) => {
  * When no pane exists, an empty state with a call-to-action is shown.
  */
 export function WorkspaceView() {
-  const { activePane, activePaneId, openPane, closePane, closeAllPanes, splitPane, panes, updatePaneState, layoutMode, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const { activePane, activePaneId, openPane, closePane, closeAllPanes, splitPane, panes, updatePaneState, layoutMode, loaded, activatePane, reorderPanes, swapPanes, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
   const settings = useReaderSettings()
   const [sidebarWidth, setSidebarWidth] = useState(256)
   const isTauriMacOS = useIsTauriMacOS()
@@ -103,7 +98,7 @@ export function WorkspaceView() {
   const [switcherSelectedIndex, setSwitcherSelectedIndex] = useState(0)
   const [switcherModifier, setSwitcherModifier] = useState<"control" | "meta" | "alt" | null>(null)
 
-  const strategy = tabsOrientation === "vertical" ? verticalListSortingStrategy : horizontalListSortingStrategy
+
 
   // DnD sensors: 8px threshold to reduce false-positive drags when clicking.
   const sensors = useSensors(
@@ -381,7 +376,9 @@ export function WorkspaceView() {
 
       {/* Content */}
       <div className="relative flex-1 min-h-0 h-full overflow-hidden pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
-        {panes.length === 0 ? (
+        {!loaded ? (
+          <div className="flex h-full items-center justify-center" />
+        ) : panes.length === 0 ? (
           <ReaderEmpty
             onOpenSidebar={openFirstPane}
             action={
@@ -394,15 +391,19 @@ export function WorkspaceView() {
         ) : layoutMode === "grid" ? (
           <WorkspaceGrid />
         ) : !activePane ? (
-          <ReaderEmpty
-            onOpenSidebar={openFirstPane}
-            action={
-              <PaneTypePicker className="flex items-center gap-2 rounded-md px-4 py-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium">
-                <Plus className="h-4 w-4" />
-                <span>Nova aba</span>
-              </PaneTypePicker>
-            }
-          />
+          panes.length > 0 ? (
+            <PlaceholderPane pane={panes[0]} />
+          ) : (
+            <ReaderEmpty
+              onOpenSidebar={openFirstPane}
+              action={
+                <PaneTypePicker className="flex items-center gap-2 rounded-md px-4 py-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium">
+                  <Plus className="h-4 w-4" />
+                  <span>Nova aba</span>
+                </PaneTypePicker>
+              }
+            />
+          )
         ) : activePane.state.type === "bible" ? (
           <BiblePaneView
             key={activePane.id}
@@ -441,76 +442,107 @@ export function WorkspaceView() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext
-          items={paneIds}
-          strategy={strategy}
-        >
-          {tabsOrientation === "vertical" && panes.length > 0 ? (
-            <SidebarProvider
-              style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
-              className="h-full min-h-0"
+        {tabsOrientation === "vertical" && panes.length > 0 ? (
+          <SidebarProvider
+            style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
+            className="h-full min-h-0"
+          >
+            <WorkspaceSidebar
+              sidebarWidth={sidebarWidth}
+              onSidebarResize={setSidebarWidth}
+              onOverviewOpen={() => setOverviewOpen(true)}
+            />
+            <SidebarInset className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
+              {workspaceContent}
+            </SidebarInset>
+          </SidebarProvider>
+        ) : (
+          workspaceContent
+        )}
+
+        <WorkspaceTabOverview open={overviewOpen} onClose={() => setOverviewOpen(false)} />
+
+        {switcherOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-xs pointer-events-auto" onClick={() => setSwitcherOpen(false)}>
+            <div 
+              className="w-full max-w-sm rounded-lg border border-border/60 bg-background/95 p-2 shadow-2xl backdrop-blur-md outline-none pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
             >
-              <WorkspaceSidebar
-                sidebarWidth={sidebarWidth}
-                onSidebarResize={setSidebarWidth}
-                onOverviewOpen={() => setOverviewOpen(true)}
-              />
-              <SidebarInset className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
-                {workspaceContent}
-              </SidebarInset>
-            </SidebarProvider>
-          ) : (
-            workspaceContent
-          )}
-
-          <WorkspaceTabOverview open={overviewOpen} onClose={() => setOverviewOpen(false)} />
-
-          {switcherOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-xs pointer-events-auto" onClick={() => setSwitcherOpen(false)}>
-              <div 
-                className="w-full max-w-sm rounded-lg border border-border/60 bg-background/95 p-2 shadow-2xl backdrop-blur-md outline-none pointer-events-auto"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider">
-                  Alternar Abas
-                </div>
-                <div className="flex flex-col gap-0.5 mt-1">
-                  {panes.map((pane, idx) => {
-                    const isSelected = idx === switcherSelectedIndex
-                    const Icon = getPaneIcon(pane.state.type, pane.id === activePaneId)
-                    return (
-                      <button
-                        key={pane.id}
-                        type="button"
-                        onClick={() => {
-                          activatePane(pane.id)
-                          setSwitcherOpen(false)
-                          setSwitcherModifier(null)
-                        }}
-                        className={cn(
-                          "flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors select-none outline-none",
-                          isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : "hover:bg-accent hover:text-accent-foreground text-foreground"
-                        )}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        <span className="truncate flex-1">{pane.title}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+              <div className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider">
+                Alternar Abas
+              </div>
+              <div className="flex flex-col gap-0.5 mt-1">
+                {panes.map((pane, idx) => {
+                  const isSelected = idx === switcherSelectedIndex
+                  const Icon = getPaneIcon(pane.state.type, pane.id === activePaneId)
+                  return (
+                    <button
+                      key={pane.id}
+                      type="button"
+                      onClick={() => {
+                        activatePane(pane.id)
+                        setSwitcherOpen(false)
+                        setSwitcherModifier(null)
+                      }}
+                      className={cn(
+                        "flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors select-none outline-none",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-accent hover:text-accent-foreground text-foreground"
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="truncate flex-1">{pane.title}</span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {activeDragId && (
-            <DragOverlay dropAnimation={null}>
-              {dragOverlayContent}
-            </DragOverlay>
-          )}
-        </SortableContext>
+        {activeDragId && (
+          <DragOverlay dropAnimation={null}>
+            {dragOverlayContent}
+          </DragOverlay>
+        )}
       </DndContext>
     </WorkspaceDndContext.Provider>
+  )
+}
+
+/**
+ * Fallback pane renderer used when panes exist but activePaneId is momentarily
+ * null — instead of showing the empty state we show the first pane's content.
+ */
+function PlaceholderPane({ pane }: { pane: Pane }) {
+  const settings = useReaderSettings()
+  if (pane.state.type === "bible") {
+    return (
+      <BiblePaneView
+        key={pane.id}
+        pane={pane}
+        readerMode={settings.readerMode}
+        onChangeReaderMode={settings.setReaderMode}
+        fontSize={settings.fontSize}
+        onChangeFontSize={settings.setFontSize}
+        verseSpacing={settings.verseSpacing}
+        onChangeVerseSpacing={settings.setVerseSpacing}
+        readerFont={settings.readerFont}
+        onChangeReaderFont={settings.setReaderFont}
+        onPaneUpdate={() => {}}
+      />
+    )
+  }
+  if (pane.state.type === "note") {
+    return <NotePaneView key={pane.id} />
+  }
+  if (pane.state.type === "sermon") {
+    return <SermonPaneView key={pane.id} paneId={pane.id} />
+  }
+  return (
+    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+      Em breve
+    </div>
   )
 }
