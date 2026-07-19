@@ -16,6 +16,12 @@ interface HighlightsContextValue {
   refresh: () => Promise<void>
   activeHighlightId: string | null
   setActiveHighlightId: (id: string | null) => void
+  gutterPosition: "left" | "right"
+  setGutterPosition: (pos: "left" | "right") => void
+  mobileInteraction: "popover" | "drawer"
+  setMobileInteraction: (val: "popover" | "drawer") => void
+  desktopInteraction: "popover" | "drawer"
+  setDesktopInteraction: (val: "popover" | "drawer") => void
 }
 
 const HighlightsContext = createContext<HighlightsContextValue | null>(null)
@@ -34,6 +40,40 @@ export function HighlightsProvider({
   const [highlightsByVerse, setHighlightsByVerse] = useState<Map<string, HighlightData[]>>(new Map())
   const [loading, setLoading] = useState(true)
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null)
+
+  // Settings states
+  const [gutterPosition, setGutterPositionState] = useState<"left" | "right">("left")
+  const [mobileInteraction, setMobileInteractionState] = useState<"popover" | "drawer">("drawer")
+  const [desktopInteraction, setDesktopInteractionState] = useState<"popover" | "drawer">("popover")
+
+  // Load from localStorage
+  useEffect(() => {
+    try {
+      const pos = localStorage.getItem("openbible:highlight-gutter-position")
+      if (pos === "left" || pos === "right") setGutterPositionState(pos)
+
+      const mob = localStorage.getItem("openbible:highlight-mobile-interaction")
+      if (mob === "popover" || mob === "drawer") setMobileInteractionState(mob)
+
+      const desk = localStorage.getItem("openbible:highlight-desktop-interaction")
+      if (desk === "popover" || desk === "drawer") setDesktopInteractionState(desk)
+    } catch { /* ignore */ }
+  }, [])
+
+  const setGutterPosition = (pos: "left" | "right") => {
+    setGutterPositionState(pos)
+    try { localStorage.setItem("openbible:highlight-gutter-position", pos) } catch {}
+  }
+
+  const setMobileInteraction = (val: "popover" | "drawer") => {
+    setMobileInteractionState(val)
+    try { localStorage.setItem("openbible:highlight-mobile-interaction", val) } catch {}
+  }
+
+  const setDesktopInteraction = (val: "popover" | "drawer") => {
+    setDesktopInteractionState(val)
+    try { localStorage.setItem("openbible:highlight-desktop-interaction", val) } catch {}
+  }
 
   const loadHighlights = useCallback(async () => {
     setActiveHighlightId(null)
@@ -84,14 +124,28 @@ export function HighlightsProvider({
       setLoading(false)
     }
   }, [bookId, chapter, versionId])
+
   useEffect(() => {
     const timer = setTimeout(() => {
       loadHighlights()
     }, 0)
     return () => clearTimeout(timer)
   }, [loadHighlights])
+
   return (
-    <HighlightsContext.Provider value={{ highlightsByVerse, loading, refresh: loadHighlights, activeHighlightId, setActiveHighlightId }}>
+    <HighlightsContext.Provider value={{ 
+      highlightsByVerse, 
+      loading, 
+      refresh: loadHighlights, 
+      activeHighlightId, 
+      setActiveHighlightId,
+      gutterPosition,
+      setGutterPosition,
+      mobileInteraction,
+      setMobileInteraction,
+      desktopInteraction,
+      setDesktopInteraction
+    }}>
       {children}
     </HighlightsContext.Provider>
   )
@@ -103,6 +157,12 @@ const DEFAULT_CONTEXT: HighlightsContextValue = {
   refresh: async () => {},
   activeHighlightId: null,
   setActiveHighlightId: () => {},
+  gutterPosition: "left",
+  setGutterPosition: () => {},
+  mobileInteraction: "drawer",
+  setMobileInteraction: () => {},
+  desktopInteraction: "popover",
+  setDesktopInteraction: () => {},
 }
 
 export function useHighlightsContext() {

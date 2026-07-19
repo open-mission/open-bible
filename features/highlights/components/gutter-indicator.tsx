@@ -1,10 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { Popover } from "@base-ui/react/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Drawer, DrawerContent } from "@/components/ui/drawer"
 import type { HighlightData } from "../context/highlights-context"
 import { getNeonStyle } from "../utils/highlight-colors"
 import { HighlightPopover } from "./highlight-popover"
+import { useIsMobile } from "@/lib/use-media-query"
+import { useHighlightsContext } from "../context/highlights-context"
 
 interface GutterIndicatorProps {
   highlight: HighlightData
@@ -23,48 +26,79 @@ interface GutterIndicatorProps {
 function getBracketStyles(
   position: string,
   colorHex: string,
-  verseSpacing: "small" | "medium" | "large"
+  verseSpacing: "small" | "medium" | "large",
+  gutterPosition: "left" | "right"
 ): React.CSSProperties {
   const borderColor = `${colorHex}66` // 40% opacity
   const borderStyle = `1.5px solid ${borderColor}`
 
   const spacingConfig = {
-    small: { paddingTop: "6px", paddingBottom: "6px", gap: "4px" },
-    medium: { paddingTop: "10px", paddingBottom: "10px", gap: "8px" },
-    large: { paddingTop: "16px", paddingBottom: "16px", gap: "16px" },
+    small: { paddingTop: "0px", paddingBottom: "0px", gap: "4px" },
+    medium: { paddingTop: "0px", paddingBottom: "0px", gap: "8px" },
+    large: { paddingTop: "0px", paddingBottom: "0px", gap: "16px" },
   }
 
   const { paddingTop, paddingBottom, gap } = spacingConfig[verseSpacing] || spacingConfig.medium
+  const isLeft = gutterPosition === "left"
+
+  // Position horizontal ticks based on gutter position
+  const leftVal = isLeft ? "4px" : "auto"
+  const rightVal = isLeft ? "auto" : "4px"
 
   switch (position) {
+    case "single":
+      return {
+        borderLeft: isLeft ? borderStyle : "none",
+        borderRight: isLeft ? "none" : borderStyle,
+        borderTop: borderStyle,
+        borderBottom: borderStyle,
+        borderTopLeftRadius: isLeft ? "3px" : "0px",
+        borderTopRightRadius: isLeft ? "0px" : "3px",
+        borderBottomLeftRadius: isLeft ? "3px" : "0px",
+        borderBottomRightRadius: isLeft ? "0px" : "3px",
+        top: 0,
+        bottom: 0,
+        left: leftVal,
+        right: rightVal,
+        width: "6px",
+        position: "absolute",
+      }
     case "top":
       return {
-        borderLeft: borderStyle,
+        borderLeft: isLeft ? borderStyle : "none",
+        borderRight: isLeft ? "none" : borderStyle,
         borderTop: borderStyle,
-        borderTopLeftRadius: "3px",
+        borderTopLeftRadius: isLeft ? "3px" : "0px",
+        borderTopRightRadius: isLeft ? "0px" : "3px",
         top: paddingTop,
         bottom: `-${gap}`,
-        left: "4px",
+        left: leftVal,
+        right: rightVal,
         width: "6px",
         position: "absolute",
       }
     case "middle":
       return {
-        borderLeft: borderStyle,
+        borderLeft: isLeft ? borderStyle : "none",
+        borderRight: isLeft ? "none" : borderStyle,
         top: 0,
         bottom: `-${gap}`,
-        left: "4px",
+        left: leftVal,
+        right: rightVal,
         width: "0px",
         position: "absolute",
       }
     case "bottom":
       return {
-        borderLeft: borderStyle,
+        borderLeft: isLeft ? borderStyle : "none",
+        borderRight: isLeft ? "none" : borderStyle,
         borderBottom: borderStyle,
-        borderBottomLeftRadius: "3px",
+        borderBottomLeftRadius: isLeft ? "3px" : "0px",
+        borderBottomRightRadius: isLeft ? "0px" : "3px",
         top: 0,
         bottom: paddingBottom,
-        left: "4px",
+        left: leftVal,
+        right: rightVal,
         width: "6px",
         position: "absolute",
       }
@@ -87,24 +121,74 @@ export function GutterIndicator({
   verseSpacing,
 }: GutterIndicatorProps) {
   const style = getNeonStyle(highlight.highlight.color)
-  const leftPos = lane * 10
+  const offsetPos = lane * 10
+  const isMobile = useIsMobile()
+  const { gutterPosition, mobileInteraction, desktopInteraction } = useHighlightsContext()
+
+  const isLeft = gutterPosition === "left"
+  const useDrawer = isMobile 
+    ? (mobileInteraction === "drawer") 
+    : (desktopInteraction === "drawer")
 
   return (
     <div
-      className="absolute top-0 bottom-0"
-      style={{ left: `${leftPos}px`, width: "16px" }}
+      className="absolute top-0 bottom-0 pointer-events-none"
+      style={isLeft ? { left: `${offsetPos}px`, width: "16px" } : { right: `${offsetPos}px`, width: "16px" }}
     >
       {/* Bracket Line */}
-      {position !== "single" && (
-        <div 
-          className="absolute inset-0 pointer-events-none" 
-          style={getBracketStyles(position, style.hex, verseSpacing)}
-        />
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={getBracketStyles(position, style.hex, verseSpacing, gutterPosition)}
+      />
+
+      {/* Mobile Interaction (Button + Bottom Sheet Drawer) */}
+      {showDot && useDrawer && (
+        <>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onActivate(highlight.highlight.id)
+            }}
+            className="absolute h-2 w-2 rounded-full cursor-pointer active:scale-95 transition-transform pointer-events-auto"
+            style={{
+              top: "50%",
+              left: position === "single" 
+                ? (isLeft ? "4px" : "12px") 
+                : (isLeft ? "5px" : "11px"),
+              transform: "translate(-50%, -50%)",
+              backgroundColor: style.hex,
+              boxShadow: isActive ? `0 0 0 2px white, ${style.glow}` : style.glow,
+              zIndex: isActive ? 10 : 1,
+            }}
+            aria-label={highlight.category?.name ?? "Destaque"}
+          />
+          <Drawer
+            open={isActive}
+            onOpenChange={(open) => {
+              if (!open) {
+                onDeactivate()
+              }
+            }}
+          >
+            <DrawerContent className="p-5 flex flex-col gap-4 bg-background">
+              <div onClick={(e) => e.stopPropagation()} className="pointer-events-auto">
+                <HighlightPopover
+                  highlight={highlight}
+                  verseReference={verseReference}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onClose={onDeactivate}
+                />
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </>
       )}
 
-      {/* Dot with Popover */}
-      {showDot && (
-        <Popover.Root
+      {/* Desktop Interaction (Popover Primitive) */}
+      {showDot && !useDrawer && (
+        <Popover
           open={isActive}
           onOpenChange={(open) => {
             if (!open) {
@@ -114,33 +198,41 @@ export function GutterIndicator({
             }
           }}
         >
-          <Popover.Trigger
-            render={<button type="button" />}
-            className="absolute h-2 w-2 rounded-full cursor-pointer hover:scale-125 transition-transform"
+          <PopoverTrigger
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+            className="absolute h-2 w-2 rounded-full cursor-pointer hover:scale-125 transition-transform pointer-events-auto"
             style={{
               top: "50%",
-              transform: "translateY(-50%)",
-              left: position === "single" ? "4px" : "12px",
+              left: position === "single" 
+                ? (isLeft ? "4px" : "12px") 
+                : (isLeft ? "5px" : "11px"),
+              transform: "translate(-50%, -50%)",
               backgroundColor: style.hex,
               boxShadow: isActive ? `0 0 0 2px white, ${style.glow}` : style.glow,
               zIndex: isActive ? 10 : 1,
             }}
             aria-label={highlight.category?.name ?? "Destaque"}
           />
-          <Popover.Portal>
-            <Popover.Positioner side="right" alignment="center" sideOffset={8}>
-              <Popover.Popup data-highlight-popover className="outline-none z-50">
-                <HighlightPopover
-                  highlight={highlight}
-                  verseReference={verseReference}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onClose={onDeactivate}
-                />
-              </Popover.Popup>
-            </Popover.Positioner>
-          </Popover.Portal>
-        </Popover.Root>
+          <PopoverContent 
+            side={isLeft ? "left" : "right"} 
+            align="center" 
+            sideOffset={8}
+            className="p-0 border-none bg-transparent shadow-none ring-0 w-auto pointer-events-auto"
+          >
+            <div onClick={(e) => e.stopPropagation()} className="pointer-events-auto">
+              <HighlightPopover
+                highlight={highlight}
+                verseReference={verseReference}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onClose={onDeactivate}
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
       )}
     </div>
   )

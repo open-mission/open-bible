@@ -4,6 +4,7 @@ import * as React from "react"
 import type { HighlightData } from "../context/highlights-context"
 import { useHighlightsContext } from "../context/highlights-context"
 import { GutterIndicator } from "./gutter-indicator"
+import { cn } from "@/lib/utils"
 
 interface HighlightGutterProps {
   highlights: HighlightData[]
@@ -55,11 +56,38 @@ export function HighlightGutter({
   chapter,
   verseSpacing,
 }: HighlightGutterProps) {
-  const { activeHighlightId, setActiveHighlightId } = useHighlightsContext()
+  const { activeHighlightId, setActiveHighlightId, gutterPosition } = useHighlightsContext()
+  const isLeft = gutterPosition === "left"
+
+  // Sort highlights: longer ranges on the outside (lane 0), shorter ranges on the inside (closest to text)
+  const sortedHighlights = React.useMemo(() => {
+    return [...highlights].sort((a, b) => {
+      const aSorted = [...a.verses].sort((x, y) => x.verse - y.verse)
+      const bSorted = [...b.verses].sort((x, y) => x.verse - y.verse)
+      const aLen = aSorted.length > 0 ? (aSorted[aSorted.length - 1].verse - aSorted[0].verse + 1) : 0
+      const bLen = bSorted.length > 0 ? (bSorted[bSorted.length - 1].verse - bSorted[0].verse + 1) : 0
+      
+      if (aLen !== bLen) {
+        return bLen - aLen // Descending (longer first)
+      }
+      
+      const aStart = aSorted[0]?.verse ?? 0
+      const bStart = bSorted[0]?.verse ?? 0
+      return aStart - bStart
+    })
+  }, [highlights])
 
   return (
-    <div className="relative w-7 shrink-0 select-none" data-highlight-gutter>
-      {highlights.map((h, i) => {
+    <div 
+      className={cn(
+        "absolute top-0 bottom-0 w-7 select-none pointer-events-none z-10",
+        isLeft 
+          ? "left-1.5 sm:left-4" 
+          : "right-1.5 sm:right-4"
+      )}
+      data-highlight-gutter
+    >
+      {sortedHighlights.map((h, i) => {
         // Calculate dynamic dot placement (exactly one dot per highlight, staggered based on lane)
         const sorted = [...h.verses].sort((a, b) => a.verse - b.verse)
         let showDot = false

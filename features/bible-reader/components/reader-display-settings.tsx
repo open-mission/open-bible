@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { useAppTheme } from "@/features/theme/components/theme-provider";
+import { useHighlightsContext } from "@/features/highlights/context/highlights-context";
 
 interface ReaderDisplaySettingsProps {
   fontSize: number;
@@ -30,6 +31,14 @@ export function ReaderDisplaySettings({
   onConfigureTheme,
 }: ReaderDisplaySettingsProps) {
   const { mode, setTheme } = useAppTheme();
+  const {
+    gutterPosition,
+    setGutterPosition,
+    mobileInteraction,
+    setMobileInteraction,
+    desktopInteraction,
+    setDesktopInteraction,
+  } = useHighlightsContext();
 
   return (
     <div className="flex flex-col gap-5">
@@ -166,6 +175,98 @@ export function ReaderDisplaySettings({
           Limita a largura máxima das margens do texto para tornar os parágrafos
           mais legíveis.
         </span>
+      </div>
+
+      {/* Highlights Options */}
+      <div className="flex flex-col gap-3 border-t border-border pt-4 mt-1">
+        <span className="text-xs font-semibold text-foreground">Configurações de Destaques</span>
+        
+        {/* Gutter Position */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[11px] font-medium text-muted-foreground">Posição dos Indicadores</span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setGutterPosition("left")}
+              className={cn(
+                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
+                gutterPosition === "left"
+                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+              )}
+            >
+              Lado Esquerdo
+            </button>
+            <button
+              onClick={() => setGutterPosition("right")}
+              className={cn(
+                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
+                gutterPosition === "right"
+                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+              )}
+            >
+              Lado Direito
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Interaction */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[11px] font-medium text-muted-foreground">No Celular</span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setMobileInteraction("drawer")}
+              className={cn(
+                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
+                mobileInteraction === "drawer"
+                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+              )}
+            >
+              Drawer (Gaveta)
+            </button>
+            <button
+              onClick={() => setMobileInteraction("popover")}
+              className={cn(
+                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
+                mobileInteraction === "popover"
+                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+              )}
+            >
+              Popover
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Interaction */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[11px] font-medium text-muted-foreground">No Computador</span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setDesktopInteraction("popover")}
+              className={cn(
+                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
+                desktopInteraction === "popover"
+                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+              )}
+            >
+              Popover
+            </button>
+            <button
+              onClick={() => setDesktopInteraction("drawer")}
+              className={cn(
+                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
+                desktopInteraction === "drawer"
+                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+              )}
+            >
+              Drawer (Gaveta)
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Theme Preview Thumbnails */}
