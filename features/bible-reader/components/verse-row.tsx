@@ -1,8 +1,10 @@
+import { useMemo } from "react"
 import { forwardRef, memo } from "react"
 import { StickyNote } from "lucide-react"
 import type { Verse } from "@/lib/types"
-import { HighlightSidebar } from "@/features/highlights/components/highlight-sidebar"
+import { HighlightGutter } from "@/features/highlights/components/highlight-gutter"
 import type { HighlightData } from "@/features/highlights/context/highlights-context"
+import { useHighlightsContext } from "@/features/highlights/context/highlights-context"
 import type { NoteWithRefs } from "@/features/notes/types"
 
 interface VerseRowProps {
@@ -10,23 +12,51 @@ interface VerseRowProps {
   isActive: boolean
   isSelected?: boolean
   highlights?: HighlightData[]
-  onShowAll?: (highlights: HighlightData[]) => void
+  onEditHighlight?: (highlightId: string) => void
+  onDeleteHighlight?: (highlightId: string) => void
+  bookName?: string
+  chapter?: number
   notes?: NoteWithRefs[]
   onOpenNote?: () => void
   verseSpacing?: "small" | "medium" | "large"
 }
 
 export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function VerseRow(
-  { verse, isActive, isSelected, highlights, onShowAll, notes, onOpenNote, verseSpacing = "medium" },
+  { verse, isActive, isSelected, highlights, onEditHighlight, onDeleteHighlight, bookName, chapter, notes, onOpenNote, verseSpacing = "medium" },
   ref,
 ) {
+  const { activeHighlightId, gutterPosition } = useHighlightsContext()
+
+  const activeColor = useMemo(() => {
+    if (!activeHighlightId || !highlights?.length) return undefined
+    const match = highlights.find(h => h.highlight.id === activeHighlightId)
+    return match ? match.highlight.color : undefined
+  }, [activeHighlightId, highlights])
+
   const spacingClasses = {
-    small: "py-1.5 mb-1",
-    medium: "py-2.5 mb-2",
-    large: "py-4 mb-4",
+    small: "py-0 mb-1",
+    medium: "py-0 mb-2",
+    large: "py-0 mb-4",
   }
 
+  const paddingClass = gutterPosition === "left"
+    ? "pl-11 pr-4 sm:pl-16 sm:pr-6"
+    : "pl-4 pr-11 sm:pl-6 sm:pr-16"
+
   const hasNotes = !!notes && notes.length > 0
+
+  const showGutter = !!highlights && highlights.length > 0
+  const gutterElement = showGutter && (
+    <HighlightGutter
+      highlights={highlights!}
+      currentVerse={verse.verse}
+      onEdit={onEditHighlight ?? (() => {})}
+      onDelete={onDeleteHighlight ?? (() => {})}
+      bookName={bookName ?? ""}
+      chapter={chapter ?? 0}
+      verseSpacing={verseSpacing}
+    />
+  )
 
   return (
     <div
@@ -35,34 +65,21 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
       data-verse-row=""
       role="button"
       tabIndex={0}
-      style={
-        isSelected
-          ? { backgroundColor: "color-mix(in srgb, var(--color-primary) 12%, transparent)" }
-          : undefined
-      }
-      className={`group px-4 sm:px-6 ${spacingClasses[verseSpacing]} cursor-pointer rounded-md transition-colors select-text ${isActive
-        ? "bg-accent/60"
-        : isSelected
-          ? "ring-1 ring-inset ring-primary/30"
-          : "hover:bg-secondary/60"
-        }`}
+      className={`group ${paddingClass} ${spacingClasses[verseSpacing]} cursor-pointer rounded-md transition-colors select-text relative`}
       aria-pressed={isActive}
     >
+      {gutterElement}
       <div className="flex items-start">
         <span className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0 leading-[1.8] mr-1.5">
           {verse.verse}
         </span>
         <div className="flex-1 flex flex-col gap-1">
-          <p className="leading-[1.8] text-foreground">
+          <p 
+            className={`leading-[1.8] text-foreground ${isSelected ? "underline underline-offset-4 decoration-current/40" : ""}`} 
+            style={{ color: activeColor || undefined, transition: 'color 200ms ease' }}
+          >
             {verse.text}
           </p>
-          {highlights && highlights.length > 0 && (
-            <HighlightSidebar
-              highlights={highlights}
-              onShowAll={onShowAll ?? (() => {})}
-              isSelected={isSelected}
-            />
-          )}
           {hasNotes && (
             <button
               type="button"

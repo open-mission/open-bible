@@ -1,5 +1,4 @@
-// @ts-expect-error - next raw query import
-import changelogSrc from "@/CHANGELOG.md?raw";
+const changelogSrc: string = process.env.NEXT_PUBLIC_CHANGELOG ?? "";
 import { getAppVersion } from "./version";
 
 export interface ChangelogEntry {

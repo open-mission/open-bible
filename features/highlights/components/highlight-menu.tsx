@@ -45,39 +45,44 @@ export function HighlightMenu({
 }: HighlightMenuProps) {
   const { highlightsByVerse } = useHighlightsContext()
 
-  // Find if there is an active highlight for the exact selected verses
-  const activeHighlight = useMemo(() => {
-    if (selectedVerseIds.length === 0) return null
+  // Find highlights that cover the selected verses
+  const selectedVersesHighlights = useMemo(() => {
+    if (selectedVerseIds.length === 0) return []
+    const firstVerseId = selectedVerseIds[0]
+    return highlightsByVerse.get(firstVerseId) ?? []
+  }, [selectedVerseIds, highlightsByVerse])
+
+  // Get active highlight color if any (using first highlight's color for color picker visual state)
+  const activeColor = useMemo(() => {
+    if (selectedVerseIds.length === 0) return ""
     const firstVerseId = selectedVerseIds[0]
     const verseHighlights = highlightsByVerse.get(firstVerseId) ?? []
-    return verseHighlights.find((h) => {
-      const hVerses = h.verses.map((v) => v.verse)
-      return selectedVerseIds.every((id) => {
-        const num = parseInt(id.split("-").pop()!, 10)
-        return hVerses.includes(num)
-      })
-    }) || null
+    return verseHighlights[0]?.highlight.color ?? ""
   }, [selectedVerseIds, highlightsByVerse])
 
   async function handleColorSelect(color: HighlightColor) {
     try {
-      if (activeHighlight) {
-        if (color === activeHighlight.highlight.color) {
-          // Toggle off: if clicking the active color, delete the highlight
-          await onDeleteHighlight(activeHighlight.highlight.id)
-          toast.success("Destaque removido")
-        } else {
-          // Update color of existing highlight
-          await onUpdateHighlight(activeHighlight.highlight.id, { color })
-          toast.success("Cor do destaque atualizada")
-        }
-      } else {
-        // Create new highlight
-        const verseNumbers = selectedVerseIds.map((id) => {
-          const parts = id.split("-")
-          return parseInt(parts[parts.length - 1], 10)
-        })
+      const verseNumbers = selectedVerseIds.map((id) => {
+        const parts = id.split("-")
+        return parseInt(parts[parts.length - 1], 10)
+      })
 
+      // Check if there is an existing highlight on these exact verses with this exact color
+      const existingWithColor = selectedVersesHighlights.find((h) => {
+        if (h.highlight.color.toLowerCase() !== color.toLowerCase()) return false
+        const hVerses = h.verses.map((v) => v.verse)
+        return selectedVerseIds.every((id) => {
+          const num = parseInt(id.split("-").pop()!, 10)
+          return hVerses.includes(num)
+        })
+      })
+
+      if (existingWithColor) {
+        // Toggle off: delete this specific highlight
+        await onDeleteHighlight(existingWithColor.highlight.id)
+        toast.success("Destaque removido")
+      } else {
+        // Create new highlight with this color
         await onCreateHighlight({
           color,
           book: bookId,
@@ -95,7 +100,7 @@ export function HighlightMenu({
   return (
     <div className="flex items-center justify-between w-full gap-4">
       <HighlightColorPicker
-        value={activeHighlight?.highlight.color ?? ""}
+        value={activeColor}
         onChange={handleColorSelect}
       />
       <Button

@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { WorkspaceModeSetting } from "@/features/workspace/components/workspace-mode-setting"
 import { isTauri } from "@/lib/is-tauri"
 import { parseLatestEntry, changelogSrc } from "@/lib/release-notes/changelog"
+import { cn } from "@/lib/utils"
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
 
@@ -26,6 +27,40 @@ const MODES: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
 export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string }) {
   const { mode, color, palette, setTheme, setColor, setPalette } = useAppTheme()
   const { defaultVersionId, setDefaultVersionId, availableVersions, installedVersions } = useBibleVersion()
+
+  // Highlights settings (global state)
+  const [gutterPosition, setGutterPosition] = useState<"left" | "right">("left")
+  const [mobileInteraction, setMobileInteraction] = useState<"popover" | "drawer">("drawer")
+  const [desktopInteraction, setDesktopInteraction] = useState<"popover" | "drawer">("popover")
+
+  // Load highlights settings
+  useEffect(() => {
+    try {
+      const pos = localStorage.getItem("openbible:highlight-gutter-position")
+      if (pos === "left" || pos === "right") setGutterPosition(pos)
+
+      const mob = localStorage.getItem("openbible:highlight-mobile-interaction")
+      if (mob === "popover" || mob === "drawer") setMobileInteraction(mob)
+
+      const desk = localStorage.getItem("openbible:highlight-desktop-interaction")
+      if (desk === "popover" || desk === "drawer") setDesktopInteraction(desk)
+    } catch { /* ignore */ }
+  }, [])
+
+  const updateGutterPosition = (pos: "left" | "right") => {
+    setGutterPosition(pos)
+    try { localStorage.setItem("openbible:highlight-gutter-position", pos) } catch {}
+  }
+
+  const updateMobileInteraction = (val: "popover" | "drawer") => {
+    setMobileInteraction(val)
+    try { localStorage.setItem("openbible:highlight-mobile-interaction", val) } catch {}
+  }
+
+  const updateDesktopInteraction = (val: "popover" | "drawer") => {
+    setDesktopInteraction(val)
+    try { localStorage.setItem("openbible:highlight-desktop-interaction", val) } catch {}
+  }
   const [versions, setVersions] = useState<{ id: string; name: string }[]>([])
   const [isDesktop, setIsDesktop] = useState(false)
   const [isMac] = useState(() => {
@@ -441,6 +476,116 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
         {/* ── Reading Mode (Simple / Advanced workspace) ────────────────── */}
         <TabsContent value="workspace" className="space-y-8 animate-in fade-in-50 duration-200">
           <WorkspaceModeSetting />
+
+          {/* Highlights Settings Section */}
+          <div className="border-t border-border/50 pt-6 space-y-6">
+            <div>
+              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+                Configurações de Destaques (Highlights)
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Personalize o comportamento visual e as interações dos destaques de versículos.
+              </p>
+            </div>
+
+            <div className="space-y-4 max-w-md">
+              {/* Gutter Position */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">Posição das Bordas/Colchetes</span>
+                  <span className="text-xs text-muted-foreground">Lado em que os colchetes dos destaques aparecem</span>
+                </div>
+                <div className="flex bg-muted p-0.5 rounded-lg border border-border/40 shrink-0">
+                  <button
+                    onClick={() => updateGutterPosition("left")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      gutterPosition === "left"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Esquerda
+                  </button>
+                  <button
+                    onClick={() => updateGutterPosition("right")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      gutterPosition === "right"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Direita
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile Interaction */}
+              <div className="flex items-center justify-between gap-4 border-t border-border/30 pt-3">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">No Celular</span>
+                  <span className="text-xs text-muted-foreground">Como abrir as informações no mobile</span>
+                </div>
+                <div className="flex bg-muted p-0.5 rounded-lg border border-border/40 shrink-0">
+                  <button
+                    onClick={() => updateMobileInteraction("drawer")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      mobileInteraction === "drawer"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Drawer (Gaveta)
+                  </button>
+                  <button
+                    onClick={() => updateMobileInteraction("popover")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      mobileInteraction === "popover"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Popover
+                  </button>
+                </div>
+              </div>
+
+              {/* Desktop Interaction */}
+              <div className="flex items-center justify-between gap-4 border-t border-border/30 pt-3">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">No Computador</span>
+                  <span className="text-xs text-muted-foreground">Como abrir as informações no desktop</span>
+                </div>
+                <div className="flex bg-muted p-0.5 rounded-lg border border-border/40 shrink-0">
+                  <button
+                    onClick={() => updateDesktopInteraction("popover")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      desktopInteraction === "popover"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Popover
+                  </button>
+                  <button
+                    onClick={() => updateDesktopInteraction("drawer")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      desktopInteraction === "drawer"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Drawer (Gaveta)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </TabsContent>
 
         {/* ── Keyboard Shortcuts ────────────────── */}
