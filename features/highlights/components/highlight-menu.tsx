@@ -22,7 +22,6 @@ interface HighlightMenuProps {
     verses: number[]
     bible: string
   }) => Promise<void>
-  onUpdateHighlight: (id: string, patch: { color?: string; categoryId?: string | null }) => Promise<void>
   onDeleteHighlight: (id: string) => Promise<void>
   listCategories: () => Promise<HighlightCategory[]>
   createCategory: (name: string) => Promise<HighlightCategory>
@@ -37,7 +36,6 @@ export function HighlightMenu({
   versionId,
   isMobile,
   onCreateHighlight,
-  onUpdateHighlight,
   onDeleteHighlight,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onClose: _onClose, // forwarded by parent — reserved for future use
@@ -98,7 +96,7 @@ export function HighlightMenu({
   }
 
   return (
-    <div className="flex items-center justify-between w-full gap-4">
+    <div className="flex items-center justify-center gap-3">
       <HighlightColorPicker
         value={activeColor}
         onChange={handleColorSelect}

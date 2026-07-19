@@ -64,9 +64,9 @@ function ReaderContent({
   showConfigButton = false,
 }: ReaderProps & { versionId: string }) {
   const book = getBook(bookId);
-  const { verses, loading } = useBibleVerses(bookId, chapter);
+const { verses, loading } = useBibleVerses(bookId, chapter);
   const { highlightsByVerse, setActiveHighlightId } = useHighlightsContext();
-  const { notesByVerse, openNotePanel, closeNotePanel } = useNotesContext();
+  const { notesByVerse, openNotePanel } = useNotesContext();
   const isMobile = useIsMobile();
 
   const [activeVerseId, setActiveVerseId] = useState<string | null>(null);
@@ -102,7 +102,12 @@ function ReaderContent({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [popoverPlacement, setPopoverPlacement] = useState<"top" | "bottom">("bottom");
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [popoverAnchor, setPopoverAnchor] = useState<{
+    top: number;
+    centerX: number;
+    placement: "top" | "bottom";
+  } | null>(null);
 
   const prevChapter = useCallback(() => {
     if (chapter > 1) {
@@ -210,69 +215,61 @@ function ReaderContent({
     };
   }, [open]);
 
-  // Recalculate popover placement (top/bottom layout slot) based on selection bounds to avoid overlap
+  // Anchor the selection popover to the selected verses (Notion-style): it
+  // floats right above the first selected verse, flipping below the last one
+  // when there is no room near the top of the scroll viewport.
   useEffect(() => {
-    if (selectedVerseIds.size === 0 || !scrollContainerRef.current || !containerRef.current) {
-      return;
+    if (selectedVerseIds.size === 0) {
+      const raf = requestAnimationFrame(() => setPopoverAnchor(null));
+      return () => cancelAnimationFrame(raf);
     }
-
+    const root = rootRef.current;
     const scrollContainer = scrollContainerRef.current;
-    
-    const updatePlacement = () => {
-      if (selectedVerseIds.size === 0 || !scrollContainerRef.current || !containerRef.current) {
-        return;
-      }
-      
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const elements = Array.from(containerRef.current!.querySelectorAll("[data-verse-row]"))
+    const container = containerRef.current;
+    if (!root || !scrollContainer || !container) return;
+
+    const updateAnchor = () => {
+      const rootRect = root.getBoundingClientRect();
+      const scrollRect = scrollContainer.getBoundingClientRect();
+      const elements = Array.from(container.querySelectorAll("[data-verse-id]"))
         .filter((el) => {
           const id = el.getAttribute("data-verse-id");
           return id && selectedVerseIds.has(id);
-        }) as HTMLElement[];
+        });
+      if (elements.length === 0) return;
 
-      if (elements.length === 0) {
-        return;
+      let minTop = Infinity;
+      let maxBottom = -Infinity;
+      let minLeft = Infinity;
+      let maxRight = -Infinity;
+      for (const el of elements) {
+        const rect = el.getBoundingClientRect();
+        minTop = Math.min(minTop, rect.top);
+        maxBottom = Math.max(maxBottom, rect.bottom);
+        minLeft = Math.min(minLeft, rect.left);
+        maxRight = Math.max(maxRight, rect.right);
       }
 
-      // Find the lowest bottom coordinate of the selected verses relative to the scroll container's viewport
-      let maxBottomViewport = -Infinity;
+      const placement =
+        minTop - scrollRect.top < 96 ? "bottom" : "top";
+      const top = (placement === "top" ? minTop : maxBottom) - rootRect.top;
 
-      elements.forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        const relBottomViewport = rect.bottom - containerRect.top;
-        if (relBottomViewport > maxBottomViewport) {
-          maxBottomViewport = relBottomViewport;
-        }
-      });
+      // Clamp horizontally so the pill (≈300px wide) never overflows the pane.
+      const half = Math.min(150, rootRect.width / 2);
+      const centerX = Math.min(
+        Math.max((minLeft + maxRight) / 2 - rootRect.left, half),
+        rootRect.width - half,
+      );
 
-      // If the bottom of the selected verses is within 125px of the bottom edge of the container viewport,
-      // flip the popover to the top so it doesn't overlap the selected text.
-      const threshold = containerRect.height - 125;
-      const placement = maxBottomViewport > threshold ? "top" : "bottom";
-
-      console.log("Calculated Popover Placement:", { maxBottomViewport, threshold, placement });
-      setPopoverPlacement(placement);
+      setPopoverAnchor({ top, centerX, placement });
     };
 
-    // Calculate immediately
-    updatePlacement();
-
-    // Recalculate on scroll, resize, or viewport changes
-    scrollContainer.addEventListener("scroll", updatePlacement);
-    window.addEventListener("resize", updatePlacement);
-
-    const resizeObserver = new ResizeObserver(updatePlacement);
-    const elements = Array.from(containerRef.current.querySelectorAll("[data-verse-row]"))
-      .filter((el) => {
-        const id = el.getAttribute("data-verse-id");
-        return id && selectedVerseIds.has(id);
-      }) as HTMLElement[];
-    elements.forEach(el => resizeObserver.observe(el));
-
+    updateAnchor();
+    scrollContainer.addEventListener("scroll", updateAnchor, { passive: true });
+    window.addEventListener("resize", updateAnchor);
     return () => {
-      scrollContainer.removeEventListener("scroll", updatePlacement);
-      window.removeEventListener("resize", updatePlacement);
-      resizeObserver.disconnect();
+      scrollContainer.removeEventListener("scroll", updateAnchor);
+      window.removeEventListener("resize", updateAnchor);
     };
   }, [selectedVerseIds, verses]);
 
@@ -295,7 +292,7 @@ function ReaderContent({
         : "font-serif";
 
   return (
-    <div className="relative flex flex-col min-w-0 h-full">
+    <div ref={rootRef} className="relative flex flex-col min-w-0 h-full">
       <ReaderHeader
         book={book}
         chapter={chapter}
@@ -408,7 +405,7 @@ function ReaderContent({
 
       </div>
 
-      {isActive && open && (
+      {isActive && open && popoverAnchor && (
         <VerseSelectionPopover
           book={book}
           chapter={chapter}
@@ -423,7 +420,7 @@ function ReaderContent({
             setCreateEditorVerses(verseNums);
             setShowCreateEditor(true);
           }}
-          position={popoverPlacement}
+          anchor={popoverAnchor}
           showToolbar={showToolbar}
           setShowToolbar={setShowToolbar}
         />

@@ -3,6 +3,7 @@ import { forwardRef, memo } from "react"
 import { StickyNote } from "lucide-react"
 import type { Verse } from "@/lib/types"
 import { HighlightGutter } from "@/features/highlights/components/highlight-gutter"
+import { getNeonStyle } from "@/features/highlights/utils/highlight-colors"
 import type { HighlightData } from "@/features/highlights/context/highlights-context"
 import { useHighlightsContext } from "@/features/highlights/context/highlights-context"
 import type { NoteWithRefs } from "@/features/notes/types"
@@ -45,6 +46,12 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
 
   const hasNotes = !!notes && notes.length > 0
 
+  // Marker-style inline tint so the highlighted text is visible at a glance
+  // (first highlight color wins; the pills below still list every highlight).
+  const tintHex = highlights?.length
+    ? getNeonStyle(highlights[0].highlight.color).hex
+    : null
+
   const showGutter = !!highlights && highlights.length > 0
   const gutterElement = showGutter && (
     <HighlightGutter
@@ -74,11 +81,23 @@ export const VerseRow = memo(forwardRef<HTMLDivElement, VerseRowProps>(function 
           {verse.verse}
         </span>
         <div className="flex-1 flex flex-col gap-1">
-          <p 
-            className={`leading-[1.8] text-foreground ${isSelected ? "underline underline-offset-4 decoration-current/40" : ""}`} 
+          <p
+            className={`leading-[1.8] text-foreground ${isSelected ? "underline underline-offset-4 decoration-current/40" : ""}`}
             style={{ color: activeColor || undefined, transition: 'color 200ms ease' }}
           >
-            {verse.text}
+            {tintHex ? (
+              <span
+                className="box-decoration-clone rounded-[3px] px-0.5 -mx-0.5 py-0.5"
+                style={{
+                  backgroundColor: `${tintHex}2e`,
+                  borderBottom: `1.5px solid ${tintHex}80`,
+                }}
+              >
+                {verse.text}
+              </span>
+            ) : (
+              verse.text
+            )}
           </p>
           {hasNotes && (
             <button
