@@ -65,7 +65,7 @@ function ReaderContent({
 }: ReaderProps & { versionId: string }) {
   const book = getBook(bookId);
   const { verses, loading } = useBibleVerses(bookId, chapter);
-  const { highlightsByVerse } = useHighlightsContext();
+  const { highlightsByVerse, setActiveHighlightId } = useHighlightsContext();
   const { notesByVerse, openNotePanel, closeNotePanel } = useNotesContext();
   const isMobile = useIsMobile();
 
@@ -120,6 +120,7 @@ function ReaderContent({
 
   const handleVerseClick = useCallback((verseId: string) => {
     setActiveVerseId(verseId);
+    setActiveHighlightId(null);
     setSelectedVerseIds((prev) => {
       const next = new Set(prev);
       if (next.has(verseId)) next.delete(verseId);
@@ -127,7 +128,7 @@ function ReaderContent({
       return next;
     });
     setShowToolbar(false);
-  }, []);
+  }, [setActiveHighlightId]);
 
   const handleArticleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -384,10 +385,10 @@ function ReaderContent({
                   isActive={verse.id === activeVerseId}
                   isSelected={selectedVerseIds.has(verse.id)}
                   highlights={highlightsByVerse.get(verse.id)}
-                  onShowAll={() => {
-                    closeNotePanel();
-                    setDockView("highlights");
-                  }}
+                  onEditHighlight={dockEditHighlight}
+                  onDeleteHighlight={async (id) => { await deleteHighlight(id) }}
+                  bookName={book.name}
+                  chapter={chapter}
                   notes={notesByVerse.get(verse.id)}
                   onOpenNote={() => {
                     setDockView(null);

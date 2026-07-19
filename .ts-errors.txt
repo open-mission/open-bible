@@ -1,0 +1,58 @@
+features/bible-reader/components/reader.tsx(527,17): error TS2322: Type '(id: string) => Promise<void>' is not assignable to type '(id: string) => Promise<boolean>'.
+  Type 'Promise<void>' is not assignable to type 'Promise<boolean>'.
+    Type 'void' is not assignable to type 'boolean'.
+features/bible-reader/components/reader.tsx(549,17): error TS2322: Type '(id: string) => Promise<void>' is not assignable to type '(id: string) => Promise<boolean>'.
+  Type 'Promise<void>' is not assignable to type 'Promise<boolean>'.
+    Type 'void' is not assignable to type 'boolean'.
+features/bible-reader/components/verse-selection-popover.tsx(228,15): error TS2322: Type '(input: { color: string; book: string; chapter: number; verses: number[]; bible: string; content?: string; categoryId?: string | null; noteId?: string | null; }) => Promise<...>' is not assignable to type '(input: { color: string; book: string; chapter: number; verses: number[]; bible: string; }) => Promise<void>'.
+  Type 'Promise<{ id: string; content: string; createdAt: Date; updatedAt: Date; noteId: string | null; color: string; categoryId: string | null; }>' is not assignable to type 'Promise<void>'.
+    Type '{ id: string; content: string; createdAt: Date; updatedAt: Date; noteId: string | null; color: string; categoryId: string | null; }' is not assignable to type 'void'.
+features/bible-reader/hooks/use-auto-download-ara.ts(70,9): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+features/config/components/config-content.tsx(104,25): error TS2345: Argument of type 'Update' is not assignable to parameter of type 'SetStateAction<{ downloadAndInstall: (cb: (event: { event: string; data?: { contentLength?: number | undefined; progress?: number | undefined; } | undefined; }) => void) => Promise<void>; } | null>'.
+  Type 'Update' is not assignable to type '{ downloadAndInstall: (cb: (event: { event: string; data?: { contentLength?: number | undefined; progress?: number | undefined; } | undefined; }) => void) => Promise<void>; }'.
+    Types of property 'downloadAndInstall' are incompatible.
+      Type '(onEvent?: ((progress: DownloadEvent) => void) | undefined, options?: DownloadOptions | undefined) => Promise<void>' is not assignable to type '(cb: (event: { event: string; data?: { contentLength?: number | undefined; progress?: number | undefined; } | undefined; }) => void) => Promise<void>'.
+        Types of parameters 'onEvent' and 'cb' are incompatible.
+          Type '(event: { event: string; data?: { contentLength?: number | undefined; progress?: number | undefined; } | undefined; }) => void' is not assignable to type '(progress: DownloadEvent) => void'.
+            Types of parameters 'event' and 'progress' are incompatible.
+              Type 'DownloadEvent' is not assignable to type '{ event: string; data?: { contentLength?: number | undefined; progress?: number | undefined; } | undefined; }'.
+                Type '{ event: "Progress"; data: { chunkLength: number; }; }' is not assignable to type '{ event: string; data?: { contentLength?: number | undefined; progress?: number | undefined; } | undefined; }'.
+                  Types of property 'data' are incompatible.
+                    Type '{ chunkLength: number; }' has no properties in common with type '{ contentLength?: number | undefined; progress?: number | undefined; }'.
+features/config/components/config-content.tsx(126,37): error TS18048: 'event.data.progress' is possibly 'undefined'.
+features/highlights/components/highlight-card.tsx(93,16): error TS2339: Property 'verseItems' does not exist on type 'HighlightData'.
+features/highlights/components/highlight-card.tsx(113,22): error TS2339: Property 'verseItems' does not exist on type 'HighlightData'.
+features/highlights/components/highlight-card.tsx(113,38): error TS7006: Parameter 'v' implicitly has an 'any' type.
+features/highlights/components/highlight-card.tsx(113,41): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+features/highlights/components/highlight-card.tsx(124,32): error TS2339: Property 'verseItems' does not exist on type 'HighlightData'.
+features/notes/components/note-editor.tsx(72,47): error TS2559: Type 'false' has no properties in common with type 'SetContentOptions'.
+features/workspace/components/empty-pane-view.tsx(66,56): error TS2345: Argument of type 'PaneState' is not assignable to parameter of type 'Partial<BiblePaneState>'.
+  Type 'NotePaneState' is not assignable to type 'Partial<BiblePaneState>'.
+    Types of property 'type' are incompatible.
+      Type '"note"' is not assignable to type '"bible"'.
+features/workspace/components/workspace-sidebar.tsx(160,15): error TS2322: Type '{ children: Element[]; type: string; value: LayoutMode[]; onValueChange: (val: string[]) => void; spacing: number; variant: "outline"; className: string; }' is not assignable to type 'IntrinsicAttributes & Props<string> & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; outline: string; }; size: { default: string; sm: string; lg: string; }; }> & ClassProp) | undefined) => string> & { ...; }'.
+  Property 'type' does not exist on type 'IntrinsicAttributes & Props<string> & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; outline: string; }; size: { default: string; sm: string; lg: string; }; }> & ClassProp) | undefined) => string> & { ...; }'.
+features/workspace/components/workspace-tabs.tsx(69,7): error TS2783: 'role' is specified more than once, so this usage will be overwritten.
+features/workspace/components/workspace-tabs.tsx(70,7): error TS2783: 'tabIndex' is specified more than once, so this usage will be overwritten.
+features/workspace/components/workspace-view.tsx(205,33): error TS2345: Argument of type '"meta" | "alt" | "control"' is not assignable to parameter of type 'SetStateAction<"meta" | "control" | null>'.
+  Type '"alt"' is not assignable to type 'SetStateAction<"meta" | "control" | null>'.
+features/workspace/components/workspace-view.tsx(236,11): error TS2367: This comparison appears to be unintentional because the types '"meta" | "control"' and '"alt"' have no overlap.
+features/workspace/components/workspace-view.tsx(242,10): error TS2367: This comparison appears to be unintentional because the types '"meta" | "control"' and '"alt"' have no overlap.
+features/workspace/components/workspace-view.tsx(304,16): error TS2367: This comparison appears to be unintentional because the types '"horizontal"' and '"vertical"' have no overlap.
+features/workspace/components/workspace-view.tsx(306,16): error TS2367: This comparison appears to be unintentional because the types '"horizontal"' and '"vertical"' have no overlap.
+features/workspace/components/workspace-view.tsx(453,16): error TS2741: Property 'onOverviewOpen' is missing in type '{ sidebarWidth: number; onSidebarResize: Dispatch<SetStateAction<number>>; }' but required in type 'WorkspaceSidebarProps'.
+features/workspace/lib/layout-tree.ts(110,10): error TS2304: Cannot find name 'Pane'.
+features/workspace/lib/layout-tree.ts(113,13): error TS2304: Cannot find name 'Pane'.
+features/workspace/lib/layout-tree.ts(116,23): error TS2304: Cannot find name 'Pane'.
+lib/api/bible-service.ts(40,29): error TS7006: Parameter 'row' implicitly has an 'any' type.
+lib/api/bible-service.ts(62,41): error TS7006: Parameter 'row' implicitly has an 'any' type.
+lib/api/bible-service.ts(109,38): error TS7006: Parameter 'row' implicitly has an 'any' type.
+lib/api/bible-service.ts(166,29): error TS7006: Parameter 'row' implicitly has an 'any' type.
+lib/api/hono-app.ts(444,19): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike>' is not assignable to parameter of type 'null'.
+lib/api/hono-app.ts(472,36): error TS7006: Parameter 'v' implicitly has an 'any' type.
+lib/api/hono-app.ts(482,56): error TS7006: Parameter 'r' implicitly has an 'any' type.
+lib/books.ts(12,44): error TS1117: An object literal cannot have multiple properties with the same name.
+tests/note-references.test.ts(24,38): error TS2345: Argument of type 'null' is not assignable to parameter of type 'number'.
+tests/note-references.test.ts(25,38): error TS2345: Argument of type 'null' is not assignable to parameter of type 'number'.

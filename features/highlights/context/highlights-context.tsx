@@ -14,6 +14,8 @@ interface HighlightsContextValue {
   highlightsByVerse: Map<string, HighlightData[]>
   loading: boolean
   refresh: () => Promise<void>
+  activeHighlightId: string | null
+  setActiveHighlightId: (id: string | null) => void
 }
 
 const HighlightsContext = createContext<HighlightsContextValue | null>(null)
@@ -31,8 +33,10 @@ export function HighlightsProvider({
 }) {
   const [highlightsByVerse, setHighlightsByVerse] = useState<Map<string, HighlightData[]>>(new Map())
   const [loading, setLoading] = useState(true)
+  const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null)
 
   const loadHighlights = useCallback(async () => {
+    setActiveHighlightId(null)
     setLoading(true)
     try {
       await database.initialize()
@@ -87,7 +91,7 @@ export function HighlightsProvider({
     return () => clearTimeout(timer)
   }, [loadHighlights])
   return (
-    <HighlightsContext.Provider value={{ highlightsByVerse, loading, refresh: loadHighlights }}>
+    <HighlightsContext.Provider value={{ highlightsByVerse, loading, refresh: loadHighlights, activeHighlightId, setActiveHighlightId }}>
       {children}
     </HighlightsContext.Provider>
   )
@@ -97,6 +101,8 @@ const DEFAULT_CONTEXT: HighlightsContextValue = {
   highlightsByVerse: new Map(),
   loading: false,
   refresh: async () => {},
+  activeHighlightId: null,
+  setActiveHighlightId: () => {},
 }
 
 export function useHighlightsContext() {
