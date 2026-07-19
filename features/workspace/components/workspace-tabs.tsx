@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react"
 import { IconGripVertical } from "@tabler/icons-react"
-import { useSortable } from "@dnd-kit/sortable"
+import { useSortable, SortableContext, horizontalListSortingStrategy, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
 import { cn } from "@/lib/utils"
@@ -16,22 +16,26 @@ import type { Pane } from "../types"
  * mobile bottom bar. The "+" picker lives in WorkspaceToolbar.
  */
 export function WorkspaceTabs() {
-  const { panes, activePaneId, activatePane, closePane } = useWorkspace()
+  const { panes, activePaneId, activatePane, closePane, tabsOrientation } = useWorkspace()
+  const strategy = tabsOrientation === "vertical" ? verticalListSortingStrategy : horizontalListSortingStrategy
+  const paneIds = panes.map((p) => p.id)
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar min-w-0 flex-1 px-0.5 py-1">
-      {panes.map((pane) => (
-        <SortableTab
-          key={pane.id}
-          pane={pane}
-          active={pane.id === activePaneId}
-          onActivate={() => activatePane(pane.id)}
-          onClose={() => closePane(pane.id)}
-          index={panes.indexOf(pane)}
-          total={panes.length}
-        />
-      ))}
-    </div>
+    <SortableContext items={paneIds} strategy={strategy}>
+      <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar min-w-0 flex-1 px-0.5 py-1">
+        {panes.map((pane) => (
+          <SortableTab
+            key={pane.id}
+            pane={pane}
+            active={pane.id === activePaneId}
+            onActivate={() => activatePane(pane.id)}
+            onClose={() => closePane(pane.id)}
+            index={panes.indexOf(pane)}
+            total={panes.length}
+          />
+        ))}
+      </div>
+    </SortableContext>
   )
 }
 

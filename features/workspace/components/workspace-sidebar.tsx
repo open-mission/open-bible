@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import { X, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical, ChevronLeft, ChevronRight, FolderX } from "lucide-react"
 import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
-import { useSortable } from "@dnd-kit/sortable"
+import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
 import { type TabsOrientation } from "../hooks/use-workspace-mode"
@@ -119,6 +119,7 @@ interface WorkspaceSidebarProps {
  */
 export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSidebarProps) {
   const { panes, activePaneId, activatePane, closePane, closeAllPanes, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const paneIds = panes.map((p) => p.id)
   const { isDark, setTheme } = useAppTheme()
   const { state, setOpen } = useSidebar()
   const isCollapsed = state === "collapsed"
@@ -245,18 +246,20 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
           </SidebarGroupLabel>
 
           <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {panes.map((pane) => (
-                <SortableSidebarTab
-                  key={pane.id}
-                  pane={pane}
-                  active={pane.id === activePaneId}
-                  onActivate={() => activatePane(pane.id)}
-                  onClose={() => closePane(pane.id)}
-                  total={panes.length}
-                />
-              ))}
-            </SidebarMenu>
+            <SortableContext items={paneIds} strategy={verticalListSortingStrategy}>
+              <SidebarMenu className="gap-1">
+                {panes.map((pane) => (
+                  <SortableSidebarTab
+                    key={pane.id}
+                    pane={pane}
+                    active={pane.id === activePaneId}
+                    onActivate={() => activatePane(pane.id)}
+                    onClose={() => closePane(pane.id)}
+                    total={panes.length}
+                  />
+                ))}
+              </SidebarMenu>
+            </SortableContext>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
