@@ -58,23 +58,23 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
   const [configOpen, setConfigOpen] = useState(false)
 
   return (
-    <Sidebar collapsible="icon" variant="sidebar" className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border/40">
+    <Sidebar collapsible="icon" variant="sidebar" className="border-r border-border/30 [&_div[data-sidebar=sidebar]]:bg-background">
+      <SidebarHeader className="border-b border-border/30">
         <div className={cn(
-          "flex items-center px-2 py-2.5",
-          isCollapsed ? "justify-center" : "justify-start"
+          "flex items-center py-2.5",
+          isCollapsed ? "justify-center px-1" : "justify-start px-2"
         )}>
           {isCollapsed ? (
             <img
-              src="/logo-minimal-transparent.png"
+              src="/logo-minimal.png"
               alt="Open Bible"
-              className="h-6 w-auto select-none pointer-events-none dark:invert-0 invert transition-opacity duration-200"
+              className="size-8 object-contain select-none pointer-events-none"
             />
           ) : (
             <img
-              src="/logo.svg"
+              src="/logo.png"
               alt="Open Bible Logo"
-              className="h-7 w-auto dark:invert-0 invert select-none pointer-events-none transition-opacity duration-200"
+              className="h-8 w-auto select-none pointer-events-none"
             />
           )}
         </div>
@@ -89,12 +89,12 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
                   onClick={onOpenCommandPalette}
                   title="Buscar (⌘K)"
                   className={cn(
-                    "h-9 rounded-lg transition-all duration-150",
+                    "h-9 rounded-md transition-all duration-150",
                     isCollapsed ? "justify-center" : "justify-between"
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <IconSearch className="size-[18px] text-muted-foreground" />
+                    <IconSearch className="size-6 text-muted-foreground" />
                     {!isCollapsed && (
                       <span className="text-sm text-muted-foreground">Buscar...</span>
                     )}
@@ -107,8 +107,6 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <SidebarSeparator />
 
         <SidebarGroup>
           <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/50">
@@ -125,12 +123,12 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
                       onClick={() => navigate(item.id as AppView)}
                       title={item.label}
                       className={cn(
-                        "h-9 rounded-lg transition-all duration-150",
-                        isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium border-l-2 border-primary"
+                        "h-9 rounded-md transition-all duration-150",
+                        isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                       )}
                     >
                       <item.icon className={cn(
-                        "size-[18px] transition-colors duration-150",
+                        "size-6 transition-colors duration-150",
                         isActive ? "text-primary" : "text-muted-foreground"
                       )} />
                       <span className="text-sm">{item.label}</span>
@@ -144,13 +142,10 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
 
         {workspaceContent && (
           <>
-            <SidebarSeparator />
             {workspaceContent}
           </>
         )}
       </SidebarContent>
-
-      <SidebarSeparator />
 
       <SidebarFooter className="p-2">
         <SidebarMenu className="gap-0.5">
@@ -158,9 +153,9 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
             <SidebarMenuButton
               onClick={() => setConfigOpen(true)}
               title="Configurações"
-              className="h-9 rounded-lg transition-all duration-150"
+              className="h-9 rounded-md transition-all duration-150"
             >
-              <IconSettings className="size-[18px]" />
+              <IconSettings className="size-6" />
               <span className="text-sm">Configurações</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -168,12 +163,12 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
             <SidebarMenuButton
               onClick={() => setTheme(isDark ? "light" : "dark")}
               title={isDark ? "Modo Claro" : "Modo Escuro"}
-              className="h-9 rounded-lg transition-all duration-150"
+              className="h-9 rounded-md transition-all duration-150"
             >
               {isDark ? (
-                <IconSun className="size-[18px]" />
+                <IconSun className="size-6" />
               ) : (
-                <IconMoon className="size-[18px]" />
+                <IconMoon className="size-6" />
               )}
               <span className="text-sm">
                 {isDark ? "Modo Claro" : "Modo Escuro"}
@@ -182,7 +177,7 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
           </SidebarMenuItem>
         </SidebarMenu>
 
-        <div className="px-2.5 py-1.5 flex items-center justify-between border-t border-sidebar-border/20 mt-1 select-none group-data-[collapsible=icon]:hidden">
+        <div className="px-2.5 py-1.5 flex items-center justify-between border-t border-border/20 mt-1 select-none group-data-[collapsible=icon]:hidden">
           <span className="text-[10px] text-muted-foreground/40 font-mono">
             Open Bible v{APP_VERSION}
           </span>

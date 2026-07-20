@@ -155,8 +155,8 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
   }, [sidebarWidth, onSidebarResize, setOpen])
 
   const sidebarContent = (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shrink-0 relative">
-      <SidebarHeader className="border-b border-sidebar-border/40 py-2.5 px-3 flex flex-row items-center justify-between min-h-[52px] gap-2 bg-sidebar-accent/10">
+    <Sidebar collapsible="icon" className="border-r border-border/30 bg-background shrink-0 relative">
+      <SidebarHeader className="border-b border-border/30 py-2.5 px-3 flex flex-row items-center justify-between min-h-[52px] gap-2 bg-accent/5">
         {!isCollapsed ? (
           <>
             {/* Abas vs Grade Layout Mode Toggle using ToggleGroup */}
@@ -641,7 +641,7 @@ export function WorkspacePaneSidebar({ sidebarWidth, onSidebarResize, onOverview
   return (
     <div
       style={{ width: actualWidth }}
-      className="h-full flex flex-col shrink-0 border-r border-sidebar-border bg-sidebar transition-[width] duration-200 relative"
+      className="h-full flex flex-col shrink-0 border-r border-border/30 bg-background transition-[width] duration-200 relative"
     >
       <div className="flex flex-col size-full">
         <div className="border-b border-sidebar-border/40 py-2.5 px-2 flex flex-row items-center justify-between min-h-[44px] gap-2 bg-sidebar-accent/10">

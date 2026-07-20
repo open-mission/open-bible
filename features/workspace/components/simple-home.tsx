@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Reader } from "@/features/bible-reader/components/reader"
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
 import { PanelLayout } from "@/features/layout/components/panel-layout"
@@ -23,7 +23,7 @@ import type { NoteTarget } from "@/features/notes/types"
  * Open Bible experience. This is the default and what existing users see.
  * Extracted from the original app/page.tsx so both modes can coexist.
  */
-export function SimpleHome() {
+export function SimpleHome({ openBookChapterSignal }: { openBookChapterSignal?: number }) {
   const {
     selectedBookId,
     setSelectedBookId,
@@ -48,6 +48,13 @@ export function SimpleHome() {
   const [notesOpen, setNotesOpen] = useState(false)
   const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(false)
   const [dialogInitialView, setDialogInitialView] = useState<"books" | "chapters">("books")
+
+  useEffect(() => {
+    if (openBookChapterSignal && openBookChapterSignal > 0) {
+      setDialogInitialView("books")
+      setBookChapterDialogOpen(true)
+    }
+  }, [openBookChapterSignal])
 
   const handleSelectBook = useCallback(
     (bookId: string) => {
@@ -90,7 +97,7 @@ export function SimpleHome() {
         main={
           <main className={cn(
             "relative overflow-hidden reading-area flex flex-col h-full",
-            isMobile && "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"
+            isMobile && "pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
           )}>
             {selectedBookId && selectedChapter ? (
               <Reader

@@ -27,7 +27,7 @@ export function MobileTabBar() {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border/40 bg-background/85 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]">
-      <nav className="flex items-center justify-around h-14 px-4">
+      <nav className="flex items-center justify-around h-[4.25rem] px-4">
         {TAB_ITEMS.map((item) => {
           const isActive = activeView === item.id
           return (

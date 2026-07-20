@@ -21,7 +21,7 @@ function StubViewShell({ title, description, icon: Icon }: StubViewShellProps) {
   return (
     <div className={cn(
       "flex flex-col h-full",
-      isMobile && "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"
+      isMobile && "pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
     )}>
       <header className="flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4 py-3 shrink-0">
         <button
@@ -63,7 +63,10 @@ function HighlightsStubView() {
   )
 }
 
-export function ViewContainer({ onOpenCommandPalette }: { onOpenCommandPalette?: () => void }) {
+export function ViewContainer({ onOpenCommandPalette, openBookChapterSignal }: {
+  onOpenCommandPalette?: () => void
+  openBookChapterSignal?: number
+}) {
   const { activeView } = useAppNavigation()
   const { mode, loaded } = useWorkspaceMode()
 
@@ -86,12 +89,12 @@ export function ViewContainer({ onOpenCommandPalette }: { onOpenCommandPalette?:
 
   switch (activeView) {
     case "reader":
-      return <SimpleHome />
+      return <SimpleHome openBookChapterSignal={openBookChapterSignal} />
     case "notes":
       return <NotesStubView />
     case "highlights":
       return <HighlightsStubView />
     default:
-      return <SimpleHome />
+      return <SimpleHome openBookChapterSignal={openBookChapterSignal} />
   }
 }
