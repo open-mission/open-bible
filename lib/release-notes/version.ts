@@ -94,3 +94,64 @@ export function setPwaDismissedVersion(v: string): void {
   }
 }
 
+const UPDATE_DISMISSED_KEY = "openbible:dismissed-update-version";
+const UPDATE_CHECK_CACHE_KEY = "openbible:last-update-check";
+
+export function getDismissedUpdateVersion(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    return window.localStorage.getItem(UPDATE_DISMISSED_KEY);
+  } catch (error) {
+    console.error("Error accessing localStorage:", error);
+    return null;
+  }
+}
+
+export function setDismissedUpdateVersion(v: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.setItem(UPDATE_DISMISSED_KEY, v);
+  } catch (error) {
+    console.error("Error setting localStorage:", error);
+  }
+}
+
+export interface UpdateCheckCache {
+  timestamp: number;
+  version: string;
+  changelog: string;
+  url: string;
+}
+
+export function getUpdateCheckCache(): UpdateCheckCache | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const data = window.localStorage.getItem(UPDATE_CHECK_CACHE_KEY);
+    if (!data) {
+      return null;
+    }
+    return JSON.parse(data) as UpdateCheckCache;
+  } catch (error) {
+    console.error("Error reading update cache:", error);
+    return null;
+  }
+}
+
+export function setUpdateCheckCache(cache: UpdateCheckCache): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.setItem(UPDATE_CHECK_CACHE_KEY, JSON.stringify(cache));
+  } catch (error) {
+    console.error("Error setting update cache:", error);
+  }
+}
+
+
