@@ -11,6 +11,8 @@ import { WorkspaceModeSetting } from "@/features/workspace/components/workspace-
 import { isTauri } from "@/lib/is-tauri"
 import { parseLatestEntry, changelogSrc } from "@/lib/release-notes/changelog"
 import { cn } from "@/lib/utils"
+import { useReleaseNotes } from "@/features/release-notes/components/release-notes-provider"
+import { getAppVersion, isPrerelease } from "@/lib/release-notes/version"
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
 
@@ -28,6 +30,8 @@ const MODES: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
 export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string }) {
   const { mode, color, palette, setTheme, setColor, setPalette } = useAppTheme()
   const { defaultVersionId, setDefaultVersionId, availableVersions, installedVersions } = useBibleVersion()
+  const { updateChannel, setChannel, checkForUpdates } = useReleaseNotes()
+  const [pwaUpdateStatus, setPwaUpdateStatus] = useState<"idle" | "checking" | "available" | "no-update" | "error">("idle")
 
   // Highlights settings (global state)
   const [gutterPosition, setGutterPosition] = useState<"left" | "right">("left")
@@ -158,6 +162,25 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
     }
   }
 
+  const handlePwaCheckUpdate = async () => {
+    setPwaUpdateStatus("checking")
+    try {
+      const result = await checkForUpdates(true)
+      if (result.success) {
+        if (result.hasUpdate) {
+          setPwaUpdateStatus("available")
+        } else {
+          setPwaUpdateStatus("no-update")
+        }
+      } else {
+        setPwaUpdateStatus("error")
+      }
+    } catch (err) {
+      console.error("Erro ao buscar atualização:", err)
+      setPwaUpdateStatus("error")
+    }
+  }
+
   const handleDownloadInstall = async () => {
     if (!updateObject) return
     setUpdateStatus("downloading")
@@ -228,7 +251,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
     { value: "version", label: "Versão Bíblica", icon: <BookOpen className="h-4 w-4" /> },
     { value: "theme", label: "Tema", icon: <Palette className="h-4 w-4" /> },
     { value: "workspace", label: "Leitura", icon: <LayoutGrid className="h-4 w-4" /> },
-    ...(isTauri ? [{ value: "updates", label: "Atualizações", icon: <RefreshCw className="h-4 w-4" /> }] : []),
+    { value: "updates", label: "Atualizações", icon: <RefreshCw className="h-4 w-4" /> },
     { value: "changelog", label: "Novidades", icon: <Sparkles className="h-4 w-4" /> },
   ]
 
@@ -271,15 +294,13 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
               <span>Atalhos</span>
             </TabsTrigger>
           )}
-          {isTauri && (
-            <TabsTrigger
-              value="updates"
-              className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
-            >
-              <RefreshCw className="h-4 w-4" />
-              <span>Atualizações</span>
-            </TabsTrigger>
-          )}
+          <TabsTrigger
+            value="updates"
+            className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>Atualizações</span>
+          </TabsTrigger>
           <TabsTrigger
             value="changelog"
             className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
@@ -672,143 +693,265 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           </TabsContent>
         )}
 
-        {isTauri && (
-          <TabsContent value="updates" className="space-y-6 animate-in fade-in-50 duration-200">
+        <TabsContent value="updates" className="space-y-6 animate-in fade-in-50 duration-200">
+          <div>
+            <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              Atualizações do Aplicativo
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Gerencie seu canal de atualizações e mantenha seu aplicativo em dia.
+            </p>
+          </div>
+
+          {/* Seletor de Canal de Atualização */}
+          <div className="border border-border/80 rounded-lg p-5 bg-card/45 space-y-4">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
-                Atualizações do Aplicativo
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Verifique se há novas versões do Open Bible e mantenha seu app atualizado.
+              <h3 className="text-sm font-semibold text-foreground mb-1">
+                Canal de Atualização
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Escolha se deseja receber notificações apenas de versões estáveis ou de versões de teste/beta.
               </p>
             </div>
 
-            <div className="border border-border/80 rounded-lg p-5 bg-card/40 space-y-4">
-              <div className="flex justify-between items-center text-sm border-b border-border/40 pb-3">
-                <span className="text-muted-foreground font-medium">Versão atual:</span>
-                <span className="font-mono bg-muted px-2 py-0.5 rounded text-foreground font-semibold">
-                  v{appVersion || "..."}
-                </span>
-              </div>
-
-              {updateStatus === "idle" && (
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleCheckUpdate}
-                    className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg flex items-center gap-2 cursor-pointer shadow-xs"
-                  >
-                    Verificar Atualizações
-                  </button>
-                </div>
-              )}
-
-              {updateStatus === "checking" && (
-                <div className="flex items-center gap-3 py-2">
-                  <RefreshCw className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Buscando novas atualizações...</span>
-                </div>
-              )}
-
-              {updateStatus === "no-update" && (
-                <div className="space-y-4">
-                  <p className="text-sm text-emerald-500 font-medium flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    Você já está utilizando a versão mais recente!
-                  </p>
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleCheckUpdate}
-                      className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
-                    >
-                      Verificar Novamente
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {updateStatus === "available" && updateInfo && (
-                <div className="space-y-4">
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      Nova versão disponível: <span className="font-mono text-primary">v{updateInfo.version}</span>
-                    </h3>
-                    {updateInfo.date && (
-                      <p className="text-xs text-muted-foreground">
-                        Lançada em: {updateInfo.date}
-                      </p>
-                    )}
-                    {updateInfo.body && (
-                      <div className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap font-sans">
-                        {updateInfo.body}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleDownloadInstall}
-                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs"
-                    >
-                      Baixar e Instalar
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {updateStatus === "downloading" && (
-                <div className="space-y-3 py-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Baixando atualização...</span>
-                    <span className="font-semibold text-primary">{downloadProgress}%</span>
-                  </div>
-                  <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-primary h-full transition-all duration-300 rounded-full"
-                      style={{ width: `${downloadProgress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {updateStatus === "downloaded" && (
-                <div className="space-y-4">
-                  <p className="text-sm text-emerald-500 font-medium">
-                    Atualização baixada com sucesso! O aplicativo precisa ser reiniciado para aplicar as mudanças.
-                  </p>
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleRelaunch}
-                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs animate-pulse"
-                    >
-                      Reiniciar Agora
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {updateStatus === "error" && (
-                <div className="space-y-4">
-                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-                    <p className="text-sm font-semibold text-destructive mb-1">
-                      Falha ao processar atualização
-                    </p>
-                    <p className="text-xs text-muted-foreground font-mono truncate">
-                      {errorMessage}
-                    </p>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={handleCheckUpdate}
-                      className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
-                    >
-                      Tentar Novamente
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="flex bg-muted p-0.5 rounded-lg border border-border/40 w-full sm:w-fit shrink-0">
+              <button
+                onClick={() => setChannel("stable")}
+                className={cn(
+                  "flex-1 sm:flex-initial px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer text-center",
+                  updateChannel === "stable"
+                    ? "bg-background text-foreground shadow-xs font-bold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Estável
+              </button>
+              <button
+                onClick={() => setChannel("beta")}
+                className={cn(
+                  "flex-1 sm:flex-initial px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer text-center",
+                  updateChannel === "beta"
+                    ? "bg-background text-foreground shadow-xs font-bold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Beta / Pré-lançamento
+              </button>
             </div>
-          </TabsContent>
-        )}
+
+            {isPrerelease(getAppVersion()) && updateChannel === "beta" && (
+              <p className="text-xs text-muted-foreground italic">
+                * Canal Beta ativado por padrão pois a versão atual é um pré-lançamento (v{getAppVersion()}).
+              </p>
+            )}
+          </div>
+
+          <div className="border border-border/80 rounded-lg p-5 bg-card/40 space-y-4">
+            <div className="flex justify-between items-center text-sm border-b border-border/40 pb-3">
+              <span className="text-muted-foreground font-medium">Versão atual:</span>
+              <span className="font-mono bg-muted px-2 py-0.5 rounded text-foreground font-semibold">
+                v{isTauri ? appVersion : getAppVersion()}
+              </span>
+            </div>
+
+            {isTauri ? (
+              /* Tauri platform updates layout */
+              <>
+                {updateStatus === "idle" && (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleCheckUpdate}
+                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg flex items-center gap-2 cursor-pointer shadow-xs"
+                    >
+                      Verificar Atualizações
+                    </button>
+                  </div>
+                )}
+
+                {updateStatus === "checking" && (
+                  <div className="flex items-center gap-3 py-2">
+                    <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">Buscando novas atualizações...</span>
+                  </div>
+                )}
+
+                {updateStatus === "no-update" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-emerald-500 font-medium flex items-center gap-2">
+                      <Check className="h-4 w-4" />
+                      Você já está utilizando a versão mais recente!
+                    </p>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handleCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Verificar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {updateStatus === "available" && updateInfo && (
+                  <div className="space-y-4">
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Nova versão disponível: <span className="font-mono text-primary">v{updateInfo.version}</span>
+                      </h3>
+                      {updateInfo.date && (
+                        <p className="text-xs text-muted-foreground">
+                          Lançada em: {updateInfo.date}
+                        </p>
+                      )}
+                      {updateInfo.body && (
+                        <div className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap font-sans">
+                          {updateInfo.body}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handleDownloadInstall}
+                        className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs"
+                      >
+                        Baixar e Instalar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {updateStatus === "downloading" && (
+                  <div className="space-y-3 py-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Baixando atualização...</span>
+                      <span className="font-semibold text-primary">{downloadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-primary h-full transition-all duration-300 rounded-full"
+                        style={{ width: `${downloadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {updateStatus === "downloaded" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-emerald-500 font-medium">
+                      Atualização baixada com sucesso! O aplicativo precisa ser reiniciado para aplicar as mudanças.
+                    </p>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handleRelaunch}
+                        className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs animate-pulse"
+                      >
+                        Reiniciar Agora
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {updateStatus === "error" && (
+                  <div className="space-y-4">
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-destructive mb-1">
+                        Falha ao processar atualização
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono truncate">
+                        {errorMessage}
+                      </p>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={handleCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Tentar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              /* PWA/Web platform manual check updates layout */
+              <>
+                {pwaUpdateStatus === "idle" && (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handlePwaCheckUpdate}
+                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg flex items-center gap-2 cursor-pointer shadow-xs"
+                    >
+                      Verificar Atualizações
+                    </button>
+                  </div>
+                )}
+
+                {pwaUpdateStatus === "checking" && (
+                  <div className="flex items-center gap-3 py-2">
+                    <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">Verificando se há novas atualizações...</span>
+                  </div>
+                )}
+
+                {pwaUpdateStatus === "no-update" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-emerald-500 font-medium flex items-center gap-2">
+                      <Check className="h-4 w-4" />
+                      Você já está utilizando a versão mais recente!
+                    </p>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handlePwaCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Verificar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {pwaUpdateStatus === "available" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-primary font-medium flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 animate-pulse" />
+                      Uma nova versão está disponível! O diálogo de atualização foi aberto.
+                    </p>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handlePwaCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Verificar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {pwaUpdateStatus === "error" && (
+                  <div className="space-y-4">
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-destructive mb-1">
+                        Erro ao buscar novas atualizações
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Não foi possível consultar os servidores do GitHub. Tente novamente mais tarde.
+                      </p>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={handlePwaCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Tentar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </TabsContent>
 
         <TabsContent value="changelog" className="space-y-6 animate-in fade-in-50 duration-200">
           <section id="changelog-section" className="space-y-4">
