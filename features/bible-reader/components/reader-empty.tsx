@@ -9,7 +9,7 @@ export function ReaderEmpty({
 }) {
   return (
     <div className="flex flex-1 h-full flex-col items-center justify-center gap-4 p-8">
-      <p className="font-serif text-xl text-muted-foreground/60 text-balance text-center">
+      <p className="font-sans text-xl text-muted-foreground/60 text-balance text-center">
         Selecione um livro e um capítulo para começar a ler.
       </p>
       <p className="text-xs text-muted-foreground/40 text-center text-balance">

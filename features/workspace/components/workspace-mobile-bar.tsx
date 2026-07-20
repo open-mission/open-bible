@@ -22,7 +22,7 @@ export function WorkspaceMobileBar() {
 
   return (
     <>
-      <div className="md:hidden fixed left-0 right-0 z-40 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] border-t border-border bg-background/95 backdrop-blur-md h-14 px-2 flex items-center gap-1">
+      <div className="md:hidden fixed left-0 right-0 z-40 bottom-[calc(4.875rem+env(safe-area-inset-bottom))] border-t border-border bg-background/95 backdrop-blur-md h-14 px-2 flex items-center gap-1">
         {/* Tab switcher: count + active title → opens the overview */}
         <button
           type="button"

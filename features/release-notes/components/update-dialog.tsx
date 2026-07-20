@@ -59,7 +59,7 @@ function parseChangelogToReact(markdown: string) {
       elements.push(
         <h4
           key={`title-${i}`}
-          className="text-xs font-semibold text-foreground mt-4 mb-2 first:mt-0 font-serif"
+          className="text-xs font-semibold text-foreground mt-4 mb-2 first:mt-0 font-sans"
         >
           {displayTitle}
         </h4>

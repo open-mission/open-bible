@@ -295,7 +295,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
         {/* ── Default Bible version ──────────────────────────────────────── */}
         <TabsContent value="version" className="space-y-4">
           <div>
-            <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+            <h2 className="text-lg font-sans font-medium text-foreground mb-1">
               Versão padrão
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -337,7 +337,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           {/* Estilo do Tema */}
           <div className="space-y-4">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                 Estilo do Tema
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -372,7 +372,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           {/* Appearance Mode */}
           <div className="space-y-4 pt-4 border-t border-border/50">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                 Aparência
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -408,7 +408,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           {palette === "default" && (
             <div className="space-y-4 pt-4 border-t border-border/50 animate-in fade-in-50 duration-200">
               <div>
-                <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+                <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                   Cor de destaque
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -463,7 +463,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           {/* Highlights Settings Section */}
           <div className="border-t border-border/50 pt-6 space-y-6">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                 Configurações de Destaques (Highlights)
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -575,7 +575,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
         {isDesktop && (
           <TabsContent value="shortcuts" className="space-y-6 animate-in fade-in-50 duration-200">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                 Atalhos do Teclado
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -647,7 +647,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
 
         <TabsContent value="updates" className="space-y-6 animate-in fade-in-50 duration-200">
           <div>
-            <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+            <h2 className="text-lg font-sans font-medium text-foreground mb-1">
               Atualizações do Aplicativo
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -903,7 +903,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
         <TabsContent value="changelog" className="space-y-6 animate-in fade-in-50 duration-200">
           <section id="changelog-section" className="space-y-4">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                 Novidades (
                 <a
                   href={`https://github.com/open-mission/open-bible/releases/tag/v${latestEntry.version}`}
@@ -967,7 +967,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                 className="h-16 w-auto dark:invert-0 invert select-none pointer-events-none"
               />
               <div className="space-y-1.5">
-                <h2 className="text-xl font-serif font-semibold text-foreground">
+                <h2 className="text-xl font-sans font-semibold text-foreground">
                   Open Bible
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-sm">

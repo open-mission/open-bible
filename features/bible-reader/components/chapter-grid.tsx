@@ -28,7 +28,7 @@ export function ChapterGrid({ bookId, selectedChapter, onSelectChapter, onBack }
           <ChevronLeft className="h-4 w-4" />
         </button>
         <div className="min-w-0">
-          <h2 className="font-serif text-base font-semibold text-foreground truncate leading-tight">
+          <h2 className="font-sans text-base font-semibold text-foreground truncate leading-tight">
             {book.name}
           </h2>
           <p className="text-xs text-muted-foreground leading-tight mt-0.5">

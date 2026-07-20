@@ -5,6 +5,7 @@ import { TauriMenuListener } from "@/features/layout/components/tauri-menu-liste
 import { Inter, Lora, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/features/theme/components/theme-provider";
 import { BibleVersionProvider } from "@/features/bible-reader/context/bible-version-context";
+import { AppNavigationProvider } from "@/features/navigation/context/app-navigation-context";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
 import { VersionLabel } from "@/features/layout/components/version-label";
@@ -91,6 +92,7 @@ export default function RootLayout({
         <TauriMenuListener />
         <ThemeProvider>
           <BibleVersionProvider>
+            <AppNavigationProvider>
             <TooltipProvider>
               <ReleaseNotesProvider>
                 {children}
@@ -99,6 +101,7 @@ export default function RootLayout({
               <OpfsStatusGate />
               <Toaster position="bottom-right" />
             </TooltipProvider>
+            </AppNavigationProvider>
           </BibleVersionProvider>
         </ThemeProvider>
         <ServiceWorkerRegister />
