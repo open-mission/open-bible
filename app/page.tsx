@@ -14,42 +14,49 @@ import type { ShortcutDefinition } from "@/features/navigation/types"
 export default function Home() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const isMobile = useIsMobile()
-  const { mode } = useWorkspaceMode()
+  const { mode, loaded } = useWorkspaceMode()
   const isAdvanced = mode === "advanced"
+
+  const openCommandPalette = () => setCommandPaletteOpen(true)
 
   const shortcuts: ShortcutDefinition[] = useMemo(() => [
     {
       id: "command-palette",
       label: "Abrir busca",
       keys: "mod+k",
-      action: () => setCommandPaletteOpen(true),
+      action: openCommandPalette,
       group: "global",
     },
   ], [])
 
   useGlobalShortcuts(shortcuts)
 
+  if (!loaded) {
+    return <div className="h-dvh bg-background" />
+  }
+
+  if (isAdvanced) {
+    return (
+      <>
+        <ViewContainer onOpenCommandPalette={openCommandPalette} />
+        {isMobile && <MobileTabBar />}
+        <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
+      </>
+    )
+  }
+
   return (
     <>
-      {isAdvanced ? (
-        <ViewContainer />
-      ) : (
-        <SidebarProvider className="h-dvh">
-          {!isMobile && (
-            <AppSidebar onOpenCommandPalette={() => setCommandPaletteOpen(true)} />
-          )}
-          <SidebarInset className="w-auto overflow-hidden h-full">
-            <ViewContainer />
-          </SidebarInset>
-        </SidebarProvider>
-      )}
+      <SidebarProvider className="h-dvh">
+        {!isMobile && <AppSidebar onOpenCommandPalette={openCommandPalette} />}
+        <SidebarInset className="w-auto overflow-hidden h-full">
+          <ViewContainer />
+        </SidebarInset>
+      </SidebarProvider>
 
       {isMobile && <MobileTabBar />}
 
-      <CommandPalette
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
-      />
+      <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
     </>
   )
 }

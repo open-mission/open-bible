@@ -18,13 +18,16 @@ function getInitialView(): AppView {
 }
 
 export function AppNavigationProvider({ children }: { children: React.ReactNode }) {
-  const [activeView, setActiveView] = useState<AppView>(() => getInitialView())
+  const [activeView, setActiveView] = useState<AppView>("reader")
   const [history, setHistory] = useState<ViewHistoryEntry[]>([])
   const [canGoBack, setCanGoBack] = useState(false)
 
   useEffect(() => {
-    setHistory([{ view: activeView, timestamp: Date.now() }])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const initial = getInitialView()
+    setHistory([{ view: initial, timestamp: Date.now() }])
+    if (initial !== "reader") {
+      setActiveView(initial)
+    }
   }, [])
 
   const navigate = useCallback((view: AppView) => {
