@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import {
+  Command,
   CommandDialog,
   CommandInput,
   CommandList,
@@ -62,6 +63,7 @@ export function CommandPalette({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
+      <Command>
       <CommandInput
         placeholder="Digite um comando ou busque..."
         value={search}
@@ -154,6 +156,7 @@ export function CommandPalette({
           </CommandItem>
         </CommandGroup>
       </CommandList>
+      </Command>
     </CommandDialog>
   )
 }
