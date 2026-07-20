@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw, Sparkles, ChevronRight, ChevronLeft } from "lucide-react"
+import { triggerReloadToast } from "@/lib/settings-toast"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/features/theme/utils/theme"
@@ -49,17 +50,26 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
 
   const updateGutterPosition = (pos: "left" | "right") => {
     setGutterPosition(pos)
-    try { localStorage.setItem("openbible:highlight-gutter-position", pos) } catch {}
+    try {
+      localStorage.setItem("openbible:highlight-gutter-position", pos)
+      triggerReloadToast()
+    } catch {}
   }
 
   const updateMobileInteraction = (val: "popover" | "drawer") => {
     setMobileInteraction(val)
-    try { localStorage.setItem("openbible:highlight-mobile-interaction", val) } catch {}
+    try {
+      localStorage.setItem("openbible:highlight-mobile-interaction", val)
+      triggerReloadToast()
+    } catch {}
   }
 
   const updateDesktopInteraction = (val: "popover" | "drawer") => {
     setDesktopInteraction(val)
-    try { localStorage.setItem("openbible:highlight-desktop-interaction", val) } catch {}
+    try {
+      localStorage.setItem("openbible:highlight-desktop-interaction", val)
+      triggerReloadToast()
+    } catch {}
   }
   const [versions, setVersions] = useState<{ id: string; name: string }[]>([])
   const [isDesktop, setIsDesktop] = useState(false)

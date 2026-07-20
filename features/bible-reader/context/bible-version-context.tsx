@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import type { Verse } from "@/lib/types"
 import { API_ORIGIN } from "@/lib/api-base"
 import { database } from "@/lib/database/database"
+import { triggerReloadToast } from "@/lib/settings-toast"
 
 export interface VersionMeta {
   id: string
@@ -264,6 +265,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     saveDefaultVersionId(id)
     setVersionIdState(id)
     saveVersionId(id)
+    triggerReloadToast()
   }, [])
 
   const getVerses = useCallback(
