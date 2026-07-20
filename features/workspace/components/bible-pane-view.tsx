@@ -144,6 +144,7 @@ export function BiblePaneView({
                     readerFont={readerFont}
                     onChangeReaderFont={onChangeReaderFont}
                     isActive={isActive}
+                    hideFloatingNav
                   />
                 </main>
               }
