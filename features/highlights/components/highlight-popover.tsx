@@ -14,6 +14,7 @@ interface HighlightPopoverProps {
   onEdit: (highlightId: string) => void
   onDelete: (highlightId: string) => void
   onClose: () => void
+  embedded?: boolean
 }
 
 export function HighlightPopover({
@@ -22,6 +23,7 @@ export function HighlightPopover({
   onEdit,
   onDelete,
   onClose,
+  embedded = false,
 }: HighlightPopoverProps) {
   const style = getNeonStyle(highlight.highlight.color)
   const isMobile = useIsMobile()
@@ -63,17 +65,17 @@ export function HighlightPopover({
     <div 
       className={cn(
         "rounded-xl border border-border bg-popover p-3 shadow-xl flex flex-col gap-3 select-none",
-        isMobile 
+        embedded 
           ? "w-full border-none bg-transparent shadow-none p-0 gap-4" 
           : "w-64"
       )}
-      style={isMobile ? undefined : {
+      style={embedded || isMobile ? undefined : {
         transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
         transition: isDragging ? "none" : "transform 120ms cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
       {/* Drag Handle (Desktop only) */}
-      {!isMobile && (
+      {!embedded && !isMobile && (
         <div
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}

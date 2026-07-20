@@ -175,6 +175,7 @@ export function GutterIndicator({
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onClose={onDeactivate}
+                  embedded={true}
                 />
               </div>
             </DrawerContent>
@@ -216,6 +217,7 @@ export function GutterIndicator({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onClose={onDeactivate}
+                embedded={false}
               />
             </div>
           </PopoverContent>
