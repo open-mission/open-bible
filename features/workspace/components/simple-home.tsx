@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useCallback } from "react"
 import { Reader } from "@/features/bible-reader/components/reader"
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
 import { PanelLayout } from "@/features/layout/components/panel-layout"
@@ -10,11 +9,10 @@ import { BookChapterDialog } from "@/features/bible-reader/components/book-chapt
 import { getBook } from "@/features/bible-reader/utils/bible-data"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { useAutoDownloadAra } from "@/features/bible-reader/hooks/use-auto-download-ara"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { useReaderPosition } from "@/features/bible-reader/hooks/use-reader-position"
 import { usePanelState } from "@/features/layout/hooks/use-panel-state"
-import { MobileNav } from "@/features/layout/components/mobile-nav"
 import { useIsMobile } from "@/lib/use-media-query"
+import { cn } from "@/lib/utils"
 import { NotesProvider } from "@/features/notes/context/notes-context"
 import { NotesPanel } from "@/features/notes/components/notes-panel"
 import { NoteSheet } from "@/features/notes/components/note-sheet"
@@ -44,29 +42,12 @@ export function SimpleHome() {
   const { inspectorOpen, setInspectorOpen } = usePanelState()
   const { versionId } = useBibleVersion()
   useAutoDownloadAra()
-  const router = useRouter()
 
   const isMobile = useIsMobile()
   const [notesTarget, setNotesTarget] = useState<NoteTarget | null>(null)
   const [notesOpen, setNotesOpen] = useState(false)
   const [bookChapterDialogOpen, setBookChapterDialogOpen] = useState(false)
   const [dialogInitialView, setDialogInitialView] = useState<"books" | "chapters">("books")
-
-  // Cmd+K / Ctrl+K keyboard shortcut to toggle the dialog (desktop only)
-  useEffect(() => {
-    if (isMobile) return
-    function handleKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault()
-        setBookChapterDialogOpen((prev) => {
-          if (!prev) setDialogInitialView("books")
-          return !prev
-        })
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown)
-    return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [isMobile])
 
   const handleSelectBook = useCallback(
     (bookId: string) => {
@@ -90,7 +71,6 @@ export function SimpleHome() {
       : "Select a verse"
 
   return (
-    <>
     <NotesProvider
       bookId={selectedBookId}
       chapter={selectedChapter}
@@ -106,71 +86,68 @@ export function SimpleHome() {
         setNotesTarget(null)
       }}
     >
-      <SidebarProvider open={false} className="h-dvh">
-        <SidebarInset className="w-auto overflow-hidden h-full">
-          <PanelLayout
-            main={
-              <main className="relative overflow-hidden reading-area flex flex-col h-full">
-                {selectedBookId && selectedChapter ? (
-                  <Reader
-                    key={`${selectedBookId}-${selectedChapter}`}
-                    bookId={selectedBookId}
-                    chapter={selectedChapter}
-                    onChapterChange={setSelectedChapter}
-                    onBookChapterClick={() => {
-                      setDialogInitialView("books")
-                      setBookChapterDialogOpen(true)
-                    }}
-                    onChapterClick={() => {
-                      setDialogInitialView("chapters")
-                      setBookChapterDialogOpen(true)
-                    }}
-                    readerMode={readerMode}
-                    onChangeReaderMode={setReaderMode}
-                    fontSize={fontSize}
-                    onChangeFontSize={setFontSize}
-                    verseSpacing={verseSpacing}
-                    onChangeVerseSpacing={setVerseSpacing}
-                    readerFont={readerFont}
-                    onChangeReaderFont={setReaderFont}
-                    showConfigButton={true}
-                  />
-                ) : (
-                  <ReaderEmpty
-                    onOpenSidebar={() => setBookChapterDialogOpen(true)}
-                  />
-                )}
-              </main>
-            }
-            right={
-              !isMobile && notesOpen ? (
-                <NotesPanel />
-              ) : inspectorOpen ? (
-                <InspectorPanel
-                  verseReference={verseReference}
-                  isOpen={inspectorOpen}
-                  onClose={() => setInspectorOpen(false)}
-                />
-              ) : undefined
-            }
-          />
+      <PanelLayout
+        main={
+          <main className={cn(
+            "relative overflow-hidden reading-area flex flex-col h-full",
+            isMobile && "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"
+          )}>
+            {selectedBookId && selectedChapter ? (
+              <Reader
+                key={`${selectedBookId}-${selectedChapter}`}
+                bookId={selectedBookId}
+                chapter={selectedChapter}
+                onChapterChange={setSelectedChapter}
+                onBookChapterClick={() => {
+                  setDialogInitialView("books")
+                  setBookChapterDialogOpen(true)
+                }}
+                onChapterClick={() => {
+                  setDialogInitialView("chapters")
+                  setBookChapterDialogOpen(true)
+                }}
+                readerMode={readerMode}
+                onChangeReaderMode={setReaderMode}
+                fontSize={fontSize}
+                onChangeFontSize={setFontSize}
+                verseSpacing={verseSpacing}
+                onChangeVerseSpacing={setVerseSpacing}
+                readerFont={readerFont}
+                onChangeReaderFont={setReaderFont}
+                showConfigButton={true}
+              />
+            ) : (
+              <ReaderEmpty
+                onOpenSidebar={() => setBookChapterDialogOpen(true)}
+              />
+            )}
+          </main>
+        }
+        right={
+          !isMobile && notesOpen ? (
+            <NotesPanel />
+          ) : inspectorOpen ? (
+            <InspectorPanel
+              verseReference={verseReference}
+              isOpen={inspectorOpen}
+              onClose={() => setInspectorOpen(false)}
+            />
+          ) : undefined
+        }
+      />
 
-          <BookChapterDialog
-            open={bookChapterDialogOpen}
-            onClose={() => setBookChapterDialogOpen(false)}
-            onSelectBook={handleSelectBook}
-            onSelectChapter={handleSelectChapter}
-            selectedBookId={selectedBookId}
-            selectedChapter={selectedChapter}
-            versionAbbreviation={versionId.toUpperCase()}
-            initialView={dialogInitialView}
-          />
-        </SidebarInset>
-      </SidebarProvider>
+      <BookChapterDialog
+        open={bookChapterDialogOpen}
+        onClose={() => setBookChapterDialogOpen(false)}
+        onSelectBook={handleSelectBook}
+        onSelectChapter={handleSelectChapter}
+        selectedBookId={selectedBookId}
+        selectedChapter={selectedChapter}
+        versionAbbreviation={versionId.toUpperCase()}
+        initialView={dialogInitialView}
+      />
 
       {isMobile && notesOpen && <NoteSheet />}
     </NotesProvider>
-    <MobileNav activeNav="home" onNavClick={() => router.push("/config")} />
-    </>
   )
 }

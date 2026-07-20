@@ -2,12 +2,13 @@
 
 import { useState, useCallback } from "react"
 import { X, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical, ChevronLeft, ChevronRight, FolderX } from "lucide-react"
-import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
+import { IconSun, IconMoon, IconSettings, IconBook, IconNotebook, IconHighlight } from "@tabler/icons-react"
 import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
 import { type TabsOrientation } from "../hooks/use-workspace-mode"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
+import { useAppNavigation } from "@/features/navigation/context/app-navigation-context"
 import { ConfigDialog } from "@/features/config/components/config-dialog"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +25,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar"
 import {
@@ -124,6 +126,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
   const { state, setOpen } = useSidebar()
   const isCollapsed = state === "collapsed"
   const [configOpen, setConfigOpen] = useState(false)
+  const { activeView, navigate } = useAppNavigation()
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -224,6 +227,62 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-3 flex flex-col gap-3">
+        <SidebarGroup className="p-0">
+          <SidebarGroupLabel className="flex items-center justify-between w-full pr-0 px-2 mb-1">
+            <span className="group-data-[collapsible=icon]:hidden text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider truncate flex-1">
+              Navegação
+            </span>
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0.5">
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeView === "reader"}
+                  onClick={() => navigate("reader")}
+                  tooltip="Leitura"
+                  className="h-9 rounded-lg transition-all duration-150"
+                >
+                  <IconBook className={cn(
+                    "size-[18px] shrink-0 transition-colors duration-150",
+                    activeView === "reader" ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  <span className="text-sm group-data-[collapsible=icon]:hidden">Leitura</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeView === "notes"}
+                  onClick={() => navigate("notes")}
+                  tooltip="Notas"
+                  className="h-9 rounded-lg transition-all duration-150"
+                >
+                  <IconNotebook className={cn(
+                    "size-[18px] shrink-0 transition-colors duration-150",
+                    activeView === "notes" ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  <span className="text-sm group-data-[collapsible=icon]:hidden">Notas</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeView === "highlights"}
+                  onClick={() => navigate("highlights")}
+                  tooltip="Destaques"
+                  className="h-9 rounded-lg transition-all duration-150"
+                >
+                  <IconHighlight className={cn(
+                    "size-[18px] shrink-0 transition-colors duration-150",
+                    activeView === "highlights" ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  <span className="text-sm group-data-[collapsible=icon]:hidden">Destaques</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator className="mx-0 w-auto" />
+
         <SidebarGroup className="p-0">
           <SidebarGroupLabel className="flex items-center justify-between w-full pr-0 px-2 mb-2">
             <span className="group-data-[collapsible=icon]:hidden text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider truncate flex-1">

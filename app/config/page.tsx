@@ -36,7 +36,7 @@ export default function ConfigPage() {
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <h1 className="font-serif text-base font-medium">Preferências</h1>
+          <h1 className="font-sans text-base font-medium">Preferências</h1>
         </header>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">

@@ -1,21 +1,55 @@
-"use client";
+"use client"
 
-import { useWorkspaceMode } from "@/features/workspace/hooks/use-workspace-mode";
-import { SimpleHome } from "@/features/workspace/components/simple-home";
-import { AdvancedHome } from "@/features/workspace/components/advanced-home";
+import { useState, useMemo } from "react"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/features/navigation/components/app-sidebar"
+import { CommandPalette } from "@/features/navigation/components/command-palette"
+import { MobileTabBar } from "@/features/navigation/components/mobile-tab-bar"
+import { ViewContainer } from "@/features/navigation/components/view-container"
+import { useGlobalShortcuts } from "@/features/navigation/hooks/use-global-shortcuts"
+import { useIsMobile } from "@/lib/use-media-query"
+import { useWorkspaceMode } from "@/features/workspace/hooks/use-workspace-mode"
+import type { ShortcutDefinition } from "@/features/navigation/types"
 
-/**
- * Home page — delegates to SimpleHome (classic single reader) or AdvancedHome
- * (workspace with tabs) based on the user's reading mode preference. The mode
- * is persisted in localStorage via useWorkspaceMode. Until the mode is loaded
- * (first render), a neutral background is shown to avoid a mode flash.
- */
 export default function Home() {
-  const { mode, loaded } = useWorkspaceMode();
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
+  const isMobile = useIsMobile()
+  const { mode } = useWorkspaceMode()
+  const isAdvanced = mode === "advanced"
 
-  if (!loaded) {
-    return <div className="h-dvh bg-background" />;
-  }
+  const shortcuts: ShortcutDefinition[] = useMemo(() => [
+    {
+      id: "command-palette",
+      label: "Abrir busca",
+      keys: "mod+k",
+      action: () => setCommandPaletteOpen(true),
+      group: "global",
+    },
+  ], [])
 
-  return mode === "advanced" ? <AdvancedHome /> : <SimpleHome />;
+  useGlobalShortcuts(shortcuts)
+
+  return (
+    <>
+      {isAdvanced ? (
+        <ViewContainer />
+      ) : (
+        <SidebarProvider className="h-dvh">
+          {!isMobile && (
+            <AppSidebar onOpenCommandPalette={() => setCommandPaletteOpen(true)} />
+          )}
+          <SidebarInset className="w-auto overflow-hidden h-full">
+            <ViewContainer />
+          </SidebarInset>
+        </SidebarProvider>
+      )}
+
+      {isMobile && <MobileTabBar />}
+
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+      />
+    </>
+  )
 }

@@ -91,7 +91,7 @@ export function WorkspaceModeSetting() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+        <h2 className="text-lg font-sans font-medium text-foreground mb-1">
           Modo de Leitura
         </h2>
         <p className="text-sm text-muted-foreground">

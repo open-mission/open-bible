@@ -1,10 +1,8 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { WorkspaceProvider } from "../context/workspace-context"
 import { WorkspaceView } from "./workspace-view"
 import { useAutoDownloadAra } from "@/features/bible-reader/hooks/use-auto-download-ara"
-import { MobileNav } from "@/features/layout/components/mobile-nav"
 
 /**
  * The "Advanced" reading mode — a workspace with browser-style tabs where the
@@ -14,17 +12,13 @@ import { MobileNav } from "@/features/layout/components/mobile-nav"
  */
 export function AdvancedHome() {
   useAutoDownloadAra()
-  const router = useRouter()
 
   return (
-    <>
-      <WorkspaceProvider>
-        <div className="h-dvh overflow-hidden bg-background">
-          <WorkspaceView />
-        </div>
-      </WorkspaceProvider>
-      <MobileNav activeNav="home" hideConfig onNavClick={() => router.push("/config")} />
-    </>
+    <WorkspaceProvider>
+      <div className="h-dvh overflow-hidden bg-background">
+        <WorkspaceView />
+      </div>
+    </WorkspaceProvider>
   )
 }
 

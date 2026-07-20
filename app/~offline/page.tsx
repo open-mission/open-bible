@@ -14,7 +14,7 @@ export default function OfflinePage() {
         </div>
         
         <div className="space-y-2">
-          <h1 className="font-serif text-2xl font-bold tracking-tight">Sem conexão com a internet</h1>
+          <h1 className="font-sans text-2xl font-bold tracking-tight">Sem conexão com a internet</h1>
           <p className="text-sm text-muted-foreground">
             Você está offline. O aplicativo carregará os textos bíblicos e notas armazenados localmente no seu dispositivo.
           </p>
