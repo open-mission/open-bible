@@ -90,6 +90,7 @@ export function VerseSelectionPopover({
   const {
     createHighlight,
     deleteHighlight,
+    updateHighlight,
     createCategory,
     listCategories,
   } = useHighlightMutations();
@@ -235,6 +236,7 @@ export function VerseSelectionPopover({
         isMobile={isMobile}
         onCreateHighlight={async (...args) => { await createHighlight(...args); }}
         onDeleteHighlight={deleteHighlight}
+        onUpdateHighlight={updateHighlight}
         listCategories={listCategories}
         createCategory={createCategory}
         onClose={onClose}

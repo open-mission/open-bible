@@ -23,6 +23,7 @@ interface HighlightMenuProps {
     bible: string
   }) => Promise<void>
   onDeleteHighlight: (id: string) => Promise<void>
+  onUpdateHighlight: (id: string, patch: { color: string }) => Promise<void>
   listCategories: () => Promise<HighlightCategory[]>
   createCategory: (name: string) => Promise<HighlightCategory>
   onClose: () => void
@@ -37,8 +38,8 @@ export function HighlightMenu({
   isMobile,
   onCreateHighlight,
   onDeleteHighlight,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClose: _onClose, // forwarded by parent — reserved for future use
+  onUpdateHighlight,
+  onClose,
   onOpenEditor,
 }: HighlightMenuProps) {
   const { highlightsByVerse } = useHighlightsContext()
@@ -65,20 +66,26 @@ export function HighlightMenu({
         return parseInt(parts[parts.length - 1], 10)
       })
 
-      // Check if there is an existing highlight on these exact verses with this exact color
-      const existingWithColor = selectedVersesHighlights.find((h) => {
-        if (h.highlight.color.toLowerCase() !== color.toLowerCase()) return false
+      // Find any existing highlight on these exact verses (regardless of color)
+      const existingExact = selectedVersesHighlights.find((h) => {
         const hVerses = h.verses.map((v) => v.verse)
+        if (hVerses.length !== selectedVerseIds.length) return false
         return selectedVerseIds.every((id) => {
           const num = parseInt(id.split("-").pop()!, 10)
           return hVerses.includes(num)
         })
       })
 
-      if (existingWithColor) {
-        // Toggle off: delete this specific highlight
-        await onDeleteHighlight(existingWithColor.highlight.id)
-        toast.success("Destaque removido")
+      if (existingExact) {
+        if (existingExact.highlight.color.toLowerCase() === color.toLowerCase()) {
+          // Toggle off: delete this specific highlight
+          await onDeleteHighlight(existingExact.highlight.id)
+          toast.success("Destaque removido")
+        } else {
+          // Update color of the existing highlight
+          await onUpdateHighlight(existingExact.highlight.id, { color })
+          toast.success("Destaque atualizado")
+        }
       } else {
         // Create new highlight with this color
         await onCreateHighlight({
@@ -90,6 +97,9 @@ export function HighlightMenu({
         })
         toast.success("Destaque criado")
       }
+
+      // Close the selection popover
+      onClose()
     } catch {
       toast.error("Falha ao atualizar destaque.")
     }
