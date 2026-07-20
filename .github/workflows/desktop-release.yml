@@ -84,6 +84,35 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_ENV, `TAURI_SIGNING_PRIVATE_KEY=${cleanedKey}\n`);
           console.log('Success: TAURI_SIGNING_PRIVATE_KEY cleaned and set in environment.');
 
+      # MSI target (Windows) requires version to be numeric-only (e.g. major.minor.patch.revision)
+      # and does not accept letters in the pre-release identifier.
+      - name: Normalize version for MSI bundler (Windows only)
+        if: matrix.platform == 'windows-latest'
+        shell: node {0}
+        run: |
+          const fs = require('fs');
+          const path = require('path');
+          const configPath = path.resolve('src-tauri/tauri.conf.json');
+          const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+          
+          console.log('Original Tauri version:', config.version);
+          
+          // Match standard semver with pre-release: e.g., 0.8.2-beta.1 or 0.8.2-dev
+          const match = config.version.match(/^(\d+\.\d+\.\d+)(?:-([a-zA-Z0-9.]+))?$/);
+          if (match) {
+            const core = match[1];
+            const prerelease = match[2];
+            if (prerelease) {
+              // Extract any trailing numeric identifier from pre-release part (e.g. "beta.1" -> 1)
+              const numMatch = prerelease.match(/\.(\d+)$/) || prerelease.match(/(\d+)$/);
+              const revision = numMatch ? parseInt(numMatch[1], 10) : 0;
+              config.version = `${core}.${revision}`;
+            }
+          }
+          
+          console.log('Normalized Tauri version for Windows:', config.version);
+          fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
+
       - name: Build and release desktop app
         uses: tauri-apps/tauri-action@v1
         env:
