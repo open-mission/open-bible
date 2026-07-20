@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Open Bible",
-  "version": "0.8.3-dev",
+  "version": "0.8.4-dev",
   "identifier": "app.openbible.desktop",
   "build": {
     "frontendDist": "../out",
