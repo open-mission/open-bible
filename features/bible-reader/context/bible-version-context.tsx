@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react"
+import * as Sentry from "@sentry/nextjs"
 import type { Verse } from "@/lib/types"
 import { API_ORIGIN } from "@/lib/api-base"
 import { database } from "@/lib/database/database"
@@ -296,6 +297,11 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
 
     setIsInstalling(true)
     setDownloadProgress({ current: 0, total: 100 })
+    Sentry.addBreadcrumb({
+      category: "bible-install",
+      message: `Iniciando download e instalação da bíblia no cliente: ${id}`,
+      level: "info",
+    })
     try {
       const url = `${API_ORIGIN}/api/bibles/download/${id}`
       console.log(`[install:${id}] iniciando fetch`)
@@ -322,6 +328,11 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
       }
 
       console.log(`[install:${id}] headers — content-encoding=${contentEncoding} x-original-content-length=${originalLength} content-length=${contentLength} totalBytes=${totalBytes}`)
+      Sentry.addBreadcrumb({
+        category: "bible-install",
+        message: `Resposta de download recebida para ${id}. Status: ${response.status}. TotalBytes: ${totalBytes}, Encoding: ${contentEncoding}`,
+        level: "info",
+      })
 
       const reader = response.body?.getReader()
       if (!reader) throw new Error("Não foi possível ler o corpo da resposta")
@@ -363,8 +374,15 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
       console.log(`[install:${id}] installBible concluído. Chamando refreshInstalled...`)
       await refreshInstalled()
       console.log(`[install:${id}] concluído com sucesso!`)
+      Sentry.captureMessage(
+        `Bíblia ${id} baixada e instalada com sucesso no cliente. Tamanho: ${receivedBytes} bytes`,
+        "info"
+      )
     } catch (err) {
       console.error(`[install:${id}] ERRO:`, err)
+      Sentry.captureException(err, {
+        tags: { action: "client_install_bible", bible_id: id },
+      })
       throw err
     } finally {
       setIsInstalling(false)
