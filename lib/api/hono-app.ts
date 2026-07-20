@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import { gzipSync } from "zlib";
+import * as Sentry from "@sentry/nextjs";
 import { turso } from "../turso";
 import {
   VersionSchema,
@@ -398,6 +399,12 @@ app.get("/api/bibles/download/:version", async (c) => {
     vfl: "VFL.sqlite",
   };
 
+  Sentry.addBreadcrumb({
+    category: "bible-download",
+    message: `Iniciando proxy de download no servidor para versão: ${version}`,
+    level: "info",
+  });
+
   try {
     // Query TursoDB for the download URL of this version
     const result = await turso.execute(
@@ -412,6 +419,11 @@ app.get("/api/bibles/download/:version", async (c) => {
     } else {
       const filename = mapping[version];
       if (!filename) {
+        Sentry.addBreadcrumb({
+          category: "bible-download",
+          message: `Download cancelado: Versão ${version} não mapeada e sem URL cadastrada`,
+          level: "warning",
+        });
         return c.text("Versão não encontrada", 404);
       }
       const bucketUrl =
@@ -424,6 +436,11 @@ app.get("/api/bibles/download/:version", async (c) => {
 
     const upstream = await fetch(targetUrl);
     if (!upstream.ok) {
+      Sentry.addBreadcrumb({
+        category: "bible-download",
+        message: `Falha ao obter arquivo de origem para ${version}. Status: ${upstream.status} ${upstream.statusText}`,
+        level: "error",
+      });
       return c.text(
         `Erro ao obter arquivo da origem: ${upstream.statusText}`,
         upstream.status as 200,
@@ -441,9 +458,17 @@ app.get("/api/bibles/download/:version", async (c) => {
     c.header("Content-Length", String(compressed.length));
     c.header("Cache-Control", "no-store");
 
+    Sentry.captureMessage(
+      `Download e compressão da bíblia ${version} concluídos no servidor. Tamanho original: ${arrayBuffer.byteLength} bytes, comprimido: ${compressed.length} bytes`,
+      "info",
+    );
+
     return c.body(compressed as unknown as Uint8Array<ArrayBuffer>);
   } catch (e) {
     console.error(`Falha no proxy de download para ${version}:`, e);
+    Sentry.captureException(e, {
+      tags: { version, context: "server_proxy_download" },
+    });
     return c.text("Erro interno no servidor de proxy de download", 500);
   }
 });

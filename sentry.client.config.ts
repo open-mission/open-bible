@@ -10,6 +10,10 @@ Sentry.init({
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
 
-  // Only enable in production to avoid noise
-  enabled: process.env.NODE_ENV === "production",
+  // Only enable in production to avoid noise, or if DSN is explicitly provided for local testing
+  enabled: process.env.NODE_ENV === "production" || !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+  integrations: [
+    Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
+  ],
+  enableLogs: true,
 })
