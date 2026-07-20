@@ -22,38 +22,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [0.8.6] - 2026-07-20
 
-### Changed
-- Release version 0.8.6 from 0.8.6-dev
+### Added
+- Professional sidebar UX with command palette and SPA navigation (#235)
+- Workspace mobile bar with chapter nav arrows, larger icons, and new-tab picker drawer (#236, #237)
+- Quick-navigate by Bible abbreviation in book-chapter dialog (#197)
+- Highlight gutter indicators with alignment, nesting, and user preferences (#212)
+- In-app update notification dialog on new release (#218)
+- Dev/beta pre-release update channels for desktop app (#220)
+- Native Tauri updater with Sentry logging for desktop auto-update (#231)
+- ntfy.sh push notifications for PRs, issues, and Vercel deploys (#234)
+- Sentry integration for error tracking and performance monitoring (#226, #227)
 
-[0.8.6]: https://github.com/open-mission/open-bible/compare/0.8.6...0.8.6
-
-## [0.8.6-dev] - 2026-07-20
-
-### Changed
-- Release version 0.8.6-dev from 0.8.5-dev
-
-[0.8.6-dev]: https://github.com/open-mission/open-bible/compare/0.8.6-dev...0.8.6-dev
-
-## [0.8.5-dev] - 2026-07-20
-
-### Changed
-- Release version 0.8.5-dev from 0.8.4-dev
-
-[0.8.5-dev]: https://github.com/open-mission/open-bible/compare/0.8.5-dev...0.8.5-dev
-
-## [0.8.4-dev] - 2026-07-20
-
-### Changed
-- Release version 0.8.4-dev from 0.8.3-dev
-
-[0.8.4-dev]: https://github.com/open-mission/open-bible/compare/0.8.4-dev...0.8.4-dev
-
-## [0.8.3-dev] - 2026-07-20
+### Fixed
+- Workspace tab overlapping, infinite layout loop, and grid shaking (#211)
+- 35 TypeScript errors and code slop cleanup (#207)
+- 14 ESLint warnings including no-explicit-any and set-state-in-effect (#206)
+- Scoped versionId per-pane to avoid cross-Bible version leaks (#203)
+- Highlight popover closing on interaction and stacking prevention (#216)
+- Transparent popover on mobile when not in drawer (#222)
+- CI version normalization for Windows MSI build targets (#230)
 
 ### Changed
-- Release version 0.8.3-dev from 0.8.2-dev
+- Floating pill popover anchored to selected verses in reader
+- Settings mobile navigation and update popup title (#194)
+- Config page shows action toast prompting UI reload on setting changes (#217)
+- Branding with new logo assets and configs (#223)
+- VersoRow padding and click target optimization (#228)
 
-[0.8.3-dev]: https://github.com/open-mission/open-bible/compare/0.8.3-dev...0.8.3-dev
+[0.8.6]: https://github.com/open-mission/open-bible/compare/v0.8.1...v0.8.6
 
 ## [0.8.1] - 2026-07-17
 
