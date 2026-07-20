@@ -87,7 +87,7 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={onOpenCommandPalette}
-                  tooltip="Buscar (⌘K)"
+                  title="Buscar (⌘K)"
                   className={cn(
                     "h-9 rounded-lg transition-all duration-150",
                     isCollapsed ? "justify-center" : "justify-between"
@@ -123,7 +123,7 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
                     <SidebarMenuButton
                       isActive={isActive}
                       onClick={() => navigate(item.id as AppView)}
-                      tooltip={item.label}
+                      title={item.label}
                       className={cn(
                         "h-9 rounded-lg transition-all duration-150",
                         isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium border-l-2 border-primary"
@@ -157,7 +157,7 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setConfigOpen(true)}
-              tooltip="Configurações"
+              title="Configurações"
               className="h-9 rounded-lg transition-all duration-150"
             >
               <IconSettings className="size-[18px]" />
@@ -167,7 +167,7 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setTheme(isDark ? "light" : "dark")}
-              tooltip={isDark ? "Modo Claro" : "Modo Escuro"}
+              title={isDark ? "Modo Claro" : "Modo Escuro"}
               className="h-9 rounded-lg transition-all duration-150"
             >
               {isDark ? (

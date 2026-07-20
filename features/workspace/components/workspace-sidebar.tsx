@@ -239,7 +239,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
                 <SidebarMenuButton
                   isActive={activeView === "reader"}
                   onClick={() => navigate("reader")}
-                  tooltip="Leitura"
+                  title="Leitura"
                   className="h-9 rounded-lg transition-all duration-150"
                 >
                   <IconBook className={cn(
@@ -253,7 +253,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
                 <SidebarMenuButton
                   isActive={activeView === "notes"}
                   onClick={() => navigate("notes")}
-                  tooltip="Notas"
+                  title="Notas"
                   className="h-9 rounded-lg transition-all duration-150"
                 >
                   <IconNotebook className={cn(
@@ -267,7 +267,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
                 <SidebarMenuButton
                   isActive={activeView === "highlights"}
                   onClick={() => navigate("highlights")}
-                  tooltip="Destaques"
+                  title="Destaques"
                   className="h-9 rounded-lg transition-all duration-150"
                 >
                   <IconHighlight className={cn(
@@ -328,7 +328,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setConfigOpen(true)}
-              tooltip="Configurações"
+              title="Configurações"
               className="h-10 px-2.5 rounded-lg justify-start"
             >
               <IconSettings className="size-4 shrink-0" />
@@ -338,7 +338,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setTheme(isDark ? "light" : "dark")}
-              tooltip={isDark ? "Modo Claro" : "Modo Escuro"}
+              title={isDark ? "Modo Claro" : "Modo Escuro"}
               className="h-10 px-2.5 rounded-lg justify-start"
             >
               {isDark ? (
