@@ -429,7 +429,7 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
 
       {/* Floating navigation: bottom on mobile, sides on desktop */}
       {!dockView && !open && (
-      <div className="fixed inset-x-0 bottom-[calc(2rem+env(safe-area-inset-bottom))] z-40 flex justify-center pointer-events-none md:hidden">
+      <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 flex justify-center pointer-events-none md:hidden">
         <div className="flex gap-5 pointer-events-auto">
           <button
             onClick={prevChapter}
