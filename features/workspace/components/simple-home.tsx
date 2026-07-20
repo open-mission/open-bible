@@ -97,7 +97,7 @@ export function SimpleHome({ openBookChapterSignal }: { openBookChapterSignal?: 
         main={
           <main className={cn(
             "relative overflow-hidden reading-area flex flex-col h-full",
-            isMobile && "pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
+            isMobile && "pb-[calc(4.875rem+env(safe-area-inset-bottom))]"
           )}>
             {selectedBookId && selectedChapter ? (
               <Reader

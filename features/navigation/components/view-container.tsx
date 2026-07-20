@@ -21,7 +21,7 @@ function StubViewShell({ title, description, icon: Icon }: StubViewShellProps) {
   return (
     <div className={cn(
       "flex flex-col h-full",
-      isMobile && "pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
+      isMobile && "pb-[calc(4.875rem+env(safe-area-inset-bottom))]"
     )}>
       <header className="flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4 py-3 shrink-0">
         <button
