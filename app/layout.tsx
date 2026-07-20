@@ -12,7 +12,7 @@ import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ReleaseNotesProvider } from "@/features/release-notes/components/release-notes-provider";
-import { ReleaseNotesToast } from "@/features/release-notes/components/release-notes-toast";
+import { UpdateDialog } from "@/features/release-notes/components/update-dialog";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -81,7 +81,7 @@ export default function RootLayout({
             <TooltipProvider>
               <ReleaseNotesProvider>
                 {children}
-                <ReleaseNotesToast />
+                <UpdateDialog />
               </ReleaseNotesProvider>
               <OpfsStatusGate />
               <Toaster position="bottom-right" />
