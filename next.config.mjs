@@ -1,5 +1,6 @@
 import { readFileSync } from "fs"
 import withPWAInit from "@ducanh2912/next-pwa"
+import { withSentryConfig } from "@sentry/nextjs"
 
 const pkg = JSON.parse(readFileSync("./package.json", "utf-8"))
 const changelog = readFileSync("./CHANGELOG.md", "utf-8")
@@ -92,4 +93,23 @@ const nextConfig = {
       }),
 }
 
-export default isTauri ? nextConfig : withPWA(nextConfig)
+const finalConfig = isTauri ? nextConfig : withPWA(nextConfig)
+
+export default withSentryConfig(finalConfig, {
+  // Sentry organization and project for source map uploads
+  org: "open-mission",
+  project: "javascript-nextjs",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Silent until real auth token is configured in .env.local
+  silent: true,
+  widenClientFileUpload: true,
+  // Tauri static export does not upload source maps
+  sourcemaps: {
+    disable: isTauri,
+  },
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+    excludeReplayShadowDom: true,
+    excludeReplayIframe: true,
+  },
+})
