@@ -1,8 +1,11 @@
-name: Stale Issues and PRs
+# Stale bot — marca issues/PRs inativos e fecha após aviso
+# Evita acumular issues abandonadas no backlog
+name: Mark stale issues and PRs
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "30 1 * * *" # todo dia às 01:30 UTC
+  workflow_dispatch: # permite rodar manualmente
 
 permissions:
   issues: write
@@ -12,11 +15,29 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v10
+      - uses: actions/stale@v9
         with:
-          stale-issue-message: 'This issue has been inactive for 60 days. It will be closed in 7 days if no further activity occurs.'
-          stale-pr-message: 'This PR has been inactive for 60 days. It will be closed in 7 days if no further activity occurs.'
-          days-before-stale: 60
-          days-before-close: 7
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Issues
+          stale-issue-message: >
+            Esta issue está inativa há 60 dias. Ela será fechada automaticamente em 7 dias
+            se não houver atividade. Se ainda for relevante, responda para mantê-la aberta.
+          close-issue-message: >
+            Esta issue foi fechada automaticamente por inatividade.
+            Sinta-se à vontade para reabri-la se o assunto ainda for relevante.
           stale-issue-label: stale
+          days-before-issue-stale: 60
+          days-before-issue-close: 7
+          exempt-issue-labels: pinned,security,help wanted,good first issue
+
+          # PRs
+          stale-pr-message: >
+            Este PR está inativo há 30 dias. Ele será fechado automaticamente em 7 dias
+            se não houver atividade.
+          close-pr-message: >
+            Este PR foi fechado automaticamente por inatividade.
           stale-pr-label: stale
+          days-before-pr-stale: 30
+          days-before-pr-close: 7
+          exempt-pr-labels: pinned,security,dependencies

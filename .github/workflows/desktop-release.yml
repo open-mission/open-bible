@@ -83,6 +83,31 @@ jobs:
           
           fs.appendFileSync(process.env.GITHUB_ENV, `TAURI_SIGNING_PRIVATE_KEY=${cleanedKey}\n`);
           console.log('Success: TAURI_SIGNING_PRIVATE_KEY cleaned and set in environment.');
+      - name: Normalize version for MSI/Windows
+        shell: node {0}
+        run: |
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const cleanVersion = pkg.version.split('-')[0];
+          console.log(`Original version: ${pkg.version}, Normalized version: ${cleanVersion}`);
+          
+          pkg.version = cleanVersion;
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+          
+          if (fs.existsSync('src-tauri/tauri.conf.json')) {
+            const tauriConfig = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
+            tauriConfig.version = cleanVersion;
+            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(tauriConfig, null, 2) + '\n', 'utf8');
+            console.log('Updated src-tauri/tauri.conf.json');
+          }
+          
+          const cargoPath = 'src-tauri/Cargo.toml';
+          if (fs.existsSync(cargoPath)) {
+            let cargoContent = fs.readFileSync(cargoPath, 'utf8');
+            cargoContent = cargoContent.replace(/^version = "[^"]*"/m, `version = "${cleanVersion}"`);
+            fs.writeFileSync(cargoPath, cargoContent, 'utf8');
+            console.log('Updated src-tauri/Cargo.toml');
+          }
 
       - name: Build and release desktop app
         uses: tauri-apps/tauri-action@v1
@@ -97,7 +122,7 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "Open Bible ${{ github.ref_name }}"
           releaseDraft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
           args: ${{ matrix.args }}
 
       - name: Install Flatpak and Flatpak Builder

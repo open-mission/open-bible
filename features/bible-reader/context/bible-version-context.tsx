@@ -1,9 +1,11 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react"
+import * as Sentry from "@sentry/nextjs"
 import type { Verse } from "@/lib/types"
 import { API_ORIGIN } from "@/lib/api-base"
 import { database } from "@/lib/database/database"
+import { triggerReloadToast } from "@/lib/settings-toast"
 
 export interface VersionMeta {
   id: string
@@ -69,7 +71,7 @@ interface BibleVersionContextValue {
   availableVersions: AvailableVersion[]
   installVersion: (id: string) => Promise<void>
   uninstallVersion: (id: string) => Promise<void>
-  getVerses: (bookId: string, chapter: number) => Promise<Verse[]>
+  getVerses: (bookId: string, chapter: number, specificVersionId?: string) => Promise<Verse[]>
   refreshInstalled: () => Promise<void>
   isVersionsLoaded: boolean
 }
@@ -162,7 +164,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
   const [isInstalling, setIsInstalling] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null)
   const [isVersionsLoaded, setIsVersionsLoaded] = useState(false)
-  const [versionMetaCache, setVersionMetaCache] = useState<Record<string, VersionMeta>>({})
+
 
   // Ref to keep installedVersions stable for getVerses callback (Fix 7)
   const installedVersionsRef = useRef<VersionMeta[]>(installedVersions)
@@ -264,13 +266,14 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     saveDefaultVersionId(id)
     setVersionIdState(id)
     saveVersionId(id)
+    triggerReloadToast()
   }, [])
 
   const getVerses = useCallback(
-    async (bookId: string, chapter: number): Promise<Verse[]> => {
+    async (bookId: string, chapter: number, specificVersionId?: string): Promise<Verse[]> => {
       try {
         await database.initialize()
-        const currentVersion = versionId || defaultVersionId || "ara"
+        const currentVersion = specificVersionId || versionId || defaultVersionId || "ara"
 
         // Use ref to avoid re-creating this callback when installedVersions changes
         const isInstalled = installedVersionsRef.current.some((v) => v.id === currentVersion)
@@ -294,6 +297,11 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
 
     setIsInstalling(true)
     setDownloadProgress({ current: 0, total: 100 })
+    Sentry.addBreadcrumb({
+      category: "bible-install",
+      message: `Iniciando download e instalação da bíblia no cliente: ${id}`,
+      level: "info",
+    })
     try {
       const url = `${API_ORIGIN}/api/bibles/download/${id}`
       console.log(`[install:${id}] iniciando fetch`)
@@ -320,6 +328,11 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
       }
 
       console.log(`[install:${id}] headers — content-encoding=${contentEncoding} x-original-content-length=${originalLength} content-length=${contentLength} totalBytes=${totalBytes}`)
+      Sentry.addBreadcrumb({
+        category: "bible-install",
+        message: `Resposta de download recebida para ${id}. Status: ${response.status}. TotalBytes: ${totalBytes}, Encoding: ${contentEncoding}`,
+        level: "info",
+      })
 
       const reader = response.body?.getReader()
       if (!reader) throw new Error("Não foi possível ler o corpo da resposta")
@@ -361,8 +374,15 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
       console.log(`[install:${id}] installBible concluído. Chamando refreshInstalled...`)
       await refreshInstalled()
       console.log(`[install:${id}] concluído com sucesso!`)
+      Sentry.captureMessage(
+        `Bíblia ${id} baixada e instalada com sucesso no cliente. Tamanho: ${receivedBytes} bytes`,
+        "info"
+      )
     } catch (err) {
       console.error(`[install:${id}] ERRO:`, err)
+      Sentry.captureException(err, {
+        tags: { action: "client_install_bible", bible_id: id },
+      })
       throw err
     } finally {
       setIsInstalling(false)

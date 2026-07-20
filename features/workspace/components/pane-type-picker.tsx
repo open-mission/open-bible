@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Plus } from "lucide-react"
 import {
   DropdownMenu,
@@ -10,17 +11,11 @@ import {
   DropdownMenuGroup,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer"
 import { useWorkspace } from "../context/workspace-context"
 import { PANE_TYPE_OPTIONS } from "../lib/pane-type-options"
+import { useIsMobile } from "@/lib/use-media-query"
 
-/**
- * A "+" button that opens a dropdown menu letting the user choose what type
- * of pane to open: Bible, Notes, or Sermons (placeholder). This replaces the
- * old behavior where "+" always opened a Bible pane.
- *
- * Used in both the tab bar and the toolbar. New pane types can be added here
- * in one place.
- */
 export function PaneTypePicker({
   children,
   className,
@@ -29,6 +24,44 @@ export function PaneTypePicker({
   className?: string
 }) {
   const { openPane } = useWorkspace()
+  const isMobile = useIsMobile()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  if (isMobile) {
+    return (
+      <>
+        <button
+          type="button"
+          aria-label="Nova aba"
+          onClick={() => setDrawerOpen(true)}
+          className={className ?? "flex items-center justify-center rounded-md size-10 text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"}
+        >
+          {children || <Plus className="size-5" />}
+        </button>
+        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <DrawerContent className="p-4 pb-safe">
+            <DrawerHeader className="px-0 pt-0 pb-2">
+              <DrawerTitle>Abrir nova aba</DrawerTitle>
+            </DrawerHeader>
+            <div className="flex flex-col gap-1">
+              {PANE_TYPE_OPTIONS.map((opt) => (
+                <DrawerClose key={opt.type} asChild>
+                  <button
+                    type="button"
+                    onClick={() => openPane(opt.state)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <opt.icon />
+                    <span>{opt.label}</span>
+                  </button>
+                </DrawerClose>
+              ))}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </>
+    )
+  }
 
   return (
     <DropdownMenu>

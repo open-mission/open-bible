@@ -5,6 +5,7 @@ import { TauriMenuListener } from "@/features/layout/components/tauri-menu-liste
 import { Inter, Lora, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/features/theme/components/theme-provider";
 import { BibleVersionProvider } from "@/features/bible-reader/context/bible-version-context";
+import { AppNavigationProvider } from "@/features/navigation/context/app-navigation-context";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
 import { VersionLabel } from "@/features/layout/components/version-label";
@@ -12,7 +13,7 @@ import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ReleaseNotesProvider } from "@/features/release-notes/components/release-notes-provider";
-import { ReleaseNotesToast } from "@/features/release-notes/components/release-notes-toast";
+import { UpdateDialog } from "@/features/release-notes/components/update-dialog";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -39,8 +40,21 @@ export const metadata: Metadata = {
   generator: "v0.app",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.png",
-    apple: "/icon.png",
+    icon: "/icon-192.png",
+    apple: "/icon-512.png",
+  },
+  openGraph: {
+    title: "Open Bible",
+    description:
+      "Leia, destaque e anote os textos bíblicos de forma simples e focada.",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1200,
+        height: 400,
+        alt: "Open Bible Logo",
+      },
+    ],
   },
   other: {
     "apple-mobile-web-app-capable": "yes",
@@ -78,14 +92,16 @@ export default function RootLayout({
         <TauriMenuListener />
         <ThemeProvider>
           <BibleVersionProvider>
+            <AppNavigationProvider>
             <TooltipProvider>
               <ReleaseNotesProvider>
                 {children}
-                <ReleaseNotesToast />
+                <UpdateDialog />
               </ReleaseNotesProvider>
               <OpfsStatusGate />
               <Toaster position="bottom-right" />
             </TooltipProvider>
+            </AppNavigationProvider>
           </BibleVersionProvider>
         </ThemeProvider>
         <ServiceWorkerRegister />

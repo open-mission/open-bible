@@ -9,7 +9,7 @@ const BOOK_NAMES: Record<string, string> = {
   jl: "Joel", am: "Amós", ob: "Obadias", jn: "Jonas",
   mq: "Miqueias", na: "Naum", hc: "Habacuque", sf: "Sofonias",
   ag: "Ageu", zc: "Zacarias", ml: "Malaquias",
-  mt: "Mateus", mc: "Marcos", lc: "Lucas", jo: "João",
+  mt: "Mateus", mc: "Marcos", lc: "Lucas", joao: "João",
   at: "Atos", rm: "Romanos", "1co": "1 Coríntios", "2co": "2 Coríntios",
   gl: "Gálatas", ef: "Efésios", fp: "Filipenses", cl: "Colossenses",
   "1ts": "1 Tessalonicenses", "2ts": "2 Tessalonicenses",

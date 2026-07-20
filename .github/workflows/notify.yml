@@ -1,0 +1,72 @@
+name: ntfy Notifications
+
+on:
+  issues:
+    types: [opened, closed, reopened]
+  pull_request:
+    types: [opened, closed, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    name: Notify via ntfy.sh
+    runs-on: ubuntu-latest
+    if: ${{ vars.NTFY_TOPIC != '' }}
+    steps:
+      - name: Send notification
+        run: |
+          EVENT="${{ github.event_name }}"
+          ACTION="${{ github.event.action }}"
+
+          case "$EVENT" in
+            issues)
+              TITLE="${{ github.event.issue.title }}"
+              URL="${{ github.event.issue.html_url }}"
+              AUTHOR="${{ github.event.issue.user.login }}"
+              ;;
+            pull_request)
+              TITLE="${{ github.event.pull_request.title }}"
+              URL="${{ github.event.pull_request.html_url }}"
+              AUTHOR="${{ github.event.pull_request.user.login }}"
+              DRAFT="${{ github.event.pull_request.draft }}"
+              ;;
+          esac
+
+          # Build notification title
+          case "$EVENT:$ACTION" in
+            issues:opened)        EMOJI="🐛";  HEADER="New issue" ;;
+            issues:closed)        EMOJI="✅";  HEADER="Issue closed" ;;
+            issues:reopened)      EMOJI="🔄";  HEADER="Issue reopened" ;;
+            pull_request:opened)  EMOJI="📥";  HEADER="PR opened" ;;
+            pull_request:closed)  EMOJI="🔒";  HEADER="PR closed" ;;
+            pull_request:reopened) EMOJI="🔄"; HEADER="PR reopened" ;;
+            pull_request:ready_for_review) EMOJI="👀"; HEADER="PR ready for review" ;;
+            *)                    EMOJI="📢";  HEADER="$EVENT $ACTION" ;;
+          esac
+
+          # Draft label
+          if [ "$DRAFT" = "true" ]; then
+            HEADER="$HEADER [DRAFT]"
+          fi
+
+          # Tags
+          TAGS="github"
+          [ "$EVENT" = "issues" ] && TAGS="$TAGS,bug"
+          [ "$EVENT" = "pull_request" ] && TAGS="$TAGS,arrow_heading_up"
+
+          # Priority: urgent for reopened, high for new, default for closed
+          case "$ACTION" in
+            reopened) PRIORITY="urgent" ;;
+            opened|ready_for_review) PRIORITY="high" ;;
+            *) PRIORITY="default" ;;
+          esac
+
+          curl -s -f \
+            -H "Title: $EMOJI $HEADER: $TITLE" \
+            -H "Tags: $TAGS" \
+            -H "Priority: $PRIORITY" \
+            -H "Click: $URL" \
+            -d "by @$AUTHOR" \
+            "https://ntfy.sh/${{ vars.NTFY_TOPIC }}"

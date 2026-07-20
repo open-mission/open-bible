@@ -237,7 +237,9 @@ ${sectionName}
   runCmd(`git push origin ${tag}`, dryRun);
 
   // 8. Create GitHub Release
-  runCmd(`gh release create ${tag} --generate-notes`, dryRun);
+  const isPrerelease = nextVersion.includes('-');
+  const prereleaseFlag = isPrerelease ? ' --prerelease' : '';
+  runCmd(`gh release create ${tag} --generate-notes${prereleaseFlag}`, dryRun);
 
   console.log(`\n\x1b[32mSuccessfully released ${tag}!\x1b[0m`);
 }

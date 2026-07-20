@@ -2,12 +2,13 @@
 
 import { useState, useCallback } from "react"
 import { X, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical, ChevronLeft, ChevronRight, FolderX } from "lucide-react"
-import { IconSun, IconMoon, IconSettings } from "@tabler/icons-react"
-import { useSortable } from "@dnd-kit/sortable"
+import { IconSun, IconMoon, IconSettings, IconBook, IconNotebook, IconHighlight } from "@tabler/icons-react"
+import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
 import { type TabsOrientation } from "../hooks/use-workspace-mode"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
+import { useAppNavigation } from "@/features/navigation/context/app-navigation-context"
 import { ConfigDialog } from "@/features/config/components/config-dialog"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +25,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar"
 import {
@@ -119,10 +121,12 @@ interface WorkspaceSidebarProps {
  */
 export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSidebarProps) {
   const { panes, activePaneId, activatePane, closePane, closeAllPanes, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const paneIds = panes.map((p) => p.id)
   const { isDark, setTheme } = useAppTheme()
   const { state, setOpen } = useSidebar()
   const isCollapsed = state === "collapsed"
   const [configOpen, setConfigOpen] = useState(false)
+  const { activeView, navigate } = useAppNavigation()
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -151,13 +155,12 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
   }, [sidebarWidth, onSidebarResize, setOpen])
 
   const sidebarContent = (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shrink-0 relative">
-      <SidebarHeader className="border-b border-sidebar-border/40 py-2.5 px-3 flex flex-row items-center justify-between min-h-[52px] gap-2 bg-sidebar-accent/10">
+    <Sidebar collapsible="icon" className="border-r border-border/30 bg-background shrink-0 relative">
+      <SidebarHeader className="border-b border-border/30 py-2.5 px-3 flex flex-row items-center justify-between min-h-[52px] gap-2 bg-accent/5">
         {!isCollapsed ? (
           <>
             {/* Abas vs Grade Layout Mode Toggle using ToggleGroup */}
             <ToggleGroup
-              type="single"
               value={[layoutMode]}
               onValueChange={(val) => {
                 if (val && val[0]) setLayoutMode(val[0] as LayoutMode)
@@ -225,6 +228,62 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
 
       <SidebarContent className="px-2 py-3 flex flex-col gap-3">
         <SidebarGroup className="p-0">
+          <SidebarGroupLabel className="flex items-center justify-between w-full pr-0 px-2 mb-1">
+            <span className="group-data-[collapsible=icon]:hidden text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider truncate flex-1">
+              Navegação
+            </span>
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0.5">
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeView === "reader"}
+                  onClick={() => navigate("reader")}
+                  title="Leitura"
+                  className="h-9 rounded-lg transition-all duration-150"
+                >
+                  <IconBook className={cn(
+                    "size-[18px] shrink-0 transition-colors duration-150",
+                    activeView === "reader" ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  <span className="text-sm group-data-[collapsible=icon]:hidden">Leitura</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeView === "notes"}
+                  onClick={() => navigate("notes")}
+                  title="Notas"
+                  className="h-9 rounded-lg transition-all duration-150"
+                >
+                  <IconNotebook className={cn(
+                    "size-[18px] shrink-0 transition-colors duration-150",
+                    activeView === "notes" ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  <span className="text-sm group-data-[collapsible=icon]:hidden">Notas</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeView === "highlights"}
+                  onClick={() => navigate("highlights")}
+                  title="Destaques"
+                  className="h-9 rounded-lg transition-all duration-150"
+                >
+                  <IconHighlight className={cn(
+                    "size-[18px] shrink-0 transition-colors duration-150",
+                    activeView === "highlights" ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  <span className="text-sm group-data-[collapsible=icon]:hidden">Destaques</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator className="mx-0 w-auto" />
+
+        <SidebarGroup className="p-0">
           <SidebarGroupLabel className="flex items-center justify-between w-full pr-0 px-2 mb-2">
             <span className="group-data-[collapsible=icon]:hidden text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider truncate flex-1">
               Painéis abertos
@@ -246,18 +305,20 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
           </SidebarGroupLabel>
 
           <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {panes.map((pane) => (
-                <SortableSidebarTab
-                  key={pane.id}
-                  pane={pane}
-                  active={pane.id === activePaneId}
-                  onActivate={() => activatePane(pane.id)}
-                  onClose={() => closePane(pane.id)}
-                  total={panes.length}
-                />
-              ))}
-            </SidebarMenu>
+            <SortableContext items={paneIds} strategy={verticalListSortingStrategy}>
+              <SidebarMenu className="gap-1">
+                {panes.map((pane) => (
+                  <SortableSidebarTab
+                    key={pane.id}
+                    pane={pane}
+                    active={pane.id === activePaneId}
+                    onActivate={() => activatePane(pane.id)}
+                    onClose={() => closePane(pane.id)}
+                    total={panes.length}
+                  />
+                ))}
+              </SidebarMenu>
+            </SortableContext>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
@@ -267,7 +328,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setConfigOpen(true)}
-              tooltip="Configurações"
+              title="Configurações"
               className="h-10 px-2.5 rounded-lg justify-start"
             >
               <IconSettings className="size-4 shrink-0" />
@@ -277,7 +338,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setTheme(isDark ? "light" : "dark")}
-              tooltip={isDark ? "Modo Claro" : "Modo Escuro"}
+              title={isDark ? "Modo Claro" : "Modo Escuro"}
               className="h-10 px-2.5 rounded-lg justify-start"
             >
               {isDark ? (
@@ -373,6 +434,7 @@ interface SortableSidebarTabProps {
   onActivate: () => void
   onClose: () => void
   total: number
+  isCollapsed?: boolean
 }
 
 function SortableSidebarTab({
@@ -381,9 +443,10 @@ function SortableSidebarTab({
   onActivate,
   onClose,
   total,
+  isCollapsed: forceCollapsed,
 }: SortableSidebarTabProps) {
   const { state } = useSidebar()
-  const isCollapsed = state === "collapsed"
+  const isCollapsed = forceCollapsed ?? state === "collapsed"
   const isDragDisabled = isCollapsed
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -452,5 +515,294 @@ function SortableSidebarTab({
         </button>
       )}
     </SidebarMenuItem>
+  )
+}
+
+function PaneTabItem({
+  pane,
+  active,
+  onActivate,
+  onClose,
+  total,
+  isCollapsed,
+}: SortableSidebarTabProps) {
+  const isDragDisabled = isCollapsed ?? false
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: pane.id, disabled: isDragDisabled })
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(
+      transform ? { ...transform, x: 0 } : null
+    ),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "group/tab relative flex items-center select-none rounded-md transition-all border border-transparent mx-1",
+        isDragging
+          ? "opacity-40 scale-95 border-primary/20 bg-primary/5 cursor-grabbing"
+          : "cursor-grab active:cursor-grabbing hover:bg-sidebar-accent/50",
+        active && "bg-sidebar-accent/80 text-sidebar-accent-foreground border-sidebar-border/30"
+      )}
+    >
+      <div
+        className={cn(
+          "flex-1 flex items-center text-sm text-left min-w-0 transition-colors",
+          isCollapsed ? "justify-center py-2.5 px-0" : "gap-2 px-2 py-2"
+        )}
+        onClick={onActivate}
+        {...(!isDragDisabled ? attributes : {})}
+        {...(!isDragDisabled ? listeners : {})}
+      >
+        {isCollapsed ? (
+          active ? (
+            <BookOpen className="h-4 w-4 text-primary shrink-0" />
+          ) : (
+            <Book className="h-4 w-4 text-muted-foreground shrink-0" />
+          )
+        ) : (
+          <>
+            {active ? (
+              <BookOpen className="h-4 w-4 text-primary shrink-0" />
+            ) : (
+              <Book className="h-4 w-4 text-muted-foreground shrink-0" />
+            )}
+            <span className="truncate flex-1 font-medium select-none">{pane.title}</span>
+          </>
+        )}
+      </div>
+
+      {!isCollapsed && total > 1 && (
+        <button
+          type="button"
+          aria-label="Fechar aba"
+          onClick={(e) => {
+            e.stopPropagation()
+            onClose()
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="absolute right-1.5 opacity-0 group-hover/tab:opacity-100 focus:opacity-100 hover:bg-accent hover:text-foreground text-muted-foreground p-0.5 rounded transition-opacity shrink-0 z-10"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
+    </div>
+  )
+}
+
+interface WorkspacePaneSidebarProps {
+  sidebarWidth: number
+  onSidebarResize: (width: number) => void
+  onOverviewOpen: () => void
+}
+
+export function WorkspacePaneSidebar({ sidebarWidth, onSidebarResize, onOverviewOpen }: WorkspacePaneSidebarProps) {
+  const { panes, activePaneId, activatePane, closePane, closeAllPanes, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const paneIds = panes.map((p) => p.id)
+  const { isDark, setTheme } = useAppTheme()
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [configOpen, setConfigOpen] = useState(false)
+  const collapsedWidth = 48
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const startX = e.clientX
+    const startWidth = sidebarWidth
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const targetWidth = startWidth + (moveEvent.clientX - startX)
+      if (targetWidth < 100) {
+        setIsCollapsed(true)
+        onSidebarResize(256)
+      } else {
+        setIsCollapsed(false)
+        const newWidth = Math.max(180, Math.min(480, targetWidth))
+        onSidebarResize(newWidth)
+      }
+    }
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleMouseUp)
+    }
+
+    document.addEventListener("mousemove", handleMouseMove)
+    document.addEventListener("mouseup", handleMouseUp)
+  }, [sidebarWidth, onSidebarResize])
+
+  const actualWidth = isCollapsed ? collapsedWidth : sidebarWidth
+
+  return (
+    <div
+      style={{ width: actualWidth }}
+      className="h-full flex flex-col shrink-0 border-r border-border/30 bg-background transition-[width] duration-200 relative"
+    >
+      <div className="flex flex-col size-full">
+        <div className="border-b border-sidebar-border/40 py-2.5 px-2 flex flex-row items-center justify-between min-h-[44px] gap-2 bg-sidebar-accent/10">
+          {!isCollapsed ? (
+            <>
+              <ToggleGroup
+                    value={[layoutMode]}
+                    onValueChange={(val) => {
+                      if (val && val[0]) setLayoutMode(val[0] as LayoutMode)
+                    }}
+                    spacing={0}
+                    variant="outline"
+                    className="flex-1 min-w-0"
+                  >
+                    <ToggleGroupItem value="tabs" className="flex-1 text-[11px] h-7 px-1.5">
+                      <Rows3 className="size-3 shrink-0 mr-1" />
+                      <span>Abas</span>
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="grid" className="flex-1 text-[11px] h-7 px-1.5">
+                      <LayoutGrid className="size-3 shrink-0 mr-1" />
+                      <span>Grade</span>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                  <SidebarHeaderMenu />
+                  <button
+                    type="button"
+                    onClick={() => setIsCollapsed(true)}
+                    title="Recolher painéis"
+                    className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                </>
+              ) : (
+                <div className="flex flex-col gap-2 items-center w-full">
+                  <button
+                    type="button"
+                    onClick={() => setIsCollapsed(false)}
+                    title="Expandir painéis"
+                    className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring mx-auto"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                  <div className="w-full border-t border-sidebar-border/30 my-0.5" />
+                  <button
+                    type="button"
+                    onClick={() => setLayoutMode(layoutMode === "tabs" ? "grid" : "tabs")}
+                    title={layoutMode === "tabs" ? "Mudar para modo Grade" : "Mudar para modo Abas"}
+                    className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring mx-auto"
+                  >
+                    {layoutMode === "tabs" ? (
+                      <Rows3 className="h-4 w-4 text-primary" />
+                    ) : (
+                      <LayoutGrid className="h-4 w-4 text-primary" />
+                    )}
+                  </button>
+                  <div className="w-full border-t border-sidebar-border/30 my-0.5" />
+                  <button
+                    type="button"
+                    onClick={onOverviewOpen}
+                    title="Visão geral das abas"
+                    className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring mx-auto"
+                  >
+                    <Rows3 className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-1 py-3 flex flex-col gap-3 no-scrollbar">
+              <div className="flex flex-col">
+                <div className="flex items-center px-2 mb-2">
+                  <span className={cn(
+                    "text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider truncate flex-1",
+                    isCollapsed && "sr-only"
+                  )}>
+                    Painéis abertos
+                  </span>
+                  {!isCollapsed && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      {panes.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={closeAllPanes}
+                          aria-label="Fechar todas as abas"
+                          title="Fechar todas as abas"
+                          className="flex items-center justify-center rounded-md p-1 hover:bg-sidebar-accent hover:text-destructive text-muted-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        >
+                          <FolderX className="h-4 w-4" />
+                        </button>
+                      )}
+                      <PaneTypePicker />
+                    </div>
+                  )}
+                </div>
+
+                <SortableContext items={paneIds} strategy={verticalListSortingStrategy}>
+                  <div className="flex flex-col gap-1">
+                    {panes.map((pane) => (
+                      <PaneTabItem
+                        key={pane.id}
+                        pane={pane}
+                        active={pane.id === activePaneId}
+                        onActivate={() => activatePane(pane.id)}
+                        onClose={() => closePane(pane.id)}
+                        total={panes.length}
+                        isCollapsed={isCollapsed}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </div>
+            </div>
+
+            <div className="border-t border-sidebar-border/40 p-2">
+              {!isCollapsed && (
+                <div className="flex flex-col gap-0.5">
+                  <button
+                    onClick={() => setConfigOpen(true)}
+                    className="flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <IconSettings className="size-[18px] shrink-0" />
+                    <span>Configurações</span>
+                  </button>
+                  <button
+                    onClick={() => setTheme(isDark ? "light" : "dark")}
+                    className="flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    {isDark ? (
+                      <IconSun className="size-[18px] shrink-0" />
+                    ) : (
+                      <IconMoon className="size-[18px] shrink-0" />
+                    )}
+                    <span>{isDark ? "Modo Claro" : "Modo Escuro"}</span>
+                  </button>
+                </div>
+              )}
+              <div className={cn(
+                "px-2.5 py-1.5 flex items-center justify-between border-t border-sidebar-border/20 mt-1 select-none",
+                isCollapsed && "hidden"
+              )}>
+                <span className="text-[10px] text-muted-foreground/45 font-mono">
+                  Open Bible v{APP_VERSION}
+                </span>
+                {isPreRelease && ENV_LABEL[APP_ENV] && (
+                  <Badge variant="secondary" className="h-3.5 px-1 text-[8px] font-medium leading-none">
+                    {ENV_LABEL[APP_ENV]}
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <ConfigDialog open={configOpen} onOpenChange={setConfigOpen} />
+
+            {!isCollapsed && (
+              <div
+                onMouseDown={handleMouseDown}
+                className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-primary/30 active:bg-primary transition-colors z-50"
+              />
+            )}
+      </div>
+    </div>
   )
 }

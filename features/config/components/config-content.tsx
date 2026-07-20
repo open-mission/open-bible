@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw, Sparkles, ChevronRight, ChevronLeft } from "lucide-react"
+import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw, Sparkles, ChevronRight, ChevronLeft, Info } from "lucide-react"
+import { triggerReloadToast } from "@/lib/settings-toast"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
 import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/features/theme/utils/theme"
@@ -9,6 +10,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { WorkspaceModeSetting } from "@/features/workspace/components/workspace-mode-setting"
 import { isTauri } from "@/lib/is-tauri"
 import { parseLatestEntry, changelogSrc } from "@/lib/release-notes/changelog"
+import { cn } from "@/lib/utils"
+import { useReleaseNotes } from "@/features/release-notes/components/release-notes-provider"
+import { getAppVersion, isPrerelease } from "@/lib/release-notes/version"
 
 const COLORS = Object.keys(COLOR_LABELS) as ThemeColor[]
 
@@ -26,6 +30,62 @@ const MODES: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
 export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string }) {
   const { mode, color, palette, setTheme, setColor, setPalette } = useAppTheme()
   const { defaultVersionId, setDefaultVersionId, availableVersions, installedVersions } = useBibleVersion()
+  const {
+    updateChannel,
+    setChannel,
+    checkForUpdates,
+    tauriStatus,
+    tauriProgress,
+    tauriError,
+    tauriDownloadInstall,
+    tauriRelaunch,
+    latestVersion,
+    changelog
+  } = useReleaseNotes()
+  const [pwaUpdateStatus, setPwaUpdateStatus] = useState<"idle" | "checking" | "available" | "no-update" | "error">("idle")
+
+  // Highlights settings (global state)
+  const [gutterPosition, setGutterPosition] = useState<"left" | "right">("left")
+  const [mobileInteraction, setMobileInteraction] = useState<"popover" | "drawer">("drawer")
+  const [desktopInteraction, setDesktopInteraction] = useState<"popover" | "drawer">("popover")
+
+  // Load highlights settings
+  useEffect(() => {
+    try {
+      const pos = localStorage.getItem("openbible:highlight-gutter-position")
+      if (pos === "left" || pos === "right") setGutterPosition(pos)
+
+      const mob = localStorage.getItem("openbible:highlight-mobile-interaction")
+      if (mob === "popover" || mob === "drawer") setMobileInteraction(mob)
+
+      const desk = localStorage.getItem("openbible:highlight-desktop-interaction")
+      if (desk === "popover" || desk === "drawer") setDesktopInteraction(desk)
+    } catch { /* ignore */ }
+  }, [])
+
+  const updateGutterPosition = (pos: "left" | "right") => {
+    setGutterPosition(pos)
+    try {
+      localStorage.setItem("openbible:highlight-gutter-position", pos)
+      triggerReloadToast()
+    } catch {}
+  }
+
+  const updateMobileInteraction = (val: "popover" | "drawer") => {
+    setMobileInteraction(val)
+    try {
+      localStorage.setItem("openbible:highlight-mobile-interaction", val)
+      triggerReloadToast()
+    } catch {}
+  }
+
+  const updateDesktopInteraction = (val: "popover" | "drawer") => {
+    setDesktopInteraction(val)
+    try {
+      localStorage.setItem("openbible:highlight-desktop-interaction", val)
+      triggerReloadToast()
+    } catch {}
+  }
   const [versions, setVersions] = useState<{ id: string; name: string }[]>([])
   const [isDesktop, setIsDesktop] = useState(false)
   const [isMac] = useState(() => {
@@ -43,11 +103,14 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
   useEffect(() => {
     if (defaultTab) {
       const isMobile = !window.matchMedia("(min-width: 768px)").matches
-      if (isMobile && defaultTab === "version") {
-        setActiveTab("menu")
-      } else {
-        setActiveTab(defaultTab)
-      }
+      const raf = requestAnimationFrame(() => {
+        if (isMobile && defaultTab === "version") {
+          setActiveTab("menu")
+        } else {
+          setActiveTab(defaultTab)
+        }
+      })
+      return () => cancelAnimationFrame(raf)
     }
   }, [defaultTab])
 
@@ -55,17 +118,6 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
 
   // States for Tauri auto-updater
   const [appVersion, setAppVersion] = useState<string>("")
-  const [updateStatus, setUpdateStatus] = useState<
-    "idle" | "checking" | "available" | "no-update" | "downloading" | "downloaded" | "error"
-  >("idle")
-  const [updateInfo, setUpdateInfo] = useState<{
-    version: string
-    date?: string
-    body?: string
-  } | null>(null)
-  const [downloadProgress, setDownloadProgress] = useState<number>(0)
-  const [errorMessage, setErrorMessage] = useState<string>("")
-  const [updateObject, setUpdateObject] = useState<any>(null)
 
   // Fetch app version on mount inside Tauri
   useEffect(() => {
@@ -85,60 +137,25 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
 
   const handleCheckUpdate = async () => {
     if (!isTauri) return
-    setUpdateStatus("checking")
-    setErrorMessage("")
-    try {
-      const { check } = await import("@tauri-apps/plugin-updater")
-      const update = await check()
-      if (update) {
-        setUpdateInfo({
-          version: update.version,
-          date: update.date,
-          body: update.body,
-        })
-        setUpdateObject(update)
-        setUpdateStatus("available")
-      } else {
-        setUpdateStatus("no-update")
-      }
-    } catch (err: any) {
-      console.error("Erro ao verificar atualizações:", err)
-      setUpdateStatus("error")
-      setErrorMessage(err?.toString() || "Erro desconhecido ao verificar atualizações")
-    }
+    await checkForUpdates(true)
   }
 
-  const handleDownloadInstall = async () => {
-    if (!updateObject) return
-    setUpdateStatus("downloading")
-    setDownloadProgress(0)
+  const handlePwaCheckUpdate = async () => {
+    setPwaUpdateStatus("checking")
     try {
-      await updateObject.downloadAndInstall((event: any) => {
-        if (event?.event === "Started") {
-          setDownloadProgress(0)
-        } else if (event?.event === "Progress") {
-          if (event.data?.contentLength) {
-            const pct = Math.round((event.data.progress / event.data.contentLength) * 100)
-            setDownloadProgress(pct)
-          }
-        } else if (event?.event === "Finished") {
-          setDownloadProgress(100)
+      const result = await checkForUpdates(true)
+      if (result.success) {
+        if (result.hasUpdate) {
+          setPwaUpdateStatus("available")
+        } else {
+          setPwaUpdateStatus("no-update")
         }
-      })
-      setUpdateStatus("downloaded")
-    } catch (err: any) {
-      console.error("Erro ao baixar e instalar atualização:", err)
-      setUpdateStatus("error")
-      setErrorMessage(err?.toString() || "Erro ao baixar e instalar atualização")
-    }
-  }
-
-  const handleRelaunch = async () => {
-    try {
-      const { relaunch } = await import("@tauri-apps/plugin-process")
-      await relaunch()
+      } else {
+        setPwaUpdateStatus("error")
+      }
     } catch (err) {
-      console.error("Erro ao reiniciar o aplicativo:", err)
+      console.error("Erro ao buscar atualização:", err)
+      setPwaUpdateStatus("error")
     }
   }
 
@@ -178,8 +195,9 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
     { value: "version", label: "Versão Bíblica", icon: <BookOpen className="h-4 w-4" /> },
     { value: "theme", label: "Tema", icon: <Palette className="h-4 w-4" /> },
     { value: "workspace", label: "Leitura", icon: <LayoutGrid className="h-4 w-4" /> },
-    ...(isTauri ? [{ value: "updates", label: "Atualizações", icon: <RefreshCw className="h-4 w-4" /> }] : []),
+    { value: "updates", label: "Atualizações", icon: <RefreshCw className="h-4 w-4" /> },
     { value: "changelog", label: "Novidades", icon: <Sparkles className="h-4 w-4" /> },
+    { value: "about", label: "Sobre", icon: <Info className="h-4 w-4" /> },
   ]
 
   return (
@@ -221,21 +239,26 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
               <span>Atalhos</span>
             </TabsTrigger>
           )}
-          {isTauri && (
-            <TabsTrigger
-              value="updates"
-              className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
-            >
-              <RefreshCw className="h-4 w-4" />
-              <span>Atualizações</span>
-            </TabsTrigger>
-          )}
+          <TabsTrigger
+            value="updates"
+            className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>Atualizações</span>
+          </TabsTrigger>
           <TabsTrigger
             value="changelog"
             className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
           >
             <Sparkles className="h-4 w-4" />
             <span>Novidades</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="about"
+            className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+          >
+            <Info className="h-4 w-4" />
+            <span>Sobre</span>
           </TabsTrigger>
         </TabsList>
       ) : (
@@ -272,7 +295,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
         {/* ── Default Bible version ──────────────────────────────────────── */}
         <TabsContent value="version" className="space-y-4">
           <div>
-            <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+            <h2 className="text-lg font-sans font-medium text-foreground mb-1">
               Versão padrão
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -314,7 +337,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           {/* Estilo do Tema */}
           <div className="space-y-4">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                 Estilo do Tema
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -349,7 +372,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           {/* Appearance Mode */}
           <div className="space-y-4 pt-4 border-t border-border/50">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                 Aparência
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -385,7 +408,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           {palette === "default" && (
             <div className="space-y-4 pt-4 border-t border-border/50 animate-in fade-in-50 duration-200">
               <div>
-                <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+                <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                   Cor de destaque
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -436,13 +459,123 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
         {/* ── Reading Mode (Simple / Advanced workspace) ────────────────── */}
         <TabsContent value="workspace" className="space-y-8 animate-in fade-in-50 duration-200">
           <WorkspaceModeSetting />
+
+          {/* Highlights Settings Section */}
+          <div className="border-t border-border/50 pt-6 space-y-6">
+            <div>
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
+                Configurações de Destaques (Highlights)
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Personalize o comportamento visual e as interações dos destaques de versículos.
+              </p>
+            </div>
+
+            <div className="space-y-4 max-w-md">
+              {/* Gutter Position */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">Posição das Bordas/Colchetes</span>
+                  <span className="text-xs text-muted-foreground">Lado em que os colchetes dos destaques aparecem</span>
+                </div>
+                <div className="flex bg-muted p-0.5 rounded-lg border border-border/40 shrink-0">
+                  <button
+                    onClick={() => updateGutterPosition("left")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      gutterPosition === "left"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Esquerda
+                  </button>
+                  <button
+                    onClick={() => updateGutterPosition("right")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      gutterPosition === "right"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Direita
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile Interaction */}
+              <div className="flex items-center justify-between gap-4 border-t border-border/30 pt-3">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">No Celular</span>
+                  <span className="text-xs text-muted-foreground">Como abrir as informações no mobile</span>
+                </div>
+                <div className="flex bg-muted p-0.5 rounded-lg border border-border/40 shrink-0">
+                  <button
+                    onClick={() => updateMobileInteraction("drawer")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      mobileInteraction === "drawer"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Drawer (Gaveta)
+                  </button>
+                  <button
+                    onClick={() => updateMobileInteraction("popover")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      mobileInteraction === "popover"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Popover
+                  </button>
+                </div>
+              </div>
+
+              {/* Desktop Interaction */}
+              <div className="flex items-center justify-between gap-4 border-t border-border/30 pt-3">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">No Computador</span>
+                  <span className="text-xs text-muted-foreground">Como abrir as informações no desktop</span>
+                </div>
+                <div className="flex bg-muted p-0.5 rounded-lg border border-border/40 shrink-0">
+                  <button
+                    onClick={() => updateDesktopInteraction("popover")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      desktopInteraction === "popover"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Popover
+                  </button>
+                  <button
+                    onClick={() => updateDesktopInteraction("drawer")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
+                      desktopInteraction === "drawer"
+                        ? "bg-background text-foreground shadow-xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Drawer (Gaveta)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </TabsContent>
 
         {/* ── Keyboard Shortcuts ────────────────── */}
         {isDesktop && (
           <TabsContent value="shortcuts" className="space-y-6 animate-in fade-in-50 duration-200">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                 Atalhos do Teclado
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -512,148 +645,265 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           </TabsContent>
         )}
 
-        {isTauri && (
-          <TabsContent value="updates" className="space-y-6 animate-in fade-in-50 duration-200">
+        <TabsContent value="updates" className="space-y-6 animate-in fade-in-50 duration-200">
+          <div>
+            <h2 className="text-lg font-sans font-medium text-foreground mb-1">
+              Atualizações do Aplicativo
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Gerencie seu canal de atualizações e mantenha seu aplicativo em dia.
+            </p>
+          </div>
+
+          {/* Seletor de Canal de Atualização */}
+          <div className="border border-border/80 rounded-lg p-5 bg-card/45 space-y-4">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
-                Atualizações do Aplicativo
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Verifique se há novas versões do Open Bible e mantenha seu app atualizado.
+              <h3 className="text-sm font-semibold text-foreground mb-1">
+                Canal de Atualização
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Escolha se deseja receber notificações apenas de versões estáveis ou de versões de teste/beta.
               </p>
             </div>
 
-            <div className="border border-border/80 rounded-lg p-5 bg-card/40 space-y-4">
-              <div className="flex justify-between items-center text-sm border-b border-border/40 pb-3">
-                <span className="text-muted-foreground font-medium">Versão atual:</span>
-                <span className="font-mono bg-muted px-2 py-0.5 rounded text-foreground font-semibold">
-                  v{appVersion || "..."}
-                </span>
-              </div>
-
-              {updateStatus === "idle" && (
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleCheckUpdate}
-                    className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg flex items-center gap-2 cursor-pointer shadow-xs"
-                  >
-                    Verificar Atualizações
-                  </button>
-                </div>
-              )}
-
-              {updateStatus === "checking" && (
-                <div className="flex items-center gap-3 py-2">
-                  <RefreshCw className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Buscando novas atualizações...</span>
-                </div>
-              )}
-
-              {updateStatus === "no-update" && (
-                <div className="space-y-4">
-                  <p className="text-sm text-emerald-500 font-medium flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    Você já está utilizando a versão mais recente!
-                  </p>
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleCheckUpdate}
-                      className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
-                    >
-                      Verificar Novamente
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {updateStatus === "available" && updateInfo && (
-                <div className="space-y-4">
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      Nova versão disponível: <span className="font-mono text-primary">v{updateInfo.version}</span>
-                    </h3>
-                    {updateInfo.date && (
-                      <p className="text-xs text-muted-foreground">
-                        Lançada em: {updateInfo.date}
-                      </p>
-                    )}
-                    {updateInfo.body && (
-                      <div className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap font-sans">
-                        {updateInfo.body}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleDownloadInstall}
-                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs"
-                    >
-                      Baixar e Instalar
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {updateStatus === "downloading" && (
-                <div className="space-y-3 py-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Baixando atualização...</span>
-                    <span className="font-semibold text-primary">{downloadProgress}%</span>
-                  </div>
-                  <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-primary h-full transition-all duration-300 rounded-full"
-                      style={{ width: `${downloadProgress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {updateStatus === "downloaded" && (
-                <div className="space-y-4">
-                  <p className="text-sm text-emerald-500 font-medium">
-                    Atualização baixada com sucesso! O aplicativo precisa ser reiniciado para aplicar as mudanças.
-                  </p>
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleRelaunch}
-                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs animate-pulse"
-                    >
-                      Reiniciar Agora
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {updateStatus === "error" && (
-                <div className="space-y-4">
-                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-                    <p className="text-sm font-semibold text-destructive mb-1">
-                      Falha ao processar atualização
-                    </p>
-                    <p className="text-xs text-muted-foreground font-mono truncate">
-                      {errorMessage}
-                    </p>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={handleCheckUpdate}
-                      className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
-                    >
-                      Tentar Novamente
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="flex bg-muted p-0.5 rounded-lg border border-border/40 w-full sm:w-fit shrink-0">
+              <button
+                onClick={() => setChannel("stable")}
+                className={cn(
+                  "flex-1 sm:flex-initial px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer text-center",
+                  updateChannel === "stable"
+                    ? "bg-background text-foreground shadow-xs font-bold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Estável
+              </button>
+              <button
+                onClick={() => setChannel("beta")}
+                className={cn(
+                  "flex-1 sm:flex-initial px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer text-center",
+                  updateChannel === "beta"
+                    ? "bg-background text-foreground shadow-xs font-bold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Beta / Pré-lançamento
+              </button>
             </div>
-          </TabsContent>
-        )}
+
+            {isPrerelease(getAppVersion()) && updateChannel === "beta" && (
+              <p className="text-xs text-muted-foreground italic">
+                * Canal Beta ativado por padrão pois a versão atual é um pré-lançamento (v{getAppVersion()}).
+              </p>
+            )}
+          </div>
+
+          <div className="border border-border/80 rounded-lg p-5 bg-card/40 space-y-4">
+            <div className="flex justify-between items-center text-sm border-b border-border/40 pb-3">
+              <span className="text-muted-foreground font-medium">Versão atual:</span>
+              <span className="font-mono bg-muted px-2 py-0.5 rounded text-foreground font-semibold">
+                v{isTauri ? appVersion : getAppVersion()}
+              </span>
+            </div>
+
+            {isTauri ? (
+              /* Tauri platform updates layout */
+              <>
+                {tauriStatus === "idle" && (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleCheckUpdate}
+                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg flex items-center gap-2 cursor-pointer shadow-xs"
+                    >
+                      Verificar Atualizações
+                    </button>
+                  </div>
+                )}
+
+                {tauriStatus === "checking" && (
+                  <div className="flex items-center gap-3 py-2">
+                    <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">Buscando novas atualizações...</span>
+                  </div>
+                )}
+
+                {tauriStatus === "no-update" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-emerald-500 font-medium flex items-center gap-2">
+                      <Check className="h-4 w-4" />
+                      Você já está utilizando a versão mais recente!
+                    </p>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handleCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Verificar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {tauriStatus === "available" && (
+                  <div className="space-y-4">
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Nova versão disponível: <span className="font-mono text-primary">v{latestVersion}</span>
+                      </h3>
+                      {changelog && (
+                        <div className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap font-sans">
+                          {changelog}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        onClick={tauriDownloadInstall}
+                        className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs"
+                      >
+                        Baixar e Instalar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {tauriStatus === "downloading" && (
+                  <div className="space-y-3 py-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Baixando atualização...</span>
+                      <span className="font-semibold text-primary">{tauriProgress}%</span>
+                    </div>
+                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-primary h-full transition-all duration-300 rounded-full"
+                        style={{ width: `${tauriProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {tauriStatus === "downloaded" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-emerald-500 font-medium">
+                      Atualização baixada com sucesso! O aplicativo precisa ser reiniciado para aplicar as mudanças.
+                    </p>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={tauriRelaunch}
+                        className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs animate-pulse"
+                      >
+                        Reiniciar Agora
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {tauriStatus === "error" && (
+                  <div className="space-y-4">
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-destructive mb-1">
+                        Falha ao processar atualização
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono truncate">
+                        {tauriError}
+                      </p>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={handleCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Tentar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              /* PWA/Web platform manual check updates layout */
+              <>
+                {pwaUpdateStatus === "idle" && (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handlePwaCheckUpdate}
+                      className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg flex items-center gap-2 cursor-pointer shadow-xs"
+                    >
+                      Verificar Atualizações
+                    </button>
+                  </div>
+                )}
+
+                {pwaUpdateStatus === "checking" && (
+                  <div className="flex items-center gap-3 py-2">
+                    <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">Verificando se há novas atualizações...</span>
+                  </div>
+                )}
+
+                {pwaUpdateStatus === "no-update" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-emerald-500 font-medium flex items-center gap-2">
+                      <Check className="h-4 w-4" />
+                      Você já está utilizando a versão mais recente!
+                    </p>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handlePwaCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Verificar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {pwaUpdateStatus === "available" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-primary font-medium flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 animate-pulse" />
+                      Uma nova versão está disponível! O diálogo de atualização foi aberto.
+                    </p>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handlePwaCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Verificar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {pwaUpdateStatus === "error" && (
+                  <div className="space-y-4">
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-destructive mb-1">
+                        Erro ao buscar novas atualizações
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Não foi possível consultar os servidores do GitHub. Tente novamente mais tarde.
+                      </p>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={handlePwaCheckUpdate}
+                        className="px-4 py-2 text-sm font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-lg cursor-pointer"
+                      >
+                        Tentar Novamente
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </TabsContent>
 
         <TabsContent value="changelog" className="space-y-6 animate-in fade-in-50 duration-200">
           <section id="changelog-section" className="space-y-4">
             <div>
-              <h2 className="text-lg font-serif font-medium text-foreground mb-1">
+              <h2 className="text-lg font-sans font-medium text-foreground mb-1">
                 Novidades (
                 <a
                   href={`https://github.com/open-mission/open-bible/releases/tag/v${latestEntry.version}`}
@@ -704,6 +954,56 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   Nenhuma informação de alteração disponível para esta versão.
                 </p>
               )}
+            </div>
+          </section>
+        </TabsContent>
+
+        <TabsContent value="about" className="space-y-6 animate-in fade-in-50 duration-200">
+          <section id="about-section" className="space-y-6">
+            <div className="flex flex-col items-center text-center space-y-4 py-4">
+              <img
+                src="/logo.png"
+                alt="Open Bible Logo"
+                className="h-16 w-auto dark:invert-0 invert select-none pointer-events-none"
+              />
+              <div className="space-y-1.5">
+                <h2 className="text-xl font-sans font-semibold text-foreground">
+                  Open Bible
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Um leitor e organizador de estudos bíblicos offline-first, simples, focado e livre.
+                </p>
+              </div>
+              <div className="flex flex-col gap-1 text-[11px] font-mono text-muted-foreground/60">
+                <span>Versão do App: v{getAppVersion()}</span>
+                <span>Plataforma: {isTauri ? "Desktop App" : "Web PWA"}</span>
+              </div>
+            </div>
+
+            <div className="border border-border/80 rounded-lg p-5 bg-card/45 space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">Sobre o Projeto</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                O Open Bible é um projeto de código aberto desenvolvido com o objetivo de fornecer uma experiência de leitura das Escrituras limpa, livre de distrações, e totalmente offline. Seus dados (destaques, notas, histórico) são armazenados localmente no seu navegador ou dispositivo e nunca são compartilhados sem o seu consentimento.
+              </p>
+              <div className="flex items-center gap-3 pt-2">
+                <a
+                  href="https://github.com/open-mission/open-bible"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Repositório no GitHub
+                </a>
+                <span className="text-muted-foreground/30">•</span>
+                <a
+                  href="https://github.com/open-mission/open-bible/blob/main/LICENSE"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Licença MIT
+                </a>
+              </div>
             </div>
           </section>
         </TabsContent>

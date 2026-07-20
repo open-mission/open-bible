@@ -67,8 +67,8 @@ export function useAutoDownloadAra() {
     if (activeToastIdRef.current && isInstalling && downloadProgress) {
       showDownloadProgress(
         activeToastIdRef.current,
-        downloadProgress.current,
-        downloadProgress.total,
+        "Bíblia ARA",
+        { current: downloadProgress.current, total: downloadProgress.total },
       )
     }
   }, [isInstalling, downloadProgress])

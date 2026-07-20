@@ -1,6 +1,6 @@
 {
   "name": "open-bible",
-  "version": "0.8.1",
+  "version": "0.8.6",
   "private": false,
   "packageManager": "pnpm@10.22.0",
   "scripts": {
@@ -40,6 +40,7 @@
     "@libsql/client": "^0.8.1",
     "@libsql/kysely-libsql": "^0.4.1",
     "@scalar/hono-api-reference": "^0.11.9",
+    "@sentry/nextjs": "10.67.0",
     "@shadcn/react": "^0.2.1",
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
     "@tabler/icons-react": "^3.44.0",

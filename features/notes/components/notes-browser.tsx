@@ -108,9 +108,12 @@ export function NotesBrowser({
 
   useEffect(() => {
     if (mode !== "target") return
-    setView("list")
-    setSelectedId(null)
-    setDraft("")
+    const raf = requestAnimationFrame(() => {
+      setView("list")
+      setSelectedId(null)
+      setDraft("")
+    })
+    return () => cancelAnimationFrame(raf)
   }, [mode, target?.bible, target?.book, target?.chapter, target?.verseStart, target?.verseEnd])
 
   // Verse text preview for target mode

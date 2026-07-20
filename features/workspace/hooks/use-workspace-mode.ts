@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { triggerReloadToast } from "@/lib/settings-toast"
 
 /**
  * Reading mode toggle: "simple" (single reader, the classic experience) vs
@@ -70,6 +71,7 @@ export function useWorkspaceMode() {
     setModeState(m)
     try {
       localStorage.setItem(WORKSPACE_MODE_KEY, m)
+      triggerReloadToast()
     } catch {
       /* ignore */
     }
@@ -79,6 +81,7 @@ export function useWorkspaceMode() {
     setLayoutState(l)
     try {
       localStorage.setItem(WORKSPACE_LAYOUT_KEY, l)
+      triggerReloadToast()
     } catch {
       /* ignore */
     }
@@ -88,6 +91,7 @@ export function useWorkspaceMode() {
     setTabsOrientationState(o)
     try {
       localStorage.setItem(TABS_ORIENTATION_KEY, o)
+      triggerReloadToast()
     } catch {
       /* ignore */
     }

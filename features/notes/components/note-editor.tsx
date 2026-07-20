@@ -69,7 +69,7 @@ export function NoteEditor({
   // Sync external value changes (e.g. switching between notes).
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || "", false)
+      editor.commands.setContent(value || "", { emitUpdate: false })
     }
   }, [editor, value])
 

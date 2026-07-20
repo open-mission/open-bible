@@ -22,8 +22,8 @@ interface HighlightMenuProps {
     verses: number[]
     bible: string
   }) => Promise<void>
-  onUpdateHighlight: (id: string, patch: { color?: string; categoryId?: string | null }) => Promise<void>
   onDeleteHighlight: (id: string) => Promise<void>
+  onUpdateHighlight: (id: string, patch: { color: string }) => Promise<void>
   listCategories: () => Promise<HighlightCategory[]>
   createCategory: (name: string) => Promise<HighlightCategory>
   onClose: () => void
@@ -37,47 +37,57 @@ export function HighlightMenu({
   versionId,
   isMobile,
   onCreateHighlight,
-  onUpdateHighlight,
   onDeleteHighlight,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onClose: _onClose, // forwarded by parent — reserved for future use
+  onUpdateHighlight,
+  onClose,
   onOpenEditor,
 }: HighlightMenuProps) {
   const { highlightsByVerse } = useHighlightsContext()
 
-  // Find if there is an active highlight for the exact selected verses
-  const activeHighlight = useMemo(() => {
-    if (selectedVerseIds.length === 0) return null
+  // Find highlights that cover the selected verses
+  const selectedVersesHighlights = useMemo(() => {
+    if (selectedVerseIds.length === 0) return []
+    const firstVerseId = selectedVerseIds[0]
+    return highlightsByVerse.get(firstVerseId) ?? []
+  }, [selectedVerseIds, highlightsByVerse])
+
+  // Get active highlight color if any (using first highlight's color for color picker visual state)
+  const activeColor = useMemo(() => {
+    if (selectedVerseIds.length === 0) return ""
     const firstVerseId = selectedVerseIds[0]
     const verseHighlights = highlightsByVerse.get(firstVerseId) ?? []
-    return verseHighlights.find((h) => {
-      const hVerses = h.verses.map((v) => v.verse)
-      return selectedVerseIds.every((id) => {
-        const num = parseInt(id.split("-").pop()!, 10)
-        return hVerses.includes(num)
-      })
-    }) || null
+    return verseHighlights[0]?.highlight.color ?? ""
   }, [selectedVerseIds, highlightsByVerse])
 
   async function handleColorSelect(color: HighlightColor) {
     try {
-      if (activeHighlight) {
-        if (color === activeHighlight.highlight.color) {
-          // Toggle off: if clicking the active color, delete the highlight
-          await onDeleteHighlight(activeHighlight.highlight.id)
+      const verseNumbers = selectedVerseIds.map((id) => {
+        const parts = id.split("-")
+        return parseInt(parts[parts.length - 1], 10)
+      })
+
+      // Find any existing highlight on these exact verses (regardless of color)
+      const existingExact = selectedVersesHighlights.find((h) => {
+        const hVerses = h.verses.map((v) => v.verse)
+        if (hVerses.length !== selectedVerseIds.length) return false
+        return selectedVerseIds.every((id) => {
+          const num = parseInt(id.split("-").pop()!, 10)
+          return hVerses.includes(num)
+        })
+      })
+
+      if (existingExact) {
+        if (existingExact.highlight.color.toLowerCase() === color.toLowerCase()) {
+          // Toggle off: delete this specific highlight
+          await onDeleteHighlight(existingExact.highlight.id)
           toast.success("Destaque removido")
         } else {
-          // Update color of existing highlight
-          await onUpdateHighlight(activeHighlight.highlight.id, { color })
-          toast.success("Cor do destaque atualizada")
+          // Update color of the existing highlight
+          await onUpdateHighlight(existingExact.highlight.id, { color })
+          toast.success("Destaque atualizado")
         }
       } else {
-        // Create new highlight
-        const verseNumbers = selectedVerseIds.map((id) => {
-          const parts = id.split("-")
-          return parseInt(parts[parts.length - 1], 10)
-        })
-
+        // Create new highlight with this color
         await onCreateHighlight({
           color,
           book: bookId,
@@ -87,15 +97,18 @@ export function HighlightMenu({
         })
         toast.success("Destaque criado")
       }
+
+      // Close the selection popover
+      onClose()
     } catch {
       toast.error("Falha ao atualizar destaque.")
     }
   }
 
   return (
-    <div className="flex items-center justify-between w-full gap-4">
+    <div className="flex items-center justify-center gap-3">
       <HighlightColorPicker
-        value={activeHighlight?.highlight.color ?? ""}
+        value={activeColor}
         onChange={handleColorSelect}
       />
       <Button

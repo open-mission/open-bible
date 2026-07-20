@@ -50,6 +50,7 @@ const FALLBACK_VERSION = "ara"
 interface WorkspaceContextValue {
   panes: Pane[]
   activePaneId: string | null
+  loaded: boolean
   layoutMode: LayoutMode
   layout: LayoutNode | null
   openPane: (state: PaneState) => string
@@ -163,22 +164,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const defaultSplitDirection: LayoutDirection =
     initialLayout === "rows" ? "vertical" : "horizontal"
 
-  // Load persisted workspace on mount (deferred to avoid SSR mismatch).
+  // Load persisted workspace on mount (in useEffect to avoid SSR mismatch).
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const ws = loadWorkspace()
-      setPanes(ws.panes)
-      setActivePaneId(ws.activePaneId)
-      setLayoutModeState(ws.layoutMode)
-      setLayout(ws.layout ?? null)
-      const orientation = loadTabsOrientation()
-      setTabsOrientationState(orientation)
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("openbible:tabs-orientation-changed"))
-      }
-      setLoaded(true)
-    }, 0)
-    return () => clearTimeout(timer)
+    const ws = loadWorkspace()
+    setPanes(ws.panes)
+    setActivePaneId(ws.activePaneId)
+    setLayoutModeState(ws.layoutMode)
+    setLayout(ws.layout ?? null)
+    const orientation = loadTabsOrientation()
+    setTabsOrientationState(orientation)
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("openbible:tabs-orientation-changed"))
+    }
+    setLoaded(true)
   }, [])
 
   const setTabsOrientation = useCallback((o: TabsOrientation) => {
@@ -203,10 +201,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // back to the last pane (or null if empty).
   useEffect(() => {
     if (!loaded) return
+    let next = activePaneId
     if (panes.length === 0) {
-      if (activePaneId !== null) setActivePaneId(null)
+      next = null
     } else if (!panes.some((p) => p.id === activePaneId)) {
-      setActivePaneId(panes[panes.length - 1].id)
+      next = panes[panes.length - 1].id
+    }
+    if (next !== activePaneId) {
+      setActivePaneId(next)
     }
   }, [panes, activePaneId, loaded])
 
@@ -241,7 +243,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [defaultSplitDirection])
 
   const closePane = useCallback((id: string) => {
-    setPanes((prev) => prev.filter((p) => p.id !== id))
+    setPanes((prev) => {
+      const nextPanes = prev.filter((p) => p.id !== id)
+      setActivePaneId((currentActiveId) => {
+        if (currentActiveId === id) {
+          return nextPanes.length > 0 ? nextPanes[nextPanes.length - 1].id : null
+        }
+        return currentActiveId
+      })
+      return nextPanes
+    })
     setLayout((prev) => (prev ? removeLeaf(prev, id) : null))
   }, [])
 
@@ -319,23 +330,23 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setLayoutModeState(mode)
     // When switching to grid, ensure the layout tree covers all panes.
     if (mode === "grid") {
-      setPanes((currentPanes) => {
-        setLayout((currentLayout) => {
-          if (currentPanes.length === 0) return null
-          const paneIds = currentPanes.map((p) => p.id)
-          if (!currentLayout) {
-            return autoArrange(paneIds, defaultSplitDirection)
-          }
-          const layoutIds = new Set(collectPaneIds(currentLayout))
-          if (!paneIds.every((id) => layoutIds.has(id))) {
-            return autoArrange(paneIds, defaultSplitDirection)
-          }
-          return currentLayout
-        })
-        return currentPanes
+      if (panes.length === 0) {
+        setLayout(null)
+        return
+      }
+      const paneIds = panes.map((p) => p.id)
+      setLayout((currentLayout) => {
+        if (!currentLayout) {
+          return autoArrange(paneIds, defaultSplitDirection)
+        }
+        const layoutIds = new Set(collectPaneIds(currentLayout))
+        if (!paneIds.every((id) => layoutIds.has(id))) {
+          return autoArrange(paneIds, defaultSplitDirection)
+        }
+        return currentLayout
       })
     }
-  }, [defaultSplitDirection])
+  }, [defaultSplitDirection, panes])
 
   /**
    * Split a pane in the layout tree. The existing pane stays in place; a new
@@ -371,6 +382,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const value: WorkspaceContextValue = {
     panes,
     activePaneId,
+    loaded,
     layoutMode,
     layout,
     openPane,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   IconCopy,
   IconClipboardText,
@@ -18,12 +18,19 @@ import {
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/lib/use-media-query";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { HighlightMenu } from "@/features/highlights/components/highlight-menu";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
-import { useHighlightsContext } from "@/features/highlights/context/highlights-context";
 import { useNotesContext } from "@/features/notes/context/notes-context";
 import type { NoteTarget } from "@/features/notes/types";
+
+export interface SelectionAnchor {
+  /** Y offset (relative to the reader root) of the selection edge the pill anchors to. */
+  top: number;
+  /** X center (relative to the reader root) of the selection bounds. */
+  centerX: number;
+  /** "top": pill floats above the first selected verse; "bottom": below the last one. */
+  placement: "top" | "bottom";
+}
 
 interface VerseSelectionPopoverProps {
   book: Book;
@@ -33,7 +40,7 @@ interface VerseSelectionPopoverProps {
   versionId: string;
   onClose: () => void;
   onOpenHighlightEditor: () => void;
-  position: "top" | "bottom";
+  anchor: SelectionAnchor;
   showToolbar: boolean;
   setShowToolbar: (show: boolean) => void;
 }
@@ -73,24 +80,21 @@ export function VerseSelectionPopover({
   versionId,
   onClose,
   onOpenHighlightEditor,
-  position,
+  anchor,
   showToolbar,
   setShowToolbar,
 }: VerseSelectionPopoverProps) {
-  console.log("VerseSelectionPopover Rendered:", { position, selectedVersesCount: selectedVerses.length });
   const [copied, setCopied] = useState<CopiedKind>(null);
   const isMobile = useIsMobile();
-  const popoverRef = useRef<HTMLDivElement>(null);
 
   const {
     createHighlight,
-    updateHighlight,
     deleteHighlight,
+    updateHighlight,
     createCategory,
     listCategories,
   } = useHighlightMutations();
 
-  const { highlightsByVerse } = useHighlightsContext();
   const { openNotePanel } = useNotesContext();
 
   const noteTarget: NoteTarget = useMemo(() => {
@@ -117,22 +121,6 @@ export function VerseSelectionPopover({
     selectedVerses,
     versionAbbr,
   );
-  const count = selectedVerses.length;
-
-  // Find if there is an active highlight for the selected verses (reserved for future UI use)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _activeHighlight = useMemo(() => {
-    if (selectedVerses.length === 0) return null;
-    const firstVerseId = selectedVerses[0].id;
-    const verseHighlights = highlightsByVerse.get(firstVerseId) ?? [];
-    return verseHighlights.find((h) => {
-      const hVerses = h.verses.map((v) => v.verse);
-      return selectedVerses.every((sv) => {
-        const num = parseInt(sv.id.split("-").pop()!, 10);
-        return hVerses.includes(num);
-      });
-    }) || null;
-  }, [selectedVerses, highlightsByVerse]);
 
   async function handleCopy(kind: CopiedKind) {
     const text =
@@ -151,191 +139,152 @@ export function VerseSelectionPopover({
     }
   }
 
+  // The highlight menu stacks on the side opposite to the selection, so the
+  // main action pill always stays closest to the selected verses.
+  const menuFirst = anchor.placement === "top";
+
+  const actionPill = (
+    <div className="flex items-center gap-0.5 rounded-full border border-border bg-popover px-1.5 py-1 shadow-xl">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={() => handleCopy("reference")}
+        className={cn(
+          "text-muted-foreground hover:text-foreground rounded-full transition-colors",
+          copied === "reference" && "text-primary hover:text-primary bg-primary/10"
+        )}
+        title={copied === "reference" ? "Referência copiada!" : "Copiar referência"}
+        aria-label="Copiar referência"
+      >
+        {copied === "reference" ? (
+          <IconCheck className="size-4" />
+        ) : (
+          <IconCopy className="size-4" />
+        )}
+      </Button>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={() => handleCopy("text")}
+        className={cn(
+          "text-muted-foreground hover:text-foreground rounded-full transition-colors",
+          copied === "text" && "text-primary hover:text-primary bg-primary/10"
+        )}
+        title={copied === "text" ? "Texto copiado!" : "Copiar texto"}
+        aria-label="Copiar texto"
+      >
+        {copied === "text" ? (
+          <IconCheck className="size-4" />
+        ) : (
+          <IconClipboardText className="size-4" />
+        )}
+      </Button>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={() => setShowToolbar(!showToolbar)}
+        className={cn(
+          "text-muted-foreground hover:text-foreground rounded-full transition-colors",
+          showToolbar && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+        )}
+        title="Destacar"
+        aria-label="Destacar"
+      >
+        <IconHighlight className="size-4" />
+      </Button>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={handleOpenNote}
+        className="text-muted-foreground hover:text-foreground rounded-full transition-colors"
+        title="Anotar"
+        aria-label="Anotar"
+      >
+        <IconNotebook className="size-4" />
+      </Button>
+
+      <div className="mx-1 h-5 w-px shrink-0 bg-border" />
+
+      <Button
+        type="button"
+        onClick={onClose}
+        variant="ghost"
+        size="icon-sm"
+        className="text-muted-foreground hover:text-foreground rounded-full transition-colors"
+        aria-label="Limpar seleção"
+        title="Limpar seleção"
+      >
+        <IconX className="size-4" />
+      </Button>
+    </div>
+  );
+
+  const highlightMenuPill = showToolbar && (
+    <div className="flex items-center rounded-full border border-border bg-popover px-3 py-2 shadow-xl menu-animate">
+      <HighlightMenu
+        selectedVerseIds={selectedVerses.map((v) => v.id)}
+        bookId={book.id}
+        chapter={chapter}
+        versionId={versionId}
+        isMobile={isMobile}
+        onCreateHighlight={async (...args) => { await createHighlight(...args); }}
+        onDeleteHighlight={deleteHighlight}
+        onUpdateHighlight={updateHighlight}
+        listCategories={listCategories}
+        createCategory={createCategory}
+        onClose={onClose}
+        onOpenEditor={onOpenHighlightEditor}
+      />
+    </div>
+  );
+
   return (
     <div
       data-verse-selection-bar=""
-      ref={popoverRef}
-      style={position === "top" ? {
-        position: "absolute",
-        top: "72px",
-        left: "50%",
-        transform: "translateX(-50%)",
-      } : {
-        position: "absolute",
-        bottom: "16px",
-        left: "50%",
-        transform: "translateX(-50%)",
+      className="absolute z-40 select-none pointer-events-none"
+      style={{
+        top: anchor.top,
+        left: anchor.centerX,
+        transform:
+          anchor.placement === "top"
+            ? "translate(-50%, calc(-100% - 10px))"
+            : "translate(-50%, 10px)",
       }}
-      className={cn(
-        "z-40 flex justify-center px-4 w-full transition-all duration-300 pointer-events-none select-none max-w-[320px]",
-        position === "top" ? "float-animate-top" : "float-animate-bottom"
-      )}
     >
       <style>{`
-        @keyframes floatInTop {
-          from {
-            opacity: 0;
-            transform: translate(-50%, 8px) scale(0.96);
-          }
-          to {
-            opacity: 1;
-            transform: translate(-50%, 0) scale(1);
-          }
+        @keyframes verseSelectionIn {
+          from { opacity: 0; transform: scale(0.92) translateY(4px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
-        @keyframes floatInBottom {
-          from {
-            opacity: 0;
-            transform: translate(-50%, -8px) scale(0.96);
-          }
-          to {
-            opacity: 1;
-            transform: translate(-50%, 0) scale(1);
-          }
-        }
-        .float-animate-top {
-          animation: floatInTop 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .float-animate-bottom {
-          animation: floatInBottom 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        .verse-selection-animate {
+          animation: verseSelectionIn 180ms cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes floatInMenu {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(4px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
+          from { opacity: 0; transform: scale(0.95) translateY(4px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
         .menu-animate {
           animation: floatInMenu 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
 
-      <div className="flex flex-col gap-2 w-full items-center pointer-events-auto">
-        {/* --- Toolbar / Highlight Menu --- */}
-        {showToolbar && (
-          <div
-            className="flex overflow-hidden rounded-2xl bg-popover/95 backdrop-blur-sm border border-border shadow-lg px-4 py-2.5 menu-animate w-full justify-center"
-          >
-            <HighlightMenu
-              selectedVerseIds={selectedVerses.map((v) => v.id)}
-              bookId={book.id}
-              chapter={chapter}
-              versionId={versionId}
-              isMobile={isMobile}
-              onCreateHighlight={createHighlight}
-              onUpdateHighlight={updateHighlight}
-              onDeleteHighlight={deleteHighlight}
-              listCategories={listCategories}
-              createCategory={createCategory}
-              onClose={onClose}
-              onOpenEditor={onOpenHighlightEditor}
-            />
-          </div>
-        )}
-
-        {/* --- Card / Popover --- */}
-        <div
-          className="flex flex-col w-full overflow-hidden rounded-2xl bg-popover/95 backdrop-blur-sm border border-border/80 shadow-lg px-4 py-3 text-sm gap-2"
-        >
-          {/* Header Row */}
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2 truncate">
-              <span className="font-semibold text-foreground text-xs truncate max-w-[150px]" title={reference}>
-                {reference}
-              </span>
-              <span className="shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
-                {count > 1 ? `${count} versículos` : `${count} versículo`}
-              </span>
-            </div>
-            <Button
-              type="button"
-              onClick={onClose}
-              variant="ghost"
-              size="icon-xs"
-              className="shrink-0 text-muted-foreground hover:text-foreground rounded-full size-6 hover:bg-muted/40 transition-colors"
-              aria-label="Limpar seleção"
-            >
-              <IconX className="size-3.5" />
-            </Button>
-          </div>
-
-          <Separator className="bg-border/60" />
-
-          {/* Actions Row */}
-          <div className="flex items-center justify-between w-full px-1">
-            {/* Copy Reference */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => handleCopy("reference")}
-              className={cn(
-                "text-muted-foreground hover:text-foreground rounded-lg size-9 transition-colors shrink-0",
-                copied === "reference" && "text-primary hover:text-primary bg-primary/10"
-              )}
-              title={copied === "reference" ? "Referência copiada!" : "Copiar referência"}
-              aria-label="Copiar referência"
-            >
-              {copied === "reference" ? (
-                <IconCheck className="size-4" />
-              ) : (
-                <IconCopy className="size-4" />
-              )}
-            </Button>
-
-            {/* Copy Text */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => handleCopy("text")}
-              className={cn(
-                "text-muted-foreground hover:text-foreground rounded-lg size-9 transition-colors shrink-0",
-                copied === "text" && "text-primary hover:text-primary bg-primary/10"
-              )}
-              title={copied === "text" ? "Texto copiado!" : "Copiar texto"}
-              aria-label="Copiar texto"
-            >
-              {copied === "text" ? (
-                <IconCheck className="size-4" />
-              ) : (
-                <IconClipboardText className="size-4" />
-              )}
-            </Button>
-
-            {/* Highlight */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setShowToolbar(!showToolbar)}
-              className={cn(
-                "text-muted-foreground hover:text-foreground rounded-lg size-9 transition-colors shrink-0",
-                showToolbar && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-              )}
-              title="Destacar"
-              aria-label="Destacar"
-            >
-              <IconHighlight className="size-4" />
-            </Button>
-
-            {/* Note */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={handleOpenNote}
-              className="text-muted-foreground hover:text-foreground rounded-lg size-9 transition-colors shrink-0"
-              title="Anotar"
-              aria-label="Anotar"
-            >
-              <IconNotebook className="size-4" />
-            </Button>
-          </div>
-        </div>
+      <div
+        className="pointer-events-auto flex flex-col items-center gap-2 verse-selection-animate"
+        style={{
+          transformOrigin:
+            anchor.placement === "top" ? "bottom center" : "top center",
+        }}
+      >
+        {menuFirst && highlightMenuPill}
+        {actionPill}
+        {!menuFirst && highlightMenuPill}
       </div>
     </div>
   );

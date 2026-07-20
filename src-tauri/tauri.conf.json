@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Open Bible",
-  "version": "0.8.1",
+  "version": "0.8.6",
   "identifier": "app.openbible.desktop",
   "build": {
     "frontendDist": "../out",
@@ -52,7 +52,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI3MURDRDJGMDM4OEI2QjMKUldTenRvZ0RMODBkdDg4OWVMYXd2b2tnZko3bVpXb3dvdWZFZ21ld2t5WDFSdktmamtLa2ZXZkoK",
       "endpoints": [
-        "https://github.com/open-mission/open-bible/releases/latest/download/latest.json"
+        "https://openbible-prod.vercel.app/api/updates/tauri?version={{current_version}}&target={{target}}&arch={{arch}}"
       ]
     }
   }

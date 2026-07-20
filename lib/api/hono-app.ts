@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import { gzipSync } from "zlib";
+import * as Sentry from "@sentry/nextjs";
 import { turso } from "../turso";
 import {
   VersionSchema,
@@ -17,6 +18,7 @@ import {
   searchVerses,
   listBooksForVersion,
 } from "./bible-service";
+import { compareSemver } from "../release-notes/version";
 
 export const app = new OpenAPIHono({
   defaultHook: (result, c) => {
@@ -398,6 +400,12 @@ app.get("/api/bibles/download/:version", async (c) => {
     vfl: "VFL.sqlite",
   };
 
+  Sentry.addBreadcrumb({
+    category: "bible-download",
+    message: `Iniciando proxy de download no servidor para versão: ${version}`,
+    level: "info",
+  });
+
   try {
     // Query TursoDB for the download URL of this version
     const result = await turso.execute(
@@ -412,6 +420,11 @@ app.get("/api/bibles/download/:version", async (c) => {
     } else {
       const filename = mapping[version];
       if (!filename) {
+        Sentry.addBreadcrumb({
+          category: "bible-download",
+          message: `Download cancelado: Versão ${version} não mapeada e sem URL cadastrada`,
+          level: "warning",
+        });
         return c.text("Versão não encontrada", 404);
       }
       const bucketUrl =
@@ -424,6 +437,11 @@ app.get("/api/bibles/download/:version", async (c) => {
 
     const upstream = await fetch(targetUrl);
     if (!upstream.ok) {
+      Sentry.addBreadcrumb({
+        category: "bible-download",
+        message: `Falha ao obter arquivo de origem para ${version}. Status: ${upstream.status} ${upstream.statusText}`,
+        level: "error",
+      });
       return c.text(
         `Erro ao obter arquivo da origem: ${upstream.statusText}`,
         upstream.status as 200,
@@ -441,9 +459,17 @@ app.get("/api/bibles/download/:version", async (c) => {
     c.header("Content-Length", String(compressed.length));
     c.header("Cache-Control", "no-store");
 
-    return c.body(compressed as Uint8Array);
+    Sentry.captureMessage(
+      `Download e compressão da bíblia ${version} concluídos no servidor. Tamanho original: ${arrayBuffer.byteLength} bytes, comprimido: ${compressed.length} bytes`,
+      "info",
+    );
+
+    return c.body(compressed as unknown as Uint8Array<ArrayBuffer>);
   } catch (e) {
     console.error(`Falha no proxy de download para ${version}:`, e);
+    Sentry.captureException(e, {
+      tags: { version, context: "server_proxy_download" },
+    });
     return c.text("Erro interno no servidor de proxy de download", 500);
   }
 });
@@ -469,7 +495,7 @@ app.get("/api/debug/bibles-data", async (c) => {
     );
     
     return c.json({
-      versions: versions.rows.map((v) => ({
+      versions: versions.rows.map((v: [string, string, number, string | null]) => ({
         id: v[0],
         name: v[1],
         totalBooks: v[2],
@@ -479,7 +505,7 @@ app.get("/api/debug/bibles-data", async (c) => {
       booksPerVersion: booksPerVersion.rows,
       totalBooksInBibleBooks: totalBooks.rows[0]?.[0] ?? 0,
       totalVersesInBibleVerses: totalVerses.rows[0]?.[0] ?? 0,
-      sampleDownloadUrls: sampleDownloadUrls.rows.map((r) => ({
+      sampleDownloadUrls: sampleDownloadUrls.rows.map((r: [string, string | null]) => ({
         id: r[0],
         url: r[1] ? String(r[1]).substring(0, 100) + "..." : null,
       })),
@@ -487,6 +513,153 @@ app.get("/api/debug/bibles-data", async (c) => {
   } catch (e) {
     console.error("Erro no diagnóstico de dados bíblicos:", e);
     return c.text("Erro ao consultar dados bíblicos", 500);
+  }
+});
+
+// Simple in-memory cache for Tauri updater manifest to avoid GitHub rate limits
+const manifestCache: Record<string, { timestamp: number; data: any }> = {};
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+app.get("/api/updates/tauri", async (c) => {
+  const version = c.req.query("version") || "";
+  const target = c.req.query("target") || "";
+  const arch = c.req.query("arch") || "";
+  const xChannel = c.req.header("X-Update-Channel") || "";
+
+  // Determine update channel
+  let channel: "stable" | "beta" = "stable";
+  if (xChannel === "beta" || xChannel === "stable") {
+    channel = xChannel;
+  } else if (version.includes("-")) {
+    channel = "beta";
+  }
+
+  Sentry.addBreadcrumb({
+    category: "tauri-update-proxy",
+    message: `Checking update. Version: ${version}, target: ${target}, arch: ${arch}, channel: ${channel}`,
+    level: "info",
+  });
+
+  try {
+    const cacheKey = `${channel}`;
+    const now = Date.now();
+    const cached = manifestCache[cacheKey];
+
+    let resolvedTag = "";
+    let changelogText = "";
+    let htmlUrl = "";
+
+    if (cached && now - cached.timestamp < CACHE_TTL) {
+      const cacheData = cached.data;
+      resolvedTag = cacheData.tag;
+      changelogText = cacheData.changelog;
+      htmlUrl = cacheData.htmlUrl;
+    } else {
+      if (channel === "beta") {
+        // Fetch list of releases (includes pre-releases)
+        const response = await fetch(
+          "https://api.github.com/repos/open-mission/open-bible/releases",
+          { headers: { "User-Agent": "Open-Bible-Tauri-Updater" } }
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to fetch releases list from GitHub. Status: ${response.status}`);
+        }
+        const releases = await response.json() as any[];
+        const validReleases = (releases || [])
+          .filter((r) => !r.draft)
+          .sort((a, b) => compareSemver(b.tag_name, a.tag_name));
+
+        if (validReleases.length > 0) {
+          resolvedTag = validReleases[0].tag_name;
+          changelogText = validReleases[0].body || "";
+          htmlUrl = validReleases[0].html_url || "";
+        }
+      } else {
+        // Fetch latest stable release
+        const response = await fetch(
+          "https://api.github.com/repos/open-mission/open-bible/releases/latest",
+          { headers: { "User-Agent": "Open-Bible-Tauri-Updater" } }
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to fetch latest release from GitHub. Status: ${response.status}`);
+        }
+        const data = await response.json() as any;
+        resolvedTag = data.tag_name;
+        changelogText = data.body || "";
+        htmlUrl = data.html_url || "";
+      }
+
+      if (resolvedTag) {
+        manifestCache[cacheKey] = {
+          timestamp: now,
+          data: { tag: resolvedTag, changelog: changelogText, htmlUrl },
+        };
+      }
+    }
+
+    if (!resolvedTag) {
+      Sentry.captureMessage("No releases found on GitHub to proxy", "warning");
+      return c.body(null, 204);
+    }
+
+    const cleanRemoteVersion = resolvedTag.replace(/^v/, "");
+    const cleanLocalVersion = version.replace(/^v/, "");
+
+    // If client version is greater or equal to resolved version, no update is needed.
+    // Return 204 No Content per Tauri v2 spec.
+    if (compareSemver(cleanRemoteVersion, cleanLocalVersion) <= 0) {
+      Sentry.addBreadcrumb({
+        category: "tauri-update-proxy",
+        message: `Client version ${version} is up to date with remote version ${cleanRemoteVersion}`,
+        level: "info",
+      });
+      return c.body(null, 204);
+    }
+
+    // Fetch the latest.json from the resolved release tag
+    const manifestCacheKey = `manifest_${resolvedTag}`;
+    const cachedManifest = manifestCache[manifestCacheKey];
+    let manifestData: any = null;
+
+    if (cachedManifest && now - cachedManifest.timestamp < CACHE_TTL) {
+      manifestData = cachedManifest.data;
+    } else {
+      const manifestUrl = `https://github.com/open-mission/open-bible/releases/download/${resolvedTag}/latest.json`;
+      const response = await fetch(manifestUrl, {
+        headers: { "User-Agent": "Open-Bible-Tauri-Updater" },
+      });
+      if (response.ok) {
+        manifestData = await response.json();
+        manifestCache[manifestCacheKey] = {
+          timestamp: now,
+          data: manifestData,
+        };
+      } else {
+        throw new Error(
+          `Failed to fetch latest.json for tag ${resolvedTag} from GitHub. Status: ${response.status}`
+        );
+      }
+    }
+
+    if (!manifestData) {
+      Sentry.captureException(new Error(`Failed to resolve latest.json for ${resolvedTag}`), {
+        tags: { version, resolvedTag },
+      });
+      return c.body(null, 204);
+    }
+
+    Sentry.captureMessage(
+      `Update proxy served update version ${cleanRemoteVersion} to client ${version}`,
+      "info"
+    );
+    return c.json(manifestData);
+
+  } catch (error: any) {
+    console.error("Error in Tauri update proxy:", error);
+    Sentry.captureException(error, {
+      tags: { version, target, arch, context: "tauri_update_proxy" },
+    });
+    return c.text("Internal Server Error in Tauri Update Proxy", 500);
   }
 });
 
