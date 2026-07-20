@@ -30,7 +30,18 @@ const MODES: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
 export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string }) {
   const { mode, color, palette, setTheme, setColor, setPalette } = useAppTheme()
   const { defaultVersionId, setDefaultVersionId, availableVersions, installedVersions } = useBibleVersion()
-  const { updateChannel, setChannel, checkForUpdates } = useReleaseNotes()
+  const {
+    updateChannel,
+    setChannel,
+    checkForUpdates,
+    tauriStatus,
+    tauriProgress,
+    tauriError,
+    tauriDownloadInstall,
+    tauriRelaunch,
+    latestVersion,
+    changelog
+  } = useReleaseNotes()
   const [pwaUpdateStatus, setPwaUpdateStatus] = useState<"idle" | "checking" | "available" | "no-update" | "error">("idle")
 
   // Highlights settings (global state)
@@ -107,19 +118,6 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
 
   // States for Tauri auto-updater
   const [appVersion, setAppVersion] = useState<string>("")
-  const [updateStatus, setUpdateStatus] = useState<
-    "idle" | "checking" | "available" | "no-update" | "downloading" | "downloaded" | "error"
-  >("idle")
-  const [updateInfo, setUpdateInfo] = useState<{
-    version: string
-    date?: string
-    body?: string
-  } | null>(null)
-  const [downloadProgress, setDownloadProgress] = useState<number>(0)
-  const [errorMessage, setErrorMessage] = useState<string>("")
-  const [updateObject, setUpdateObject] = useState<{
-    downloadAndInstall: (cb: (event: { event: string; data?: Record<string, number> }) => void) => Promise<void>
-  } | null>(null)
 
   // Fetch app version on mount inside Tauri
   useEffect(() => {
@@ -139,27 +137,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
 
   const handleCheckUpdate = async () => {
     if (!isTauri) return
-    setUpdateStatus("checking")
-    setErrorMessage("")
-    try {
-      const { check } = await import("@tauri-apps/plugin-updater")
-      const update = await check()
-      if (update) {
-        setUpdateInfo({
-          version: update.version,
-          date: update.date,
-          body: update.body,
-        })
-        setUpdateObject({ downloadAndInstall: update.downloadAndInstall })
-        setUpdateStatus("available")
-      } else {
-        setUpdateStatus("no-update")
-      }
-    } catch (err: unknown) {
-      console.error("Erro ao verificar atualizações:", err)
-      setUpdateStatus("error")
-      setErrorMessage((err instanceof Error ? err : new Error(String(err))).toString() || "Erro desconhecido ao verificar atualizações")
-    }
+    await checkForUpdates(true)
   }
 
   const handlePwaCheckUpdate = async () => {
@@ -178,40 +156,6 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
     } catch (err) {
       console.error("Erro ao buscar atualização:", err)
       setPwaUpdateStatus("error")
-    }
-  }
-
-  const handleDownloadInstall = async () => {
-    if (!updateObject) return
-    setUpdateStatus("downloading")
-    setDownloadProgress(0)
-    try {
-      await updateObject.downloadAndInstall((event: { event: string; data?: { contentLength?: number; progress?: number } }) => {
-        if (event?.event === "Started") {
-          setDownloadProgress(0)
-        } else if (event?.event === "Progress") {
-          if (event.data?.contentLength && event.data?.progress != null) {
-            const pct = Math.round((event.data.progress / event.data.contentLength) * 100)
-            setDownloadProgress(pct)
-          }
-        } else if (event?.event === "Finished") {
-          setDownloadProgress(100)
-        }
-      })
-      setUpdateStatus("downloaded")
-    } catch (err: unknown) {
-      console.error("Erro ao baixar e instalar atualização:", err)
-      setUpdateStatus("error")
-      setErrorMessage((err instanceof Error ? err : new Error(String(err))).toString() || "Erro ao baixar e instalar atualização")
-    }
-  }
-
-  const handleRelaunch = async () => {
-    try {
-      const { relaunch } = await import("@tauri-apps/plugin-process")
-      await relaunch()
-    } catch (err) {
-      console.error("Erro ao reiniciar o aplicativo:", err)
     }
   }
 
@@ -765,7 +709,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
             {isTauri ? (
               /* Tauri platform updates layout */
               <>
-                {updateStatus === "idle" && (
+                {tauriStatus === "idle" && (
                   <div className="flex justify-end">
                     <button
                       onClick={handleCheckUpdate}
@@ -776,14 +720,14 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   </div>
                 )}
 
-                {updateStatus === "checking" && (
+                {tauriStatus === "checking" && (
                   <div className="flex items-center gap-3 py-2">
                     <RefreshCw className="h-4 w-4 animate-spin text-primary" />
                     <span className="text-sm text-muted-foreground">Buscando novas atualizações...</span>
                   </div>
                 )}
 
-                {updateStatus === "no-update" && (
+                {tauriStatus === "no-update" && (
                   <div className="space-y-4">
                     <p className="text-sm text-emerald-500 font-medium flex items-center gap-2">
                       <Check className="h-4 w-4" />
@@ -800,27 +744,22 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   </div>
                 )}
 
-                {updateStatus === "available" && updateInfo && (
+                {tauriStatus === "available" && (
                   <div className="space-y-4">
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
                       <h3 className="text-sm font-semibold text-foreground">
-                        Nova versão disponível: <span className="font-mono text-primary">v{updateInfo.version}</span>
+                        Nova versão disponível: <span className="font-mono text-primary">v{latestVersion}</span>
                       </h3>
-                      {updateInfo.date && (
-                        <p className="text-xs text-muted-foreground">
-                          Lançada em: {updateInfo.date}
-                        </p>
-                      )}
-                      {updateInfo.body && (
+                      {changelog && (
                         <div className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap font-sans">
-                          {updateInfo.body}
+                          {changelog}
                         </div>
                       )}
                     </div>
 
                     <div className="flex justify-end">
                       <button
-                        onClick={handleDownloadInstall}
+                        onClick={tauriDownloadInstall}
                         className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs"
                       >
                         Baixar e Instalar
@@ -829,29 +768,29 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   </div>
                 )}
 
-                {updateStatus === "downloading" && (
+                {tauriStatus === "downloading" && (
                   <div className="space-y-3 py-2">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Baixando atualização...</span>
-                      <span className="font-semibold text-primary">{downloadProgress}%</span>
+                      <span className="font-semibold text-primary">{tauriProgress}%</span>
                     </div>
                     <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
                       <div
                         className="bg-primary h-full transition-all duration-300 rounded-full"
-                        style={{ width: `${downloadProgress}%` }}
+                        style={{ width: `${tauriProgress}%` }}
                       />
                     </div>
                   </div>
                 )}
 
-                {updateStatus === "downloaded" && (
+                {tauriStatus === "downloaded" && (
                   <div className="space-y-4">
                     <p className="text-sm text-emerald-500 font-medium">
                       Atualização baixada com sucesso! O aplicativo precisa ser reiniciado para aplicar as mudanças.
                     </p>
                     <div className="flex justify-end">
                       <button
-                        onClick={handleRelaunch}
+                        onClick={tauriRelaunch}
                         className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs animate-pulse"
                       >
                         Reiniciar Agora
@@ -860,14 +799,14 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   </div>
                 )}
 
-                {updateStatus === "error" && (
+                {tauriStatus === "error" && (
                   <div className="space-y-4">
                     <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
                       <p className="text-sm font-semibold text-destructive mb-1">
                         Falha ao processar atualização
                       </p>
                       <p className="text-xs text-muted-foreground font-mono truncate">
-                        {errorMessage}
+                        {tauriError}
                       </p>
                     </div>
                     <div className="flex justify-end gap-2">
