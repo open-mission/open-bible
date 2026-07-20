@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw, Sparkles, ChevronRight, ChevronLeft } from "lucide-react"
+import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw, Sparkles, ChevronRight, ChevronLeft, Info } from "lucide-react"
 import { triggerReloadToast } from "@/lib/settings-toast"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
@@ -253,6 +253,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
     { value: "workspace", label: "Leitura", icon: <LayoutGrid className="h-4 w-4" /> },
     { value: "updates", label: "Atualizações", icon: <RefreshCw className="h-4 w-4" /> },
     { value: "changelog", label: "Novidades", icon: <Sparkles className="h-4 w-4" /> },
+    { value: "about", label: "Sobre", icon: <Info className="h-4 w-4" /> },
   ]
 
   return (
@@ -307,6 +308,13 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
           >
             <Sparkles className="h-4 w-4" />
             <span>Novidades</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="about"
+            className="flex-1 md:flex-initial flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm justify-center md:justify-start"
+          >
+            <Info className="h-4 w-4" />
+            <span>Sobre</span>
           </TabsTrigger>
         </TabsList>
       ) : (
@@ -1007,6 +1015,56 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   Nenhuma informação de alteração disponível para esta versão.
                 </p>
               )}
+            </div>
+          </section>
+        </TabsContent>
+
+        <TabsContent value="about" className="space-y-6 animate-in fade-in-50 duration-200">
+          <section id="about-section" className="space-y-6">
+            <div className="flex flex-col items-center text-center space-y-4 py-4">
+              <img
+                src="/logo.png"
+                alt="Open Bible Logo"
+                className="h-16 w-auto dark:invert-0 invert select-none pointer-events-none"
+              />
+              <div className="space-y-1.5">
+                <h2 className="text-xl font-serif font-semibold text-foreground">
+                  Open Bible
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Um leitor e organizador de estudos bíblicos offline-first, simples, focado e livre.
+                </p>
+              </div>
+              <div className="flex flex-col gap-1 text-[11px] font-mono text-muted-foreground/60">
+                <span>Versão do App: v{getAppVersion()}</span>
+                <span>Plataforma: {isTauri ? "Desktop App" : "Web PWA"}</span>
+              </div>
+            </div>
+
+            <div className="border border-border/80 rounded-lg p-5 bg-card/45 space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">Sobre o Projeto</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                O Open Bible é um projeto de código aberto desenvolvido com o objetivo de fornecer uma experiência de leitura das Escrituras limpa, livre de distrações, e totalmente offline. Seus dados (destaques, notas, histórico) são armazenados localmente no seu navegador ou dispositivo e nunca são compartilhados sem o seu consentimento.
+              </p>
+              <div className="flex items-center gap-3 pt-2">
+                <a
+                  href="https://github.com/open-mission/open-bible"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Repositório no GitHub
+                </a>
+                <span className="text-muted-foreground/30">•</span>
+                <a
+                  href="https://github.com/open-mission/open-bible/blob/main/LICENSE"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Licença MIT
+                </a>
+              </div>
             </div>
           </section>
         </TabsContent>

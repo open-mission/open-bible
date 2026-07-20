@@ -36,8 +36,15 @@ export function WorkspaceMobileBar() {
               {panes.length}
             </span>
           </span>
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">
-            {activePane?.title ?? "Open Bible"}
+          <span className="min-w-0 flex-1 truncate text-sm font-medium flex items-center gap-2">
+            {!activePane && (
+              <img
+                src="/logo-minimal-transparent.png"
+                alt="Open Bible"
+                className="h-4 w-auto dark:invert-0 invert select-none pointer-events-none"
+              />
+            )}
+            <span>{activePane?.title ?? "Open Bible"}</span>
           </span>
         </button>
 

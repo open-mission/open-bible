@@ -39,8 +39,21 @@ export const metadata: Metadata = {
   generator: "v0.app",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.png",
-    apple: "/icon.png",
+    icon: "/icon-192.png",
+    apple: "/icon-512.png",
+  },
+  openGraph: {
+    title: "Open Bible",
+    description:
+      "Leia, destaque e anote os textos bíblicos de forma simples e focada.",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1200,
+        height: 400,
+        alt: "Open Bible Logo",
+      },
+    ],
   },
   other: {
     "apple-mobile-web-app-capable": "yes",
