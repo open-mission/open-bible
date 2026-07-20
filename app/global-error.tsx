@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import * as Sentry from "@sentry/nextjs"
 
 // global-error replaces the root layout, so it must render its own <html>/<body>.
 // Inline styles keep it readable even if the Tailwind globals.css (imported by the
@@ -13,6 +14,7 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
+    Sentry.captureException(error)
     console.error("Erro global:", error)
   }, [error])
 
