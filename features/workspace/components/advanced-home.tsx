@@ -15,7 +15,7 @@ export function AdvancedHome() {
 
   return (
     <WorkspaceProvider>
-      <div className="h-dvh overflow-hidden bg-background">
+      <div className="h-full overflow-hidden bg-background">
         <WorkspaceView />
       </div>
     </WorkspaceProvider>

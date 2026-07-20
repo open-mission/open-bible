@@ -17,8 +17,7 @@ import { arrayMove } from "@dnd-kit/sortable"
 import { useWorkspace } from "../context/workspace-context"
 import { useReaderSettings } from "../hooks/use-reader-settings"
 import { type TabsOrientation } from "../hooks/use-workspace-mode"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { WorkspaceSidebar } from "./workspace-sidebar"
+import { WorkspacePaneSidebar } from "./workspace-sidebar"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -443,19 +442,16 @@ export function WorkspaceView() {
         onDragEnd={handleDragEnd}
       >
         {tabsOrientation === "vertical" && panes.length > 0 ? (
-          <SidebarProvider
-            style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
-            className="h-full min-h-0"
-          >
-            <WorkspaceSidebar
+          <div className="flex h-full min-h-0">
+            <WorkspacePaneSidebar
               sidebarWidth={sidebarWidth}
               onSidebarResize={setSidebarWidth}
               onOverviewOpen={() => setOverviewOpen(true)}
             />
-            <SidebarInset className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
+            <div className="flex flex-col h-full min-h-0 overflow-hidden bg-background flex-1">
               {workspaceContent}
-            </SidebarInset>
-          </SidebarProvider>
+            </div>
+          </div>
         ) : (
           workspaceContent
         )}

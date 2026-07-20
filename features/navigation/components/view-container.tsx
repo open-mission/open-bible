@@ -5,8 +5,6 @@ import { useWorkspaceMode } from "@/features/workspace/hooks/use-workspace-mode"
 import { SimpleHome } from "@/features/workspace/components/simple-home"
 import { AdvancedHome } from "@/features/workspace/components/advanced-home"
 import { IconNotebook, IconHighlight, IconArrowLeft } from "@tabler/icons-react"
-import { AppSidebar } from "./app-sidebar"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { useIsMobile } from "@/lib/use-media-query"
 import { cn } from "@/lib/utils"
 
@@ -14,10 +12,9 @@ interface StubViewShellProps {
   title: string
   description: string
   icon: React.ComponentType<{ className?: string }>
-  onOpenCommandPalette?: () => void
 }
 
-function StubViewShell({ title, description, icon: Icon, onOpenCommandPalette }: StubViewShellProps) {
+function StubViewShell({ title, description, icon: Icon }: StubViewShellProps) {
   const { navigate } = useAppNavigation()
   const isMobile = useIsMobile()
 
@@ -46,24 +43,22 @@ function StubViewShell({ title, description, icon: Icon, onOpenCommandPalette }:
   )
 }
 
-function NotesStubView({ onOpenCommandPalette }: { onOpenCommandPalette?: () => void }) {
+function NotesStubView() {
   return (
     <StubViewShell
       title="Notas"
       description="Em breve você poderá acessar todas as suas notas aqui."
       icon={IconNotebook}
-      onOpenCommandPalette={onOpenCommandPalette}
     />
   )
 }
 
-function HighlightsStubView({ onOpenCommandPalette }: { onOpenCommandPalette?: () => void }) {
+function HighlightsStubView() {
   return (
     <StubViewShell
       title="Destaques"
       description="Em breve você poderá visualizar todos os seus destaques aqui."
       icon={IconHighlight}
-      onOpenCommandPalette={onOpenCommandPalette}
     />
   )
 }
@@ -81,23 +76,9 @@ export function ViewContainer({ onOpenCommandPalette }: { onOpenCommandPalette?:
       case "reader":
         return <AdvancedHome />
       case "notes":
-        return (
-          <SidebarProvider className="h-dvh">
-            <AppSidebar onOpenCommandPalette={() => onOpenCommandPalette?.()} />
-            <SidebarInset className="w-auto overflow-hidden h-full">
-              <NotesStubView />
-            </SidebarInset>
-          </SidebarProvider>
-        )
+        return <NotesStubView />
       case "highlights":
-        return (
-          <SidebarProvider className="h-dvh">
-            <AppSidebar onOpenCommandPalette={() => onOpenCommandPalette?.()} />
-            <SidebarInset className="w-auto overflow-hidden h-full">
-              <HighlightsStubView />
-            </SidebarInset>
-          </SidebarProvider>
-        )
+        return <HighlightsStubView />
       default:
         return <AdvancedHome />
     }

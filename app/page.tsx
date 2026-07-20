@@ -15,7 +15,6 @@ export default function Home() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const isMobile = useIsMobile()
   const { mode, loaded } = useWorkspaceMode()
-  const isAdvanced = mode === "advanced"
 
   const openCommandPalette = () => setCommandPaletteOpen(true)
 
@@ -35,22 +34,12 @@ export default function Home() {
     return <div className="h-dvh bg-background" />
   }
 
-  if (isAdvanced) {
-    return (
-      <>
-        <ViewContainer onOpenCommandPalette={openCommandPalette} />
-        {isMobile && <MobileTabBar />}
-        <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
-      </>
-    )
-  }
-
   return (
     <>
       <SidebarProvider className="h-dvh">
         {!isMobile && <AppSidebar onOpenCommandPalette={openCommandPalette} />}
         <SidebarInset className="w-auto overflow-hidden h-full">
-          <ViewContainer />
+          <ViewContainer onOpenCommandPalette={openCommandPalette} />
         </SidebarInset>
       </SidebarProvider>
 
