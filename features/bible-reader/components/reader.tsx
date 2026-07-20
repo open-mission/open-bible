@@ -43,6 +43,9 @@ interface ReaderProps {
    *  only the focused pane can show a selection. Defaults to true (tabs/simple). */
   isActive?: boolean;
   showConfigButton?: boolean;
+  /** When true, the floating mobile navigation arrows (prev/next chapter) are
+   *  hidden. Used in workspace mode where the WorkspaceMobileBar provides them. */
+  hideFloatingNav?: boolean;
 }
 
 function ReaderContent({
@@ -62,6 +65,7 @@ function ReaderContent({
   versionId,
   isActive = true,
   showConfigButton = false,
+  hideFloatingNav = false,
 }: ReaderProps & { versionId: string }) {
   const book = getBook(bookId);
 const { verses, loading } = useBibleVerses(bookId, chapter);
@@ -428,7 +432,7 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
 
 
       {/* Floating navigation: bottom on mobile, sides on desktop */}
-      {!dockView && !open && (
+      {!hideFloatingNav && !dockView && !open && (
       <div className="fixed inset-x-0 bottom-[calc(4.875rem+env(safe-area-inset-bottom))] z-40 flex justify-center pointer-events-none md:hidden">
         <div className="flex gap-5 pointer-events-auto">
           <button
@@ -568,7 +572,7 @@ export function Reader(props: ReaderProps) {
 
   return (
     <HighlightsProvider bookId={bookId} chapter={chapter} versionId={versionId}>
-      <ReaderContent {...props} versionId={versionId} />
+      <ReaderContent {...props} versionId={versionId} hideFloatingNav={props.hideFloatingNav} />
     </HighlightsProvider>
   );
 }
