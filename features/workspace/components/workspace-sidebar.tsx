@@ -639,17 +639,15 @@ export function WorkspacePaneSidebar({ sidebarWidth, onSidebarResize, onOverview
   const actualWidth = isCollapsed ? collapsedWidth : sidebarWidth
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger className="h-full shrink-0">
-        <div
-          style={{ width: actualWidth }}
-          className="h-full flex flex-col shrink-0 border-r border-sidebar-border bg-sidebar transition-[width] duration-200 relative"
-        >
-          <div className="flex flex-col size-full">
-            <div className="border-b border-sidebar-border/40 py-2.5 px-2 flex flex-row items-center justify-between min-h-[44px] gap-2 bg-sidebar-accent/10">
-              {!isCollapsed ? (
-                <>
-                  <ToggleGroup
+    <div
+      style={{ width: actualWidth }}
+      className="h-full flex flex-col shrink-0 border-r border-sidebar-border bg-sidebar transition-[width] duration-200 relative"
+    >
+      <div className="flex flex-col size-full">
+        <div className="border-b border-sidebar-border/40 py-2.5 px-2 flex flex-row items-center justify-between min-h-[44px] gap-2 bg-sidebar-accent/10">
+          {!isCollapsed ? (
+            <>
+              <ToggleGroup
                     value={[layoutMode]}
                     onValueChange={(val) => {
                       if (val && val[0]) setLayoutMode(val[0] as LayoutMode)
@@ -804,51 +802,7 @@ export function WorkspacePaneSidebar({ sidebarWidth, onSidebarResize, onOverview
                 className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-primary/30 active:bg-primary transition-colors z-50"
               />
             )}
-          </div>
-        </div>
-      </ContextMenuTrigger>
-      <ContextMenuContent className="w-52">
-        <ContextMenuGroup>
-          <ContextMenuLabel>Posição das Abas</ContextMenuLabel>
-          <ContextMenuRadioGroup
-            value={tabsOrientation}
-            onValueChange={(val) => setTabsOrientation(val as TabsOrientation)}
-          >
-            <ContextMenuRadioItem value="horizontal" className="gap-2">
-              <LayoutPanelTop className="h-4 w-4" />
-              <span>Abas no Topo</span>
-            </ContextMenuRadioItem>
-            <ContextMenuRadioItem value="vertical" className="gap-2">
-              <LayoutPanelLeft className="h-4 w-4" />
-              <span>Abas na Lateral</span>
-            </ContextMenuRadioItem>
-          </ContextMenuRadioGroup>
-        </ContextMenuGroup>
-        <ContextMenuSeparator />
-        <ContextMenuGroup>
-          <ContextMenuLabel>Modo de Exibição</ContextMenuLabel>
-          <ContextMenuRadioGroup
-            value={layoutMode}
-            onValueChange={(val) => setLayoutMode(val as LayoutMode)}
-          >
-            <ContextMenuRadioItem value="tabs" className="gap-2">
-              <Monitor className="h-4 w-4" />
-              <span>Modo Abas</span>
-            </ContextMenuRadioItem>
-            <ContextMenuRadioItem value="grid" className="gap-2">
-              <LayoutGrid className="h-4 w-4" />
-              <span>Modo Grade</span>
-            </ContextMenuRadioItem>
-          </ContextMenuRadioGroup>
-        </ContextMenuGroup>
-        <ContextMenuSeparator />
-        <ContextMenuGroup>
-          <ContextMenuItem onClick={() => setConfigOpen(true)} className="gap-2">
-            <IconSettings className="h-4 w-4" />
-            <span>Configurações</span>
-          </ContextMenuItem>
-        </ContextMenuGroup>
-      </ContextMenuContent>
-    </ContextMenu>
+      </div>
+    </div>
   )
 }
