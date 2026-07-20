@@ -59,11 +59,19 @@ export function AppSidebar({
         <div
           className={`flex items-center px-2 py-2 ${sidebarCollapsed ? "justify-center" : "justify-between"}`}
         >
-          <h1
-            className={`font-semibold tracking-tight ${sidebarCollapsed ? "hidden" : "text-base"}`}
-          >
-            Open Bible
-          </h1>
+          {!sidebarCollapsed ? (
+            <img
+              src="/logo.svg"
+              alt="Open Bible Logo"
+              className="h-7 w-auto dark:invert-0 invert select-none pointer-events-none"
+            />
+          ) : (
+            <img
+              src="/logo-minimal-transparent.png"
+              alt="Open Bible"
+              className="h-6 w-auto select-none pointer-events-none dark:invert-0 invert"
+            />
+          )}
           {onToggleSidebar && (
             <SidebarTrigger
               onClick={onToggleSidebar}
