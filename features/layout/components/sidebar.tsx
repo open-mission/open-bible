@@ -91,9 +91,9 @@ export function AppSidebar({
                     isActive={activeNav === item.id}
                     onClick={() => onNavClick(item.id)}
                     tooltip={item.label}
-                    className="h-11"
+                    className="h-11 data-active:border data-active:border-sidebar-border"
                   >
-                    <item.icon className="size-5" />
+                    <item.icon className="size-6!" />
                     <span className="text-sm">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -111,7 +111,7 @@ export function AppSidebar({
               tooltip="Configurações"
               className="h-11"
             >
-              <IconSettings className="size-5" />
+              <IconSettings className="size-6" />
               <span className="text-sm">Configurações</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
