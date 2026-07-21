@@ -39,7 +39,7 @@
     "@hono/zod-openapi": "^1.5.0",
     "@libsql/client": "^0.8.1",
     "@libsql/kysely-libsql": "^0.4.1",
-    "@scalar/hono-api-reference": "^0.11.9",
+    "@scalar/hono-api-reference": "^0.11.11",
     "@sentry/nextjs": "10.67.0",
     "@shadcn/react": "^0.2.1",
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
