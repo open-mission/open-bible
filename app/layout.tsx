@@ -8,7 +8,6 @@ import { BibleVersionProvider } from "@/features/bible-reader/context/bible-vers
 import { AppNavigationProvider } from "@/features/navigation/context/app-navigation-context";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/features/service-worker/components/service-worker-register";
-import { VersionLabel } from "@/features/layout/components/version-label";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -88,7 +87,6 @@ export default function RootLayout({
       className={`bg-background ${inter.variable} ${lora.variable} ${geistMono.variable}`}
     >
       <body className={cn("font-sans antialiased")}>
-        <VersionLabel />
         <TauriMenuListener />
         <ThemeProvider>
           <BibleVersionProvider>
