@@ -62,3 +62,7 @@ Orientações para Claude Code (e demais agentes) neste repositório.
 - **Nunca** force-push para `main` ou `develop`.
 - Sem destrutivos (`reset --hard`, `--force`) sem pedido explícito.
 - Se um hook falhar, corrija e crie um **novo** commit (não use `--amend`).
+
+<!-- specsfy:framework:start -->
+@.specsfy/Spec.md
+<!-- specsfy:framework:end -->
