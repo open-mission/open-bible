@@ -1,0 +1,39 @@
+# Maintained source package for the Arch User Repository (AUR).
+pkgname=open-bible
+pkgver=0.8.7
+pkgrel=1
+pkgdesc='Offline-first Portuguese Bible reader'
+arch=('x86_64')
+url='https://github.com/open-mission/open-bible'
+license=('MIT')
+options=('!lto')
+depends=('gtk3' 'webkit2gtk-4.1')
+makedepends=('cargo' 'git' 'pnpm' 'rust')
+source=("git+${url}.git#tag=v${pkgver}")
+b2sums=('SKIP')
+
+prepare() {
+  cd "$pkgname"
+  pnpm install --frozen-lockfile --ignore-scripts
+}
+
+build() {
+  cd "$pkgname"
+  pnpm build:tauri
+  env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS \
+    cargo build --manifest-path src-tauri/Cargo.toml --release
+}
+
+package() {
+  cd "$pkgname"
+
+  install -Dm755 src-tauri/target/release/open-bible \
+    "$pkgdir/usr/bin/open-bible"
+  install -Dm644 src-tauri/icons/128x128.png \
+    "$pkgdir/usr/share/icons/hicolor/128x128/apps/app.openbible.desktop.png"
+  install -Dm644 flatpak/app.openbible.desktop.desktop \
+    "$pkgdir/usr/share/applications/app.openbible.desktop.desktop"
+  install -Dm644 flatpak/app.openbible.desktop.metainfo.xml \
+    "$pkgdir/usr/share/metainfo/app.openbible.desktop.metainfo.xml"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
