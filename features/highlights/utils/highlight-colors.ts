@@ -75,17 +75,16 @@ export function getNeonStyle(hex: string): NeonStyle {
     else cleanHex = "#34d399" // fallback to emerald
   }
 
-  // Combine inset border shadow and outer glow shadow for the pill:
-  // 1a = 10% alpha (background)
-  // 33 = 20% alpha (inset border ring)
-  // 40 = 25% alpha (glow shadow for pill)
-  // 66 = 40% alpha (glow shadow for solid dot)
+  // Fio de luz (DESIGN.md): cor é tinta, não luz. Sem halos —
+  // anéis-fio nítidos marcam seleção/atividade.
+  // pillBg   = 1a (10% alpha)
+  // anel     = 80 (50% alpha) no dot ativo; 33 (20%) no contorno da pílula
   return {
     hex: cleanHex,
-    glow: `0 0 12px 2.5px ${cleanHex}66`,
+    glow: `0 0 0 1.5px ${cleanHex}80`,
     pillBg: `${cleanHex}1a`,
     pillText: cleanHex,
-    pillRing: `inset 0 0 0 1px ${cleanHex}33, 0 0 8px 1px ${cleanHex}40`,
+    pillRing: `inset 0 0 0 1px ${cleanHex}33`,
   }
 }
 

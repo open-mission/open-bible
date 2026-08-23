@@ -2,7 +2,9 @@
 
 import { useState, useCallback } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { IconLayoutGrid } from "@tabler/icons-react"
+import {
+  LayoutGrid,
+} from "lucide-react"
 import { useWorkspace } from "../context/workspace-context"
 import { getBook } from "@/features/bible-reader/utils/bible-data"
 import { PaneTypePicker } from "./pane-type-picker"
@@ -41,7 +43,7 @@ export function WorkspaceMobileBar() {
           aria-label="Abas abertas"
           className="relative flex items-center justify-center rounded-md size-10 text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <IconLayoutGrid className="size-5" />
+          <LayoutGrid className="size-5" />
           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground">
             {panes.length}
           </span>

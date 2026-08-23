@@ -1,7 +1,9 @@
 "use client"
 
 import { X } from "lucide-react"
-import { IconGripVertical } from "@tabler/icons-react"
+import {
+  GripVertical,
+} from "lucide-react"
 import { useSortable, SortableContext, horizontalListSortingStrategy, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
@@ -103,7 +105,7 @@ function SortableTab({
       {/* Decorative grip icon — the whole tab is draggable */}
       {total > 1 && (
         <span className="flex items-center justify-center text-muted-foreground/40 shrink-0">
-          <IconGripVertical className="h-3.5 w-3.5" />
+          <GripVertical className="h-3.5 w-3.5" />
         </span>
       )}
 

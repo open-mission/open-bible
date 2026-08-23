@@ -3,6 +3,11 @@
 import { useEffect, useRef } from "react";
 
 const SWIPE_THRESHOLD = 50;
+// Swipe must be predominantly horizontal. Scrolling a long chapter shifts the
+// touch slightly sideways; without this guard a diagonal scroll-release flips
+// the chapter and destroys the reader's position. Require the delta to be
+// mostly horizontal (at least 2x the vertical delta).
+const SWIPE_AXIS_RATIO = 2;
 
 export function useSwipeNavigation(
   onPrev: () => void,
@@ -25,15 +30,18 @@ export function useSwipeNavigation(
     function handleTouchEnd(e: TouchEvent) {
       if (!startRef.current) return;
       const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
       const dx = endX - startRef.current.x;
+      const dy = endY - startRef.current.y;
       startRef.current = null;
 
-      if (Math.abs(dx) > SWIPE_THRESHOLD) {
-        if (dx > 0) {
-          onPrev();
-        } else {
-          onNext();
-        }
+      if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+      if (Math.abs(dy) > Math.abs(dx) / SWIPE_AXIS_RATIO) return;
+
+      if (dx > 0) {
+        onPrev();
+      } else {
+        onNext();
       }
     }
 

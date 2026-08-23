@@ -3,7 +3,10 @@
 import { useState, useRef } from "react"
 import type { HighlightData } from "../context/highlights-context"
 import { getNeonStyle } from "../utils/highlight-colors"
-import { IconPencil, IconTrash } from "@tabler/icons-react"
+import {
+  Pencil,
+  Trash2,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/lib/use-media-query"
 import { cn } from "@/lib/utils"
@@ -119,7 +122,7 @@ export function HighlightPopover({
           }}
           className="h-9 px-3 text-xs gap-1.5"
         >
-          <IconPencil className="h-3.5 w-3.5" />
+          <Pencil className="h-3.5 w-3.5" />
           Editar
         </Button>
         <Button
@@ -131,7 +134,7 @@ export function HighlightPopover({
           }}
           className="h-9 px-3 text-xs gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
-          <IconTrash className="h-3.5 w-3.5" />
+          <Trash2 className="h-3.5 w-3.5" />
           Excluir
         </Button>
       </div>

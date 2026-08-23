@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react"
 import {
-  IconSearch,
-  IconX,
-  IconHighlight,
-} from "@tabler/icons-react"
+  Highlighter,
+  Search,
+  X,
+} from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
@@ -89,7 +89,7 @@ export function AllHighlightsBrowser({
         <div className="flex min-w-0 items-center gap-3">
           {!embedded && (
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <IconHighlight className="size-4 text-primary" />
+              <Highlighter className="size-4 text-primary" />
             </div>
           )}
           <div className="min-w-0">
@@ -110,7 +110,7 @@ export function AllHighlightsBrowser({
             aria-label="Fechar"
             className="shrink-0 text-muted-foreground hover:text-foreground"
           >
-            <IconX />
+            <X />
           </Button>
         )}
       </div>
@@ -118,7 +118,7 @@ export function AllHighlightsBrowser({
       <div className={cn("shrink-0 pb-3", embedded ? "px-4" : "px-5 sm:px-6")}>
         <InputGroup className="h-9! rounded-lg! border-input/30 bg-input/30 shadow-none!">
           <InputGroupAddon>
-            <IconSearch className="size-4 shrink-0 opacity-50" />
+            <Search className="size-4 shrink-0 opacity-50" />
           </InputGroupAddon>
           <input
             className="w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground/50 text-foreground"
@@ -133,7 +133,7 @@ export function AllHighlightsBrowser({
               onClick={() => setQuery("")}
               aria-label="Limpar busca"
             >
-              <IconX className="size-4" />
+              <X className="size-4" />
             </button>
           )}
         </InputGroup>
@@ -153,7 +153,7 @@ export function AllHighlightsBrowser({
           <Empty className="border-0 py-10">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <IconHighlight />
+                <Highlighter />
               </EmptyMedia>
               <EmptyTitle>
                 {query ? "Nenhum destaque encontrado" : "Nenhum destaque ainda"}

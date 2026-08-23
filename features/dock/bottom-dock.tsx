@@ -1,6 +1,9 @@
 "use client"
 
-import { IconNotebook, IconHighlight } from "@tabler/icons-react"
+import {
+  Highlighter,
+  Notebook,
+} from "lucide-react"
 
 interface BottomDockProps {
   activeTab: "notes" | "highlights" | null
@@ -16,7 +19,7 @@ export function BottomDock({ activeTab, onSelect }: BottomDockProps) {
           data-active={activeTab === "highlights" || undefined}
           className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-accent/60 data-active:bg-accent data-active:text-foreground data-active:shadow-xs"
         >
-          <IconHighlight className="size-3.5" />
+          <Highlighter className="size-3.5" />
           <span>Destaques</span>
         </button>
         <div className="h-5 w-px bg-border/40" />
@@ -26,7 +29,7 @@ export function BottomDock({ activeTab, onSelect }: BottomDockProps) {
           data-active={activeTab === "notes" || undefined}
           className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-accent/60 data-active:bg-accent data-active:text-foreground data-active:shadow-xs"
         >
-          <IconNotebook className="size-3.5" />
+          <Notebook className="size-3.5" />
           <span>Notas</span>
         </button>
     </div>

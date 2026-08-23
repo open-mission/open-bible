@@ -1,10 +1,10 @@
 "use client"
 
 import {
-  IconBook,
-  IconNotebook,
-  IconHighlight,
-} from "@tabler/icons-react"
+  BookOpen,
+  Highlighter,
+  Notebook,
+} from "lucide-react"
 import { useAppNavigation } from "../context/app-navigation-context"
 import { cn } from "@/lib/utils"
 import type { AppView } from "../types"
@@ -17,9 +17,9 @@ interface TabItem {
 }
 
 const TAB_ITEMS: TabItem[] = [
-  { id: "reader", label: "Leitura", icon: IconBook },
-  { id: "notes", label: "Notas", icon: IconNotebook },
-  { id: "highlights", label: "Destaques", icon: IconHighlight },
+  { id: "reader", label: "Leitura", icon: BookOpen },
+  { id: "notes", label: "Notas", icon: Notebook },
+  { id: "highlights", label: "Destaques", icon: Highlighter },
 ]
 
 export function MobileTabBar() {
@@ -47,7 +47,6 @@ export function MobileTabBar() {
             >
               <item.icon className={cn(
                 "size-5 transition-all duration-200",
-                isActive && "drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)]"
               )} />
               <span className={cn(
                 "text-[10px] font-medium transition-all duration-200",

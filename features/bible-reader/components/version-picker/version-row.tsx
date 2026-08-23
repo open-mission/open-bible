@@ -35,7 +35,7 @@ export function VersionRow({
           className={cn(
             "text-xs font-bold uppercase tracking-wider",
             isActive
-              ? "text-primary-foreground"
+              ? "text-primary"
               : "text-muted-foreground/80",
           )}
         >
@@ -44,7 +44,7 @@ export function VersionRow({
         <span
           className={cn(
             "font-semibold truncate",
-            isActive && "text-primary-foreground",
+            isActive && "text-primary",
           )}
         >
           {name}
@@ -55,7 +55,7 @@ export function VersionRow({
           className={cn(
             "text-[10px] truncate text-left",
             isActive
-              ? "text-primary-foreground/70"
+              ? "text-primary/70"
               : "text-muted-foreground/60",
           )}
         >
@@ -70,7 +70,7 @@ export function VersionRow({
       className={cn(
         "group flex items-center justify-between gap-2 rounded-lg border transition-all px-4 py-3 text-left",
         isActive
-          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+          ? "border-primary bg-primary/5 text-primary"
           : "border-border hover:bg-accent/60 text-foreground",
       )}
     >

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBook } from "@/features/bible-reader/utils/bible-data";
 import { useBibleVerses } from "@/features/bible-reader/hooks/use-bible";
@@ -19,7 +20,7 @@ import { NotesBrowser } from "@/features/notes/components/notes-browser";
 import { useIsMobile } from "@/lib/use-media-query";
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations";
 import { database } from "@/lib/database/database";
-// highlight icon inline (avoids tabler-icons server build issue)
+import { VersionPickerDialog } from "./version-picker/version-picker-dialog";
 import type { HighlightData } from "@/features/highlights/context/highlights-context";
 import type { HighlightCategory } from "@/lib/database/user/schema";
 
@@ -68,7 +69,7 @@ function ReaderContent({
   hideFloatingNav = false,
 }: ReaderProps & { versionId: string }) {
   const book = getBook(bookId);
-const { verses, loading } = useBibleVerses(bookId, chapter);
+  const { verses, loading, error, reload, isVersionInstalled } = useBibleVerses(bookId, chapter);
   const { highlightsByVerse, setActiveHighlightId } = useHighlightsContext();
   const { notesByVerse, openNotePanel } = useNotesContext();
   const isMobile = useIsMobile();
@@ -88,6 +89,9 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
   /** Dock inspector: toggled "notes" | "highlights" view (null = closed). */
   const [dockView, setDockView] = useState<"notes" | "highlights" | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
+  /** Opens the version picker deep-linked to the "Disponíveis" tab when the
+   *  active version isn't installed (blank-reader recovery). */
+  const [showInstallPicker, setShowInstallPicker] = useState(false);
 
   /** Clear verse selection when this pane becomes inactive (grid mode) so
    *  only the focused pane shows a selection popover. */
@@ -326,15 +330,15 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
         }`}
       >
         <header className="mb-12 text-center">
-          <h2
-            className={`${fontClass} text-4xl font-semibold text-foreground mb-3`}
-          >
+          {/* A voz da Escritura: o Display é sempre serifado (Lora),
+              independente da fonte escolhida para o corpo. */}
+          <h2 className="font-serif text-4xl font-semibold text-foreground mb-3">
             {book.name}
           </h2>
           <div className="flex items-center justify-center gap-3">
             <div className="h-px w-8 bg-border" />
             <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
-              Chapter {chapter}
+              Capítulo {chapter}
             </p>
             <div className="h-px w-8 bg-border" />
           </div>
@@ -360,7 +364,7 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
                   key={i}
                   className={`flex gap-4 px-4 sm:px-6 ${spacingClasses[verseSpacing]} rounded-md`}
                 >
-                  <sup className="font-verse-number text-xs font-bold text-muted-foreground/60 shrink-0 mt-1">
+                  <sup className="text-xs font-bold text-muted-foreground/60 shrink-0 mt-1">
                     {i + 1}
                   </sup>
                   <div className="flex-1 space-y-2 mt-1">
@@ -377,6 +381,44 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
                   </div>
                 </div>
               ))}
+            </div>
+          ) : !isVersionInstalled ? (
+            <div className="flex flex-col items-center justify-center text-center px-8 py-16 gap-4">
+              <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                <Download className="size-5 text-muted-foreground" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-base font-semibold text-foreground">
+                  Como baixar esta versão da Bíblia
+                </p>
+                <p className="text-sm text-muted-foreground max-w-[34ch] mx-auto leading-relaxed">
+                  Para ler neste dispositivo, escolha uma tradução e baixe-a uma
+                  única vez. Depois disso, ela fica disponível offline.
+                </p>
+              </div>
+              <Button
+                size="default"
+                onClick={() => setShowInstallPicker(true)}
+                className="cursor-pointer"
+              >
+                <Download data-icon="inline-start" className="size-4" />
+                Instalar versão
+              </Button>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center text-center px-8 py-16 gap-4">
+              <p className="text-sm text-muted-foreground max-w-[36ch] leading-relaxed">
+                {error}
+              </p>
+              <Button
+                variant="outline"
+                size="default"
+                onClick={reload}
+                className="cursor-pointer"
+              >
+                <RefreshCw data-icon="inline-start" className="size-4" />
+                Tentar novamente
+              </Button>
             </div>
           ) : (
             verses.map((verse) => (
@@ -409,6 +451,14 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
 
       </div>
 
+      {showInstallPicker && (
+        <VersionPickerDialog
+          open={showInstallPicker}
+          onClose={() => setShowInstallPicker(false)}
+          initialTab="available"
+        />
+      )}
+
       {isActive && open && popoverAnchor && (
         <VerseSelectionPopover
           book={book}
@@ -438,7 +488,7 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
           <button
             onClick={prevChapter}
             disabled={chapter <= 1}
-            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center rounded-full size-12 bg-background border border-border shadow-xs hover:bg-accent hover:text-accent-foreground transition-all focus-visible:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-20"
             aria-label="Capítulo anterior"
           >
             <ChevronLeft className="size-5" />
@@ -446,7 +496,7 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
           <button
             onClick={nextChapter}
             disabled={book && chapter >= book.chapters}
-            className="inline-flex items-center justify-center rounded-full size-12 bg-background/90 backdrop-blur-sm border border-border shadow-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center rounded-full size-12 bg-background border border-border shadow-xs hover:bg-accent hover:text-accent-foreground transition-all focus-visible:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-20"
             aria-label="Próximo capítulo"
           >
             <ChevronRight className="size-5" />
@@ -539,7 +589,7 @@ const { verses, loading } = useBibleVerses(bookId, chapter);
             )}
           </div>
         ) : (
-          <div className="fixed right-0 top-0 z-40 flex h-full w-[min(440px,92vw)] animate-in slide-in-from-right flex-col border-l border-border bg-background shadow-elevation duration-200">
+          <div className="fixed right-0 top-0 z-40 flex h-full w-[min(440px,92vw)] animate-in slide-in-from-right flex-col border-l border-border bg-background duration-200">
             {dockView === "notes" ? (
               <NotesBrowser
                 mode="all"

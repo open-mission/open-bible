@@ -1,7 +1,10 @@
 "use client"
 
 import { useCallback } from "react"
-import { IconPencil, IconTrash } from "@tabler/icons-react"
+import {
+  Pencil,
+  Trash2,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getNeonStyle, getColorName } from "../utils/highlight-colors"
 import { getBookName } from "@/lib/books"
@@ -74,7 +77,7 @@ export function HighlightCard({
               className="text-muted-foreground hover:text-foreground shrink-0"
               title="Editar destaque"
             >
-              <IconPencil className="size-3.5" />
+              <Pencil className="size-3.5" />
             </Button>
             <Button
               type="button"
@@ -84,7 +87,7 @@ export function HighlightCard({
               onClick={() => onDelete(entry.highlight.id)}
               title="Excluir destaque"
             >
-              <IconTrash className="size-3.5" />
+              <Trash2 className="size-3.5" />
             </Button>
           </div>
         </header>
@@ -101,13 +104,6 @@ export function HighlightCard({
               &rdquo;
             </span>
 
-            {/* Soft radial glow shape */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full blur-3xl opacity-[0.07] z-0"
-              style={{ backgroundColor: style.hex }}
-            />
-
             {/* Stacked verses list */}
             <div className="relative z-10 flex flex-col gap-3">
               {entry.verseItems.map((v, idx) => (
@@ -116,7 +112,7 @@ export function HighlightCard({
                     {v.text}
                   </p>
                   <span
-                    className="text-[9px] font-bold uppercase tracking-wider mt-0.5 font-sans"
+                    className="text-[10px] font-bold uppercase tracking-wider mt-0.5 font-sans"
                     style={{ color: `${style.hex}b3` }}
                   >
                     {v.reference}

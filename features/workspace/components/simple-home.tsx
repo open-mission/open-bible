@@ -75,7 +75,7 @@ export function SimpleHome({ openBookChapterSignal }: { openBookChapterSignal?: 
   const verseReference =
     currentBook && selectedChapter
       ? `${currentBook.abbreviation} ${selectedChapter}:1`
-      : "Select a verse"
+      : "Selecione um versículo"
 
   return (
     <NotesProvider

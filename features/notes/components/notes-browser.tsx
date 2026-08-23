@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react"
 import {
-  IconSearch,
-  IconX,
-  IconNotebook,
-  IconPlus,
-  IconCheck,
-  IconArrowLeft,
-} from "@tabler/icons-react"
+  ArrowLeft,
+  Check,
+  Notebook,
+  Plus,
+  Search,
+  X,
+} from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -252,11 +252,11 @@ export function NotesBrowser({
             aria-label="Cancelar"
             className="shrink-0 text-muted-foreground hover:text-foreground"
           >
-            <IconArrowLeft />
+            <ArrowLeft />
           </Button>
           <p className="min-w-0 flex-1 truncate px-1 text-sm font-semibold">Editar nota</p>
           <Button type="button" size="sm" onClick={handleSaveEdit}>
-            <IconCheck data-icon="inline-start" />
+            <Check data-icon="inline-start" />
             Salvar
           </Button>
         </header>
@@ -279,11 +279,11 @@ export function NotesBrowser({
             aria-label="Cancelar"
             className="shrink-0 text-muted-foreground hover:text-foreground"
           >
-            <IconArrowLeft />
+            <ArrowLeft />
           </Button>
           <p className="min-w-0 flex-1 truncate px-1 text-sm font-semibold">Nova nota</p>
           <Button type="button" size="sm" onClick={handleSaveCompose}>
-            <IconCheck data-icon="inline-start" />
+            <Check data-icon="inline-start" />
             Salvar
           </Button>
         </header>
@@ -309,7 +309,7 @@ export function NotesBrowser({
         <div className="flex min-w-0 items-center gap-3">
           {!embedded && (
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <IconNotebook className="size-4 text-primary" />
+              <Notebook className="size-4 text-primary" />
             </div>
           )}
           <div className="min-w-0">
@@ -336,7 +336,7 @@ export function NotesBrowser({
               size="sm"
               onClick={openCompose}
             >
-              <IconPlus data-icon="inline-start" />
+              <Plus data-icon="inline-start" />
               Nova
             </Button>
           )}
@@ -349,7 +349,7 @@ export function NotesBrowser({
               aria-label="Fechar"
               className="text-muted-foreground hover:text-foreground"
             >
-              <IconX />
+              <X />
             </Button>
           )}
         </div>
@@ -359,7 +359,7 @@ export function NotesBrowser({
         <div className={cn("shrink-0 pb-3", embedded ? "px-4" : "px-5 sm:px-6")}>
           <InputGroup className="h-9! rounded-lg! border-input/30 bg-input/30 shadow-none!">
             <InputGroupAddon>
-              <IconSearch className="size-4 shrink-0 opacity-50" />
+              <Search className="size-4 shrink-0 opacity-50" />
             </InputGroupAddon>
             <input
               className="w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground/50 text-foreground"
@@ -374,7 +374,7 @@ export function NotesBrowser({
                 onClick={() => setQuery("")}
                 aria-label="Limpar busca"
               >
-                <IconX className="size-4" />
+                <X className="size-4" />
               </button>
             )}
           </InputGroup>
@@ -395,7 +395,7 @@ export function NotesBrowser({
           <Empty className="border-0 py-10">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <IconNotebook />
+                <Notebook />
               </EmptyMedia>
               <EmptyTitle>
                 {query ? "Nenhuma nota encontrada" : "Nenhuma nota ainda"}

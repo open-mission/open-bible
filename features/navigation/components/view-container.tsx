@@ -4,7 +4,11 @@ import { useAppNavigation } from "../context/app-navigation-context"
 import { useWorkspaceMode } from "@/features/workspace/hooks/use-workspace-mode"
 import { SimpleHome } from "@/features/workspace/components/simple-home"
 import { AdvancedHome } from "@/features/workspace/components/advanced-home"
-import { IconNotebook, IconHighlight, IconArrowLeft } from "@tabler/icons-react"
+import {
+  ArrowLeft,
+  Highlighter,
+  Notebook,
+} from "lucide-react"
 import { useIsMobile } from "@/lib/use-media-query"
 import { cn } from "@/lib/utils"
 
@@ -29,7 +33,7 @@ function StubViewShell({ title, description, icon: Icon }: StubViewShellProps) {
           aria-label="Voltar"
           className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
         >
-          <IconArrowLeft className="size-4" />
+          <ArrowLeft className="size-4" />
         </button>
         <h1 className="font-sans text-base font-medium">{title}</h1>
       </header>
@@ -48,7 +52,7 @@ function NotesStubView() {
     <StubViewShell
       title="Notas"
       description="Em breve você poderá acessar todas as suas notas aqui."
-      icon={IconNotebook}
+      icon={Notebook}
     />
   )
 }
@@ -58,7 +62,7 @@ function HighlightsStubView() {
     <StubViewShell
       title="Destaques"
       description="Em breve você poderá visualizar todos os seus destaques aqui."
-      icon={IconHighlight}
+      icon={Highlighter}
     />
   )
 }

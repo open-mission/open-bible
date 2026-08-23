@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import {
-  IconSun,
-  IconMoon,
-  IconSettings,
-  IconBook,
-} from "@tabler/icons-react";
+  BookOpen,
+  Moon,
+  Settings,
+  Sun,
+} from "lucide-react"
 import { useAppTheme } from "@/features/theme/components/theme-provider";
 import { ConfigDialog } from "@/features/config/components/config-dialog";
 import {
@@ -31,7 +31,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "library", icon: IconBook, label: "Bible" },
+  { id: "library", icon: BookOpen, label: "Bible" },
 ];
 
 interface SidebarProps {
@@ -111,7 +111,7 @@ export function AppSidebar({
               tooltip="Configurações"
               className="h-11"
             >
-              <IconSettings className="size-6" />
+              <Settings className="size-6" />
               <span className="text-sm">Configurações</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -122,9 +122,9 @@ export function AppSidebar({
               className="h-11"
             >
               {isDark ? (
-                <IconSun className="size-5" />
+                <Sun className="size-5" />
               ) : (
-                <IconMoon className="size-5" />
+                <Moon className="size-5" />
               )}
               <span className="text-sm">
                 {isDark ? "Modo Claro" : "Modo Escuro"}

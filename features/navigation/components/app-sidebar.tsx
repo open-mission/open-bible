@@ -2,14 +2,14 @@
 
 import { useState } from "react"
 import {
-  IconBook,
-  IconNotebook,
-  IconHighlight,
-  IconSearch,
-  IconSettings,
-  IconSun,
-  IconMoon,
-} from "@tabler/icons-react"
+  BookOpen,
+  Highlighter,
+  Moon,
+  Notebook,
+  Search,
+  Settings,
+  Sun,
+} from "lucide-react"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useAppNavigation } from "../context/app-navigation-context"
 import { ConfigDialog } from "@/features/config/components/config-dialog"
@@ -39,9 +39,9 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "reader", icon: IconBook, label: "Leitura" },
-  { id: "notes", icon: IconNotebook, label: "Notas" },
-  { id: "highlights", icon: IconHighlight, label: "Destaques" },
+  { id: "reader", icon: BookOpen, label: "Leitura" },
+  { id: "notes", icon: Notebook, label: "Notas" },
+  { id: "highlights", icon: Highlighter, label: "Destaques" },
 ]
 
 interface AppSidebarProps {
@@ -141,7 +141,7 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
                     : "h-11 w-full justify-start px-3 py-2.5"
                 )}
               >
-                <IconSettings className={cn(isCollapsed ? "size-6!" : "size-5", "shrink-0")} />
+                <Settings className={cn(isCollapsed ? "size-6!" : "size-5", "shrink-0")} />
                 {!isCollapsed && <span className="text-sm">Configurações</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -157,9 +157,9 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
                 )}
               >
                 {isDark ? (
-                  <IconSun className={cn(isCollapsed ? "size-6!" : "size-5", "shrink-0")} />
+                  <Sun className={cn(isCollapsed ? "size-6!" : "size-5", "shrink-0")} />
                 ) : (
-                  <IconMoon className={cn(isCollapsed ? "size-6!" : "size-5", "shrink-0")} />
+                  <Moon className={cn(isCollapsed ? "size-6!" : "size-5", "shrink-0")} />
                 )}
                 {!isCollapsed && (
                   <span className="text-sm">

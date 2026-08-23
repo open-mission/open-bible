@@ -13,6 +13,9 @@ import { AvailableVersionsTab } from "./available-versions-tab";
 interface VersionPickerDialogProps {
   open: boolean;
   onClose: () => void;
+  /** Tab opened on mount: "installed" (default) or "available". Used to deep-link
+   *  the picker to the downloadable list when the active version is missing. */
+  initialTab?: "installed" | "available";
 }
 
 /**
@@ -95,6 +98,7 @@ function VersionPickerTabContent({
 export function VersionPickerDialog({
   open,
   onClose,
+  initialTab = "installed",
 }: VersionPickerDialogProps) {
   const isMobile = useIsMobile();
   const { setVersionId, installedVersions, availableVersions } =
@@ -125,7 +129,7 @@ export function VersionPickerDialog({
       {/* Fade abaixo do header */}
       <div className="absolute top-14 left-0 right-0 h-6 bg-linear-to-b from-background to-transparent pointer-events-none z-10" />
 
-      <Tabs defaultValue="installed" className="flex-1 min-h-0 flex flex-col">
+      <Tabs defaultValue={initialTab} className="flex-1 min-h-0 flex flex-col">
         <VersionPickerTabsList>
           <VersionPickerTabsTrigger value="installed" count={installedCount}>
             Instaladas
@@ -159,7 +163,7 @@ export function VersionPickerDialog({
   return (
     <VersionPickerPortal>
       <VersionPickerOverlay>
-        <div className="bg-background w-full max-w-2xl h-full max-h-[80vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-border animate-in fade-in zoom-in-95 duration-200">
+        <div className="bg-background w-full max-w-2xl h-full max-h-[80vh] rounded-xl shadow-xs ring-1 ring-foreground/10 flex flex-col overflow-hidden border border-border animate-in fade-in zoom-in-95 duration-200">
           {content}
         </div>
       </VersionPickerOverlay>

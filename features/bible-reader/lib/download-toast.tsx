@@ -13,7 +13,7 @@ function DownloadToast({ name, progress, status = "loading" }: DownloadToastProp
 
   if (status === "success") {
     return (
-      <div className="flex items-center justify-between gap-4 bg-background rounded-xl px-4 py-3 shadow-lg border border-border">
+      <div className="flex items-center justify-between gap-4 bg-background rounded-xl px-4 py-3 shadow-xs ring-1 ring-foreground/10 border border-border">
         <div className="flex flex-col gap-0.5 min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">{name}</p>
           <p className="text-xs text-muted-foreground">disponível offline</p>
@@ -24,7 +24,7 @@ function DownloadToast({ name, progress, status = "loading" }: DownloadToastProp
 
   if (status === "error") {
     return (
-      <div className="flex items-center justify-between gap-4 bg-background rounded-xl px-4 py-3 shadow-lg border border-border">
+      <div className="flex items-center justify-between gap-4 bg-background rounded-xl px-4 py-3 shadow-xs ring-1 ring-foreground/10 border border-border">
         <div className="flex flex-col gap-0.5 min-w-0">
           <p className="text-sm font-semibold text-destructive">Falha ao baixar</p>
           <p className="text-xs text-muted-foreground truncate">{name}</p>
@@ -34,7 +34,7 @@ function DownloadToast({ name, progress, status = "loading" }: DownloadToastProp
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 bg-background rounded-xl px-4 py-3 shadow-lg border border-border">
+    <div className="flex items-center justify-between gap-4 bg-background rounded-xl px-4 py-3 shadow-xs ring-1 ring-foreground/10 border border-border">
       <div className="flex flex-col gap-1 min-w-0 flex-1">
         <p className="text-sm font-semibold text-foreground truncate">Baixando {name}</p>
         <div className="flex items-center gap-2">

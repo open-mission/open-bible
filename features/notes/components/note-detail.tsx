@@ -1,6 +1,10 @@
 "use client"
 
-import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react"
+import {
+  ArrowLeft,
+  Pencil,
+  Trash2,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { NoteRenderer } from "./note-renderer"
 import { isEmptyHtml } from "../utils/html"
@@ -36,7 +40,7 @@ export function NoteDetail({ entry, onBack, onEdit, onDelete, subtitle }: NoteDe
           aria-label="Voltar"
           className="shrink-0 text-muted-foreground hover:text-foreground"
         >
-          <IconArrowLeft />
+          <ArrowLeft />
         </Button>
         <div className="min-w-0 flex-1 px-1">
           <p className="truncate text-sm font-semibold text-foreground">
@@ -54,7 +58,7 @@ export function NoteDetail({ entry, onBack, onEdit, onDelete, subtitle }: NoteDe
           aria-label="Editar nota"
           className="shrink-0 text-muted-foreground hover:text-foreground"
         >
-          <IconEdit />
+          <Pencil />
         </Button>
         <Button
           type="button"
@@ -64,7 +68,7 @@ export function NoteDetail({ entry, onBack, onEdit, onDelete, subtitle }: NoteDe
           aria-label="Excluir nota"
           className="shrink-0 text-destructive/80 hover:bg-destructive/10 hover:text-destructive"
         >
-          <IconTrash />
+          <Trash2 />
         </Button>
       </header>
 
