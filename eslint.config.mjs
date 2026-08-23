@@ -17,6 +17,9 @@ const eslintConfig = [
       // build assets under target/ that fail to parse. Keep ESLint off the whole
       // src-tauri tree so `pnpm lint` passes both locally and in CI.
       'src-tauri/**',
+      // Specsfy specialist assets: vendored React components with intentional
+      // patterns (e.g. <img>, prefer-let) that should not block project lint.
+      '.agents/skills/specsfy-specialist-*/**',
     ],
   },
   {

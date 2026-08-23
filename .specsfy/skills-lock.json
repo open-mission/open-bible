@@ -95,6 +95,66 @@
       "source": "base",
       "installed_at": "2026-08-23T02:28:01.467Z",
       "content_sha256": "27fc226a0c450e19f56685ab5120f35653361a2bc4e9424a8a9dccd511de2661"
+    },
+    "specsfy-specialist-data-modeling": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:08.225Z",
+      "content_sha256": "acf2945a748d4d5eea1439d042c6222f46732273099d07098da8d3acc74c36d7"
+    },
+    "specsfy-specialist-domain-modeling": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:08.228Z",
+      "content_sha256": "a69abe8b8955c51a35b8d60d06bde3e3482b749ac62bde4f6f2c07e2f2f85335"
+    },
+    "specsfy-specialist-software-architecture": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:08.229Z",
+      "content_sha256": "d7b88967c30fbb20ed53aba775f594eb54625c0643ba5d19f73a90e5d3dc1f45"
+    },
+    "specsfy-specialist-shadcn-ui": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:08.230Z",
+      "content_sha256": "976abcc65f6dc3ec188be2b6bfce8644ffc0dde8ae2ef421f4e09bcd210b7d69"
+    },
+    "specsfy-specialist-react": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:08.232Z",
+      "content_sha256": "c9757c67f4f53104bea993f36952735107e232963a71b6b343f065d0a05eac04"
+    },
+    "specsfy-specialist-tailwind-css": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:08.234Z",
+      "content_sha256": "e343868617e1cef574c9ba39e7afe83f90048d27958539ce2608058e6f3c7ff3"
+    },
+    "specsfy-specialist-reui": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:08.236Z",
+      "content_sha256": "a2a7c5fe2e2de1a8ac8fcc84e12291f1012c7af521d48f83195fd547c0e29f6b"
+    },
+    "specsfy-specialist-delivery-engineering": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:22.233Z",
+      "content_sha256": "c69adb88f3de7975e952d9d44b6df2e5398a55e4e462411220717e8a8eb411de"
+    },
+    "specsfy-specialist-nextjs": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:22.235Z",
+      "content_sha256": "d275aee5eac880a7a13414515e15bc46a1a5af13844f8a4713f4c01e945445b8"
+    },
+    "specsfy-specialist-ui-design": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:22.236Z",
+      "content_sha256": "eae3832496841b345fa3f790796c1dd4526344a4a62aec4b3e1767bbeabfcf1d"
+    },
+    "specsfy-specialist-react-ui-components": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:22.296Z",
+      "content_sha256": "4e325f755d2c4df55d9c0cb0e0eddfc393fc871e069aa3fe5a3c988bbc7d325c"
+    },
+    "specsfy-specialist-typescript": {
+      "source": "specialists",
+      "installed_at": "2026-08-23T02:35:22.297Z",
+      "content_sha256": "bd33b7d3e981a0c7a6c35a0ecd300672b5a4106dea246e3d60048bf3a8708ba1"
     }
   },
   "framework": {
