@@ -6,8 +6,10 @@ const pkgbuild = readFileSync(resolve("packaging/arch/PKGBUILD"), "utf8")
 
 describe("Arch Linux package", () => {
   it("builds the Tauri application from the tagged source", () => {
+    expect(pkgbuild).toContain("options=('!lto')")
     expect(pkgbuild).toContain("source=(\"git+${url}.git#tag=v${pkgver}\")")
     expect(pkgbuild).toContain("pnpm build:tauri")
+    expect(pkgbuild).toContain("env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS")
     expect(pkgbuild).toContain("cargo build --manifest-path src-tauri/Cargo.toml --release")
   })
 

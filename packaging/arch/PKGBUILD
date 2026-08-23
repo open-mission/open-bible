@@ -6,6 +6,7 @@ pkgdesc='Offline-first Portuguese Bible reader'
 arch=('x86_64')
 url='https://github.com/open-mission/open-bible'
 license=('MIT')
+options=('!lto')
 depends=('gtk3' 'webkit2gtk-4.1')
 makedepends=('cargo' 'git' 'pnpm' 'rust')
 source=("git+${url}.git#tag=v${pkgver}")
@@ -19,7 +20,8 @@ prepare() {
 build() {
   cd "$pkgname"
   pnpm build:tauri
-  cargo build --manifest-path src-tauri/Cargo.toml --release
+  env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS \
+    cargo build --manifest-path src-tauri/Cargo.toml --release
 }
 
 package() {
