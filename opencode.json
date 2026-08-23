@@ -1,6 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
+    "reui": {
+      "type": "remote",
+      "url": "https://mcp.reui.io",
+      "enabled": true
+    },
     "shadcn": {
       "type": "local",
       "command": [

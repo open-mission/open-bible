@@ -67,6 +67,10 @@ next-env.d.ts.env.local
 /.cline/
 /.trae/
 /.continue/
+/.gemini/
+
+# impeccable local state (generated)
+/.impeccable/
 
 # opencode config (local)
 /opencode.json
