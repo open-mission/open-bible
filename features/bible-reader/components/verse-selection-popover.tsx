@@ -148,41 +148,41 @@ export function VerseSelectionPopover({
       <Button
         type="button"
         variant="ghost"
-        size="icon-sm"
+        size="sm"
         onClick={() => handleCopy("reference")}
         className={cn(
-          "text-muted-foreground hover:text-foreground rounded-full transition-colors px-2 gap-1",
+          "text-muted-foreground hover:text-foreground rounded-full transition-colors gap-1.5 px-2.5 h-8",
           copied === "reference" && "text-primary hover:text-primary bg-primary/10"
         )}
         title={copied === "reference" ? "Referência copiada!" : "Copiar referência"}
         aria-label="Copiar referência"
       >
         {copied === "reference" ? (
-          <Check className="size-4" />
+          <Check className="size-4 shrink-0" />
         ) : (
-          <Copy className="size-4" />
+          <Copy className="size-4 shrink-0" />
         )}
-        <span className="text-xs font-medium">Referência</span>
+        <span className="hidden sm:inline text-xs font-medium">Referência</span>
       </Button>
 
       <Button
         type="button"
         variant="ghost"
-        size="icon-sm"
+        size="sm"
         onClick={() => handleCopy("text")}
         className={cn(
-          "text-muted-foreground hover:text-foreground rounded-full transition-colors px-2 gap-1",
+          "text-muted-foreground hover:text-foreground rounded-full transition-colors gap-1.5 px-2.5 h-8",
           copied === "text" && "text-primary hover:text-primary bg-primary/10"
         )}
         title={copied === "text" ? "Texto copiado!" : "Copiar texto"}
         aria-label="Copiar texto"
       >
         {copied === "text" ? (
-          <Check className="size-4" />
+          <Check className="size-4 shrink-0" />
         ) : (
-          <Clipboard className="size-4" />
+          <Clipboard className="size-4 shrink-0" />
         )}
-        <span className="text-xs font-medium">Texto</span>
+        <span className="hidden sm:inline text-xs font-medium">Texto</span>
       </Button>
 
       <Button
