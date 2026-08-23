@@ -135,7 +135,7 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         run: |
           flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y flathub org.gnome.Platform//46 org.gnome.Sdk//46
+          flatpak install --user -y flathub org.gnome.Platform//49 org.gnome.Sdk//49
 
       - name: Build Flatpak Bundle
         if: matrix.platform == 'ubuntu-24.04'
@@ -157,4 +157,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} open-bible.flatpak --clobber
-
