@@ -1,7 +1,9 @@
 "use client"
 
 import { Columns2, Rows2, X } from "lucide-react"
-import { IconGripHorizontal } from "@tabler/icons-react"
+import {
+  GripHorizontal,
+} from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -232,7 +234,7 @@ export function SortableGridPane({
           : "cursor-grab hover:bg-muted hover:text-foreground hover:scale-110",
       )}
     >
-      <IconGripHorizontal className="h-4 w-4" />
+      <GripHorizontal className="h-4 w-4" />
     </button>
   )
 

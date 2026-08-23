@@ -1,7 +1,10 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { IconX, IconPlus } from "@tabler/icons-react"
+import {
+  Plus,
+  X,
+} from "lucide-react"
 import type { HighlightCategory } from "@/lib/database/user/schema"
 
 import { InputGroup, InputGroupButton } from "@/components/ui/input-group"
@@ -117,7 +120,7 @@ export function HighlightCategoryInput({
                   className="hover:bg-primary/20 rounded-full p-0.5 transition-colors cursor-pointer"
                   aria-label={`Remover tag ${cat.name}`}
                 >
-                  <IconX className="size-3" />
+                  <X className="size-3" />
                 </button>
               </span>
             )
@@ -143,7 +146,7 @@ export function HighlightCategoryInput({
             disabled={loading}
             className="text-primary hover:bg-primary/10 mr-1 shrink-0 h-6 px-2 rounded-sm font-semibold text-xs flex items-center gap-1 cursor-pointer"
           >
-            <IconPlus className="size-3" />
+            <Plus className="size-3" />
             {loading ? "Criando..." : "Adicionar"}
           </InputGroupButton>
         )}

@@ -1,7 +1,9 @@
 "use client"
 
 import { useMemo } from "react"
-import { IconPencil } from "@tabler/icons-react"
+import {
+  Pencil,
+} from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { HighlightColorPicker } from "./highlight-color-picker"
@@ -119,7 +121,7 @@ export function HighlightMenu({
         className="text-muted-foreground hover:text-foreground shrink-0 font-medium text-xs gap-1.5"
         aria-label="Mais informações"
       >
-        <IconPencil data-icon="inline-start" />
+        <Pencil data-icon="inline-start" />
         {!isMobile && <span>Mais informações</span>}
       </Button>
     </div>

@@ -239,27 +239,6 @@
   background: hsl(240 5.9% 26% / 0.7);
 }
 
-/* Highlight verse styles */
-.highlight-verse {
-  background-color: hsl(48 96% 89% / 0.5);
-  border-bottom: 1.5px solid hsl(48 96% 60% / 0.5);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.highlight-verse:hover {
-  background-color: hsl(48 96% 89%);
-}
-
-.dark .highlight-verse {
-  background-color: hsl(48 96% 89% / 0.3);
-  border-bottom-color: hsl(48 96% 60% / 0.4);
-}
-
-.dark .highlight-verse:hover {
-  background-color: hsl(48 96% 89% / 0.5);
-}
-
 /* Selection highlight */
 .selection\:bg-highlight::selection {
   background-color: hsl(48 96% 89% / 0.5);
@@ -347,4 +326,34 @@
 @keyframes view-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Verse selection popover (extraídas do componente para não injetar <style> por render) */
+@keyframes verse-selection-in {
+  from { opacity: 0; transform: scale(0.92) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.verse-selection-animate {
+  animation: verse-selection-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes float-in-menu {
+  from { opacity: 0; transform: scale(0.95) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.menu-animate {
+  animation: float-in-menu 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verse-selection-animate,
+  .menu-animate,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .view-enter {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
 }

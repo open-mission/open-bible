@@ -1,8 +1,25 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { X, LayoutGrid, Monitor, LayoutPanelLeft, LayoutPanelTop, Book, BookOpen, Rows3, MoreVertical, ChevronLeft, ChevronRight, FolderX } from "lucide-react"
-import { IconSun, IconMoon, IconSettings, IconBook, IconNotebook, IconHighlight } from "@tabler/icons-react"
+import {
+  X,
+  LayoutGrid,
+  Monitor,
+  LayoutPanelLeft,
+  LayoutPanelTop,
+  Book,
+  BookOpen,
+  Rows3,
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+  FolderX,
+  Highlighter,
+  Moon,
+  Notebook,
+  Settings,
+  Sun,
+} from "lucide-react"
 import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useWorkspace } from "../context/workspace-context"
@@ -242,7 +259,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
                   title="Leitura"
                   className="h-9 rounded-lg transition-all duration-150"
                 >
-                  <IconBook className={cn(
+                  <BookOpen className={cn(
                     "size-[18px] shrink-0 transition-colors duration-150",
                     activeView === "reader" ? "text-primary" : "text-muted-foreground"
                   )} />
@@ -256,7 +273,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
                   title="Notas"
                   className="h-9 rounded-lg transition-all duration-150"
                 >
-                  <IconNotebook className={cn(
+                  <Notebook className={cn(
                     "size-[18px] shrink-0 transition-colors duration-150",
                     activeView === "notes" ? "text-primary" : "text-muted-foreground"
                   )} />
@@ -270,7 +287,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
                   title="Destaques"
                   className="h-9 rounded-lg transition-all duration-150"
                 >
-                  <IconHighlight className={cn(
+                  <Highlighter className={cn(
                     "size-[18px] shrink-0 transition-colors duration-150",
                     activeView === "highlights" ? "text-primary" : "text-muted-foreground"
                   )} />
@@ -331,7 +348,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
               title="Configurações"
               className="h-10 px-2.5 rounded-lg justify-start"
             >
-              <IconSettings className="size-4 shrink-0" />
+              <Settings className="size-4 shrink-0" />
               <span className="text-sm font-medium group-data-[collapsible=icon]:hidden ml-2">Configurações</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -342,9 +359,9 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
               className="h-10 px-2.5 rounded-lg justify-start"
             >
               {isDark ? (
-                <IconSun className="size-4 shrink-0" />
+                <Sun className="size-4 shrink-0" />
               ) : (
-                <IconMoon className="size-4 shrink-0" />
+                <Moon className="size-4 shrink-0" />
               )}
               <span className="text-sm font-medium group-data-[collapsible=icon]:hidden ml-2">
                 {isDark ? "Modo Claro" : "Modo Escuro"}
@@ -419,7 +436,7 @@ export function WorkspaceSidebar({ sidebarWidth, onSidebarResize }: WorkspaceSid
         <ContextMenuSeparator />
         <ContextMenuGroup>
           <ContextMenuItem onClick={() => setConfigOpen(true)} className="gap-2">
-            <IconSettings className="h-4 w-4" />
+            <Settings className="h-4 w-4" />
             <span>Configurações</span>
           </ContextMenuItem>
         </ContextMenuGroup>
@@ -763,7 +780,7 @@ export function WorkspacePaneSidebar({ sidebarWidth, onSidebarResize, onOverview
                     onClick={() => setConfigOpen(true)}
                     className="flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
-                    <IconSettings className="size-[18px] shrink-0" />
+                    <Settings className="size-[18px] shrink-0" />
                     <span>Configurações</span>
                   </button>
                   <button
@@ -771,9 +788,9 @@ export function WorkspacePaneSidebar({ sidebarWidth, onSidebarResize, onOverview
                     className="flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
                     {isDark ? (
-                      <IconSun className="size-[18px] shrink-0" />
+                      <Sun className="size-[18px] shrink-0" />
                     ) : (
-                      <IconMoon className="size-[18px] shrink-0" />
+                      <Moon className="size-[18px] shrink-0" />
                     )}
                     <span>{isDark ? "Modo Claro" : "Modo Escuro"}</span>
                   </button>

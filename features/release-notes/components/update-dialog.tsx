@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useReleaseNotes } from "./release-notes-provider"
-import { IconSparkles } from "@tabler/icons-react"
+import {
+  Sparkles,
+} from "lucide-react"
 
 function parseChangelogToReact(markdown: string) {
   if (!markdown) return null
@@ -129,7 +131,7 @@ export function UpdateDialog() {
       >
         <DialogHeader className="flex flex-col items-center text-center gap-4">
           <div className="flex items-center justify-center size-12 rounded-full bg-primary/10 text-primary animate-pulse">
-            <IconSparkles className="size-6" />
+            <Sparkles className="size-6" />
           </div>
           <div className="space-y-1.5">
             <DialogTitle className="text-xl font-bold tracking-tight">

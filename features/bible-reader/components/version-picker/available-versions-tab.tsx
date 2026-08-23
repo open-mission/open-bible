@@ -52,7 +52,7 @@ export function AvailableVersionsTab({ query }: AvailableVersionsTabProps) {
             key={v.id}
             abbreviation={v.id}
             name={v.name}
-            meta={`${v.totalBooks} livros • ${getVersionSize(v.id)} • SQLite`}
+            meta={`${v.totalBooks} livros • ${getVersionSize(v.id)}`}
           >
             <button
               onClick={() => install(v.id, v.name)}

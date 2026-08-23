@@ -38,7 +38,6 @@ import { WorkspaceToolbar } from "./workspace-toolbar"
 import { WorkspaceGrid } from "./workspace-grid"
 import { WorkspaceMobileBar } from "./workspace-mobile-bar"
 import { ConfigButton } from "./config-button"
-import { IconLayoutGrid } from "@tabler/icons-react"
 import { WorkspaceTabOverview } from "./workspace-tab-overview"
 import { ReaderEmpty } from "@/features/bible-reader/components/reader-empty"
 import { PaneTypePicker } from "./pane-type-picker"
@@ -284,7 +283,7 @@ export function WorkspaceView() {
                 title="Ver todas as abas (Estilo Safari)"
                 className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <IconLayoutGrid className="h-4 w-4" />
+                <LayoutGrid className="h-4 w-4" />
               </button>
               <button
                 type="button"

@@ -2,13 +2,13 @@
 
 import { useState, useMemo, useCallback } from "react";
 import {
-  IconCopy,
-  IconClipboardText,
-  IconCheck,
-  IconX,
-  IconHighlight,
-  IconNotebook,
-} from "@tabler/icons-react";
+  Copy,
+  Clipboard,
+  Check,
+  X,
+  Highlighter,
+  Notebook,
+} from "lucide-react";
 import type { Book, Verse } from "@/lib/types";
 import { toast } from "sonner";
 import {
@@ -144,43 +144,45 @@ export function VerseSelectionPopover({
   const menuFirst = anchor.placement === "top";
 
   const actionPill = (
-    <div className="flex items-center gap-0.5 rounded-full border border-border bg-popover px-1.5 py-1 shadow-xl">
+    <div className="flex items-center gap-0.5 rounded-full border border-border bg-popover px-1.5 py-1 shadow-xs ring-1 ring-foreground/10">
       <Button
         type="button"
         variant="ghost"
-        size="icon-sm"
+        size="sm"
         onClick={() => handleCopy("reference")}
         className={cn(
-          "text-muted-foreground hover:text-foreground rounded-full transition-colors",
+          "text-muted-foreground hover:text-foreground rounded-full transition-colors gap-1.5 px-2.5 h-8",
           copied === "reference" && "text-primary hover:text-primary bg-primary/10"
         )}
         title={copied === "reference" ? "Referência copiada!" : "Copiar referência"}
         aria-label="Copiar referência"
       >
         {copied === "reference" ? (
-          <IconCheck className="size-4" />
+          <Check className="size-4 shrink-0" />
         ) : (
-          <IconCopy className="size-4" />
+          <Copy className="size-4 shrink-0" />
         )}
+        <span className="hidden sm:inline text-xs font-medium">Referência</span>
       </Button>
 
       <Button
         type="button"
         variant="ghost"
-        size="icon-sm"
+        size="sm"
         onClick={() => handleCopy("text")}
         className={cn(
-          "text-muted-foreground hover:text-foreground rounded-full transition-colors",
+          "text-muted-foreground hover:text-foreground rounded-full transition-colors gap-1.5 px-2.5 h-8",
           copied === "text" && "text-primary hover:text-primary bg-primary/10"
         )}
         title={copied === "text" ? "Texto copiado!" : "Copiar texto"}
         aria-label="Copiar texto"
       >
         {copied === "text" ? (
-          <IconCheck className="size-4" />
+          <Check className="size-4 shrink-0" />
         ) : (
-          <IconClipboardText className="size-4" />
+          <Clipboard className="size-4 shrink-0" />
         )}
+        <span className="hidden sm:inline text-xs font-medium">Texto</span>
       </Button>
 
       <Button
@@ -195,7 +197,7 @@ export function VerseSelectionPopover({
         title="Destacar"
         aria-label="Destacar"
       >
-        <IconHighlight className="size-4" />
+        <Highlighter className="size-4" />
       </Button>
 
       <Button
@@ -207,7 +209,7 @@ export function VerseSelectionPopover({
         title="Anotar"
         aria-label="Anotar"
       >
-        <IconNotebook className="size-4" />
+        <Notebook className="size-4" />
       </Button>
 
       <div className="mx-1 h-5 w-px shrink-0 bg-border" />
@@ -221,13 +223,13 @@ export function VerseSelectionPopover({
         aria-label="Limpar seleção"
         title="Limpar seleção"
       >
-        <IconX className="size-4" />
+        <X className="size-4" />
       </Button>
     </div>
   );
 
   const highlightMenuPill = showToolbar && (
-    <div className="flex items-center rounded-full border border-border bg-popover px-3 py-2 shadow-xl menu-animate">
+    <div className="flex items-center rounded-full border border-border bg-popover px-3 py-2 shadow-xs ring-1 ring-foreground/10 menu-animate">
       <HighlightMenu
         selectedVerseIds={selectedVerses.map((v) => v.id)}
         bookId={book.id}
@@ -258,22 +260,6 @@ export function VerseSelectionPopover({
             : "translate(-50%, 10px)",
       }}
     >
-      <style>{`
-        @keyframes verseSelectionIn {
-          from { opacity: 0; transform: scale(0.92) translateY(4px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .verse-selection-animate {
-          animation: verseSelectionIn 180ms cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes floatInMenu {
-          from { opacity: 0; transform: scale(0.95) translateY(4px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .menu-animate {
-          animation: floatInMenu 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-      `}</style>
 
       <div
         className="pointer-events-auto flex flex-col items-center gap-2 verse-selection-animate"

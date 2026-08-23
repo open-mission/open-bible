@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { IconTextSize, IconChevronLeft, IconChevronRight, IconSettings } from "@tabler/icons-react";
+import { Type, ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -113,7 +113,7 @@ export function ReaderHeader({
       <div
         data-tauri-drag-region={isTauriMacOS ? "" : undefined}
         className={cn(
-          "sticky top-0 z-20 bg-gradient-to-b from-background via-background/95 to-transparent backdrop-blur flex items-center justify-center pb-3 pt-3 px-4 min-h-14.25",
+          "sticky top-0 z-20 bg-background border-b border-border/40 flex items-center justify-center pb-3 pt-3 px-4 min-h-14.25",
           isTauriMacOS && "pl-[70px]",
         )}
       >
@@ -130,7 +130,7 @@ export function ReaderHeader({
                 title="Capítulo anterior"
                 aria-label="Capítulo anterior"
               >
-                <IconChevronLeft />
+                <ChevronLeft />
               </Button>
             )}
             <Button
@@ -157,7 +157,7 @@ export function ReaderHeader({
                 title="Próximo capítulo"
                 aria-label="Próximo capítulo"
               >
-                <IconChevronRight />
+                <ChevronRight />
               </Button>
             )}
             <BibleVersionSelector
@@ -168,9 +168,9 @@ export function ReaderHeader({
               onClick={() => setSettingsOpen(true)}
               variant="ghost"
               className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs"
-              title="Ajustes de visualização"
+              title="Ajustes de exibição"
             >
-              <IconTextSize data-icon="inline-start" />
+              <Type data-icon="inline-start" />
               <span className="hidden lg:inline">Exibição</span>
             </Button>
             {showConfigButton && (
@@ -180,7 +180,7 @@ export function ReaderHeader({
                 className="h-8 rounded-full px-3 text-sm font-semibold hover:bg-background hover:shadow-xs inline-flex"
                 title="Configurações"
               >
-                <IconSettings data-icon="inline-start" />
+                <Settings data-icon="inline-start" />
                 <span className="hidden lg:inline">Ajustes</span>
               </Button>
             )}

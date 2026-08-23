@@ -13,18 +13,18 @@ import {
   CommandShortcut,
 } from "@/components/ui/command"
 import {
-  IconBook,
-  IconNotebook,
-  IconHighlight,
-  IconSearch,
-  IconSettings,
-  IconSun,
-  IconMoon,
-  IconPlus,
-  IconX,
-  IconLayoutGrid,
-  IconLayoutRows,
-} from "@tabler/icons-react"
+  BookOpen,
+  Highlighter,
+  LayoutGrid,
+  Moon,
+  Notebook,
+  Plus,
+  Rows3,
+  Search,
+  Settings,
+  Sun,
+  X,
+} from "lucide-react"
 import { useAppNavigation } from "../context/app-navigation-context"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
@@ -74,20 +74,20 @@ export function CommandPalette({
 
         <CommandGroup heading="Navegação">
           <CommandItem onSelect={() => handleSelect(() => onOpenBookChapterDialog?.())}>
-            <IconSearch className="mr-2 size-4" />
+            <Search className="mr-2 size-4" />
             <span>Ir para livro/capítulo</span>
             <CommandShortcut>{formatShortcutDisplay("mod+k")}</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect(() => navigate("reader"))}>
-            <IconBook className="mr-2 size-4" />
+            <BookOpen className="mr-2 size-4" />
             <span>Leitura</span>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect(() => navigate("notes"))}>
-            <IconNotebook className="mr-2 size-4" />
+            <Notebook className="mr-2 size-4" />
             <span>Notas</span>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect(() => navigate("highlights"))}>
-            <IconHighlight className="mr-2 size-4" />
+            <Highlighter className="mr-2 size-4" />
             <span>Destaques</span>
           </CommandItem>
         </CommandGroup>
@@ -100,7 +100,7 @@ export function CommandPalette({
               key={v.id}
               onSelect={() => handleSelect(() => setVersionId(v.id))}
             >
-              <IconBook className="mr-2 size-4" />
+              <BookOpen className="mr-2 size-4" />
               <span>{v.id.toUpperCase()}</span>
               {v.id === versionId && (
                 <span className="ml-auto text-xs text-primary">Ativa</span>
@@ -116,14 +116,14 @@ export function CommandPalette({
             <CommandGroup heading="Ações">
               {workspaceActions.openPane && (
                 <CommandItem onSelect={() => handleSelect(workspaceActions.openPane!)}>
-                  <IconPlus className="mr-2 size-4" />
+                  <Plus className="mr-2 size-4" />
                   <span>Nova aba</span>
                   <CommandShortcut>{formatShortcutDisplay("alt+t")}</CommandShortcut>
                 </CommandItem>
               )}
               {workspaceActions.closePane && (
                 <CommandItem onSelect={() => handleSelect(workspaceActions.closePane!)}>
-                  <IconX className="mr-2 size-4" />
+                  <X className="mr-2 size-4" />
                   <span>Fechar aba</span>
                   <CommandShortcut>{formatShortcutDisplay("alt+w")}</CommandShortcut>
                 </CommandItem>
@@ -131,11 +131,11 @@ export function CommandPalette({
               {workspaceActions.setLayoutMode && (
                 <>
                   <CommandItem onSelect={() => handleSelect(() => workspaceActions.setLayoutMode!("tabs"))}>
-                    <IconLayoutRows className="mr-2 size-4" />
+                    <Rows3 className="mr-2 size-4" />
                     <span>Modo Abas</span>
                   </CommandItem>
                   <CommandItem onSelect={() => handleSelect(() => workspaceActions.setLayoutMode!("grid"))}>
-                    <IconLayoutGrid className="mr-2 size-4" />
+                    <LayoutGrid className="mr-2 size-4" />
                     <span>Modo Grade</span>
                   </CommandItem>
                 </>
@@ -147,11 +147,11 @@ export function CommandPalette({
 
         <CommandGroup heading="Aparência">
           <CommandItem onSelect={() => handleSelect(() => setTheme(isDark ? "light" : "dark"))}>
-            {isDark ? <IconSun className="mr-2 size-4" /> : <IconMoon className="mr-2 size-4" />}
+            {isDark ? <Sun className="mr-2 size-4" /> : <Moon className="mr-2 size-4" />}
             <span>{isDark ? "Modo Claro" : "Modo Escuro"}</span>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect(() => navigate("reader"))}>
-            <IconSettings className="mr-2 size-4" />
+            <Settings className="mr-2 size-4" />
             <span>Configurações</span>
           </CommandItem>
         </CommandGroup>

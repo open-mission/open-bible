@@ -19,6 +19,64 @@ interface ReaderDisplaySettingsProps {
   onConfigureTheme: () => void;
 }
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-xs font-semibold text-foreground">{children}</span>
+  );
+}
+
+function OptionButton({
+  label,
+  active,
+  onClick,
+  className,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex items-center justify-center rounded-lg border-2 py-2 text-xs transition-all cursor-pointer h-9 flex-1 min-w-0",
+        className,
+        active
+          ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
+          : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
+function SegmentedChoice<V extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: V;
+  onChange: (v: V) => void;
+  options: { value: V; label: string; className?: string }[];
+}) {
+  return (
+    <div className="flex gap-2">
+      {options.map((o) => (
+        <OptionButton
+          key={o.value}
+          label={o.label}
+          active={value === o.value}
+          onClick={() => onChange(o.value)}
+          className={o.className}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function ReaderDisplaySettings({
   fontSize,
   onChangeFontSize,
@@ -41,237 +99,146 @@ export function ReaderDisplaySettings({
   } = useHighlightsContext();
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Font Size Selector */}
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center text-xs font-medium">
-          <span>Tamanho da Fonte</span>
-          <span className="text-muted-foreground">{fontSize}px</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground font-semibold">A</span>
-          <Slider
-            min={16}
-            max={24}
-            step={2}
-            value={[fontSize]}
-            onValueChange={(val) =>
-              onChangeFontSize(Array.isArray(val) ? val[0] : val)
-            }
-            className="flex-1"
-          />
-          <span className="text-lg text-muted-foreground font-semibold leading-none">
-            A
-          </span>
-        </div>
-      </div>
+    <div className="flex flex-col gap-6">
+      {/* Leitura */}
+      <section className="flex flex-col gap-4">
+        <SectionLabel>Leitura</SectionLabel>
 
-      {/* Font Style Selector */}
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-medium">Estilo da Fonte</span>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { value: "sans" as const, label: "Sans", fontClass: "font-sans" },
-            {
-              value: "serif" as const,
-              label: "Serif",
-              fontClass: "font-serif",
-            },
-            { value: "mono" as const, label: "Mono", fontClass: "font-mono" },
-          ].map((item) => {
-            const active = readerFont === item.value;
-            return (
-              <button
-                key={item.value}
-                onClick={() => onChangeReaderFont(item.value)}
-                className={cn(
-                  "flex items-center justify-center rounded-lg border-2 py-2 text-xs transition-all cursor-pointer h-9",
-                  item.fontClass,
-                  active
-                    ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                )}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center text-xs font-medium">
+            <span>Tamanho do texto</span>
+            <span className="text-muted-foreground">{fontSize}px</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground font-semibold">A</span>
+            <span
+              className="text-xs text-muted-foreground font-semibold"
+              aria-hidden
+            >
+              A
+            </span>
+            <Slider
+              min={16}
+              max={24}
+              step={2}
+              value={[fontSize]}
+              onValueChange={(val) =>
+                onChangeFontSize(Array.isArray(val) ? val[0] : val)
+              }
+              className="flex-1"
+              aria-label="Tamanho do texto"
+            />
+            <span className="text-lg text-muted-foreground font-semibold leading-none">
+              A
+            </span>
+          </div>
         </div>
-      </div>
 
-      {/* Verse Spacing Selector */}
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center text-xs font-medium">
-          <span>Espaçamento entre Versículos</span>
-          <span className="text-muted-foreground">
-            {verseSpacing === "small"
-              ? "Compacto"
-              : verseSpacing === "medium"
-                ? "Padrão"
-                : "Espaçoso"}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-muted-foreground font-medium">
-            Compacto
-          </span>
-          <Slider
-            min={1}
-            max={3}
-            step={1}
-            value={[
-              verseSpacing === "small" ? 1 : verseSpacing === "medium" ? 2 : 3,
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-medium">Estilo da fonte</span>
+          <SegmentedChoice
+            value={readerFont}
+            onChange={onChangeReaderFont}
+            options={[
+              { value: "sans", label: "Sans", className: "font-sans" },
+              { value: "serif", label: "Serif", className: "font-serif" },
+              { value: "mono", label: "Mono", className: "font-mono" },
             ]}
-            onValueChange={(val) => {
-              const numericVal = Array.isArray(val) ? val[0] : val;
-              if (numericVal === 1) onChangeVerseSpacing("small");
-              else if (numericVal === 2) onChangeVerseSpacing("medium");
-              else if (numericVal === 3) onChangeVerseSpacing("large");
-            }}
-            className="flex-1"
           />
-          <span className="text-[10px] text-muted-foreground font-medium">
-            Espaçoso
-          </span>
         </div>
-      </div>
 
-      {/* Text Margins (Reader Mode) */}
-      <div className="flex flex-col gap-2 border-t border-border pt-4 mt-1">
-        <div className="flex justify-between items-center text-xs font-medium">
-          <span>Margens do Texto</span>
-          <span className="text-muted-foreground">
-            {readerMode === "narrow"
-              ? "Estreito"
-              : readerMode === "medium"
-                ? "Padrão"
-                : "Largo"}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-muted-foreground font-medium">
-            Estreito
-          </span>
-          <Slider
-            min={1}
-            max={3}
-            step={1}
-            value={[
-              readerMode === "narrow" ? 1 : readerMode === "medium" ? 2 : 3,
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-medium">Espaço entre os versículos</span>
+          <SegmentedChoice
+            value={verseSpacing}
+            onChange={onChangeVerseSpacing}
+            options={[
+              { value: "small", label: "Compacto" },
+              { value: "medium", label: "Padrão" },
+              { value: "large", label: "Espaçoso" },
             ]}
-            onValueChange={(val) => {
-              const numericVal = Array.isArray(val) ? val[0] : val;
-              if (numericVal === 1) onChangeReaderMode("narrow");
-              else if (numericVal === 2) onChangeReaderMode("medium");
-              else if (numericVal === 3) onChangeReaderMode("wide");
-            }}
-            className="flex-1"
           />
-          <span className="text-[10px] text-muted-foreground font-medium">
-            Largo
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-medium">Margens do texto</span>
+          <SegmentedChoice
+            value={readerMode}
+            onChange={onChangeReaderMode}
+            options={[
+              { value: "narrow", label: "Estreito" },
+              { value: "medium", label: "Padrão" },
+              { value: "wide", label: "Largo" },
+            ]}
+          />
+          <span className="text-[11px] text-muted-foreground leading-normal">
+            Escolha o quanto o texto ocupa da tela.
           </span>
         </div>
-        <span className="text-[10px] text-muted-foreground leading-normal mt-1">
-          Limita a largura máxima das margens do texto para tornar os parágrafos
-          mais legíveis.
-        </span>
-      </div>
+      </section>
 
-      {/* Highlights Options */}
-      <div className="flex flex-col gap-3 border-t border-border pt-4 mt-1">
-        <span className="text-xs font-semibold text-foreground">Configurações de Destaques</span>
-        
-        {/* Gutter Position */}
+      {/* Destaques */}
+      <section className="flex flex-col gap-4 border-t border-border pt-4">
+        <SectionLabel>Destaques</SectionLabel>
+
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-medium text-muted-foreground">Posição dos Indicadores</span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
+          <span className="text-[11px] font-medium text-muted-foreground">
+            Marca lateral dos indicadores
+          </span>
+          <div className="flex gap-2">
+            <OptionButton
+              label="Esquerda"
+              active={gutterPosition === "left"}
               onClick={() => setGutterPosition("left")}
-              className={cn(
-                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
-                gutterPosition === "left"
-                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-              )}
-            >
-              Lado Esquerdo
-            </button>
-            <button
+            />
+            <OptionButton
+              label="Direita"
+              active={gutterPosition === "right"}
               onClick={() => setGutterPosition("right")}
-              className={cn(
-                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
-                gutterPosition === "right"
-                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-              )}
-            >
-              Lado Direito
-            </button>
+            />
           </div>
         </div>
 
-        {/* Mobile Interaction */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-medium text-muted-foreground">No Celular</span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
+          <span className="text-[11px] font-medium text-muted-foreground">
+            Como abrir os detalhes no celular
+          </span>
+          <div className="flex gap-2">
+            <OptionButton
+              label="Sobe do rodapé"
+              active={mobileInteraction === "drawer"}
               onClick={() => setMobileInteraction("drawer")}
-              className={cn(
-                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
-                mobileInteraction === "drawer"
-                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-              )}
-            >
-              Drawer (Gaveta)
-            </button>
-            <button
+            />
+            <OptionButton
+              label="Ao lado do texto"
+              active={mobileInteraction === "popover"}
               onClick={() => setMobileInteraction("popover")}
-              className={cn(
-                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
-                mobileInteraction === "popover"
-                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-              )}
-            >
-              Popover
-            </button>
+            />
           </div>
         </div>
 
-        {/* Desktop Interaction */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-medium text-muted-foreground">No Computador</span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
+          <span className="text-[11px] font-medium text-muted-foreground">
+            Como abrir os detalhes no computador
+          </span>
+          <div className="flex gap-2">
+            <OptionButton
+              label="Ao lado do texto"
+              active={desktopInteraction === "popover"}
               onClick={() => setDesktopInteraction("popover")}
-              className={cn(
-                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
-                desktopInteraction === "popover"
-                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-              )}
-            >
-              Popover
-            </button>
-            <button
+            />
+            <OptionButton
+              label="Painel lateral"
+              active={desktopInteraction === "drawer"}
               onClick={() => setDesktopInteraction("drawer")}
-              className={cn(
-                "flex items-center justify-center rounded-lg border-2 py-1.5 text-xs transition-all cursor-pointer h-8",
-                desktopInteraction === "drawer"
-                  ? "border-primary bg-primary/5 text-primary font-bold shadow-xs"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-              )}
-            >
-              Drawer (Gaveta)
-            </button>
+            />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Theme Preview Thumbnails */}
-      <div className="flex flex-col gap-2 border-t border-border pt-4">
-        <span className="text-xs font-semibold">Tema</span>
+      {/* Tema */}
+      <section className="flex flex-col gap-2 border-t border-border pt-4">
+        <SectionLabel>Tema</SectionLabel>
         <div className="grid grid-cols-3 gap-2">
           {/* Claro */}
           <button
@@ -289,7 +256,7 @@ export function ReaderDisplaySettings({
               <div className="h-1 w-12 rounded-sm bg-neutral-300" />
               <div className="h-1 w-10 rounded-sm bg-neutral-300" />
             </div>
-            <span className="absolute bottom-1 right-2 z-10 text-[9px] font-bold text-neutral-800">
+            <span className="absolute bottom-1 right-2 z-10 text-[10px] font-bold text-neutral-800">
               Claro
             </span>
           </button>
@@ -310,7 +277,7 @@ export function ReaderDisplaySettings({
               <div className="h-1 w-12 rounded-sm bg-zinc-800" />
               <div className="h-1 w-10 rounded-sm bg-zinc-800" />
             </div>
-            <span className="absolute bottom-1 right-2 z-10 text-[9px] font-bold text-white">
+            <span className="absolute bottom-1 right-2 z-10 text-[10px] font-bold text-white">
               Escuro
             </span>
           </button>
@@ -332,15 +299,15 @@ export function ReaderDisplaySettings({
               <div className="h-1 w-12 rounded-sm bg-neutral-500" />
               <div className="h-1 w-10 rounded-sm bg-neutral-500" />
             </div>
-            <span className="absolute bottom-1 right-2 z-10 text-[9px] font-bold mix-blend-difference text-white">
+            <span className="absolute bottom-1 right-2 z-10 text-[10px] font-bold mix-blend-difference text-white">
               Auto
             </span>
           </button>
         </div>
-      </div>
+      </section>
 
       {/* Configurar Tema Button */}
-      <div className="border-t border-border pt-3 mt-1">
+      <div className="border-t border-border pt-3">
         <Button
           variant="outline"
           size="sm"
@@ -348,7 +315,7 @@ export function ReaderDisplaySettings({
           onClick={onConfigureTheme}
         >
           <Palette className="h-3.5 w-3.5 text-primary" />
-          Configurar tema...
+          Escolher cor de destaque…
         </Button>
       </div>
     </div>

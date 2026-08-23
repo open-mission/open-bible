@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { IconX, IconTrash, IconDeviceFloppy } from "@tabler/icons-react";
+import {
+  Save,
+  Trash2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
@@ -148,7 +152,7 @@ function HighlightEditorContent({
           onClick={onClose}
           className="text-muted-foreground hover:text-foreground shrink-0"
         >
-          <IconX className="size-4" />
+          <X className="size-4" />
         </Button>
       </div>
 
@@ -204,7 +208,7 @@ function HighlightEditorContent({
             className="text-destructive hover:text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 gap-1.5"
             onClick={handleDelete}
           >
-            <IconTrash className="size-4" />
+            <Trash2 className="size-4" />
             <span className="text-xs font-semibold">Excluir</span>
           </Button>
         ) : (
@@ -224,7 +228,7 @@ function HighlightEditorContent({
           disabled={saving}
           className="ml-auto gap-1.5 px-5 font-semibold text-xs h-9 bg-primary text-primary-foreground hover:bg-primary/95 cursor-pointer shadow-sm rounded-lg"
         >
-          <IconDeviceFloppy className="size-4" />
+          <Save className="size-4" />
           {saving ? "Salvando..." : "Salvar Destaque"}
         </Button>
       </div>

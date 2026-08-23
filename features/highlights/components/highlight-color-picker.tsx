@@ -39,7 +39,6 @@ export function HighlightColorPicker({
             )}
             style={{
               backgroundColor: color.hex,
-              boxShadow: isSelected ? `0 0 12px 3px ${color.hex}66` : undefined,
             }}
             title={color.name}
             aria-label={`Cor: ${color.name}`}
@@ -59,7 +58,6 @@ export function HighlightColorPicker({
                 )}
                 style={isExtraColorSelected ? {
                   backgroundColor: value,
-                  boxShadow: `0 0 12px 3px ${value}66`,
                 } : undefined}
                 title="Mais cores"
                 aria-label="Mais cores"
@@ -92,7 +90,6 @@ export function HighlightColorPicker({
                     )}
                     style={{
                       backgroundColor: color.hex,
-                      boxShadow: isSelected ? `0 0 10px 2px ${color.hex}55` : undefined,
                     }}
                     title={color.name}
                     aria-label={`Cor: ${color.name}`}
