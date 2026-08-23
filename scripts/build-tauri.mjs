@@ -43,6 +43,10 @@ try {
     NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV ?? "production",
     NEXT_PUBLIC_API_ORIGIN:
       process.env.NEXT_PUBLIC_API_ORIGIN ?? "https://openbible-prod.vercel.app",
+    NEXT_PUBLIC_APP_URL:
+      process.env.NEXT_PUBLIC_APP_URL ??
+      process.env.NEXT_PUBLIC_API_ORIGIN ??
+      "https://openbible-prod.vercel.app",
   }
 
   // The SQLite WASM worker + sqlite3.wasm + OPFS proxy live in public/sqlite-wasm/,
