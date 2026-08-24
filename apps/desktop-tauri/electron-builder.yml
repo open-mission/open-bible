@@ -1,6 +1,7 @@
 appId: org.openmission.openbible
 productName: Open Bible
 executableName: open-bible
+artifactName: Open-Bible-${version}.${ext}
 directories:
   output: ../../dist/electron
   buildResources: icons

@@ -9,15 +9,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { normalizeReleaseNotes } from "@/lib/release-notes/format"
 import { useReleaseNotes } from "./release-notes-provider"
 import {
   Sparkles,
 } from "lucide-react"
 
 function parseChangelogToReact(markdown: string) {
-  if (!markdown) return null
+  const normalizedMarkdown = normalizeReleaseNotes(markdown)
+  if (!normalizedMarkdown) return null
 
-  const lines = markdown.split(/\r?\n/)
+  const lines = normalizedMarkdown.split(/\r?\n/)
   const elements: React.ReactNode[] = []
   let currentList: React.ReactNode[] = []
   let listKey = 0
