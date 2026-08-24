@@ -10,6 +10,11 @@ on:
         description: "Existing release tag to build and publish"
         required: false
         type: string
+      allow_unsigned:
+        description: "Build unsigned installers for manual testing only"
+        required: false
+        default: false
+        type: boolean
       rollback_tag:
         description: "Existing release tag to restore as the rollback target"
         required: false
@@ -25,6 +30,7 @@ concurrency:
 env:
   NODE_VERSION: 22
   UPDATE_CHANNEL: ${{ contains(inputs.release_tag || github.ref_name, '-') && 'beta' || 'latest' }}
+  UNSIGNED_BUILD: ${{ inputs.allow_unsigned == true && github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
 
 jobs:
   build:
@@ -97,7 +103,7 @@ jobs:
           echo "RELEASE_VERSION=$release_version" >> "$GITHUB_ENV"
 
       - name: Validate signing configuration
-        if: matrix.signing != 'none'
+        if: matrix.signing != 'none' && env.UNSIGNED_BUILD != 'true'
         shell: bash
         env:
           CSC_LINK: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_LINK || secrets.ELECTRON_MACOS_CSC_LINK }}
@@ -162,10 +168,16 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         shell: bash
         run: |
+          release_title="Open Bible $RELEASE_TAG"
+          if [[ "$UNSIGNED_BUILD" == "true" ]]; then
+            release_title="$release_title (unsigned test build)"
+          fi
           if [[ "$UPDATE_CHANNEL" == "beta" ]]; then
-            gh release create "$RELEASE_TAG" --title "Open Bible $RELEASE_TAG" --generate-notes --prerelease
+            gh release create "$RELEASE_TAG" --title "$release_title" --generate-notes --prerelease
+          elif [[ "$UNSIGNED_BUILD" == "true" ]]; then
+            gh release create "$RELEASE_TAG" --title "$release_title" --generate-notes --prerelease
           else
-            gh release create "$RELEASE_TAG" --title "Open Bible $RELEASE_TAG" --generate-notes
+            gh release create "$RELEASE_TAG" --title "$release_title" --generate-notes
           fi
 
       - name: Upload all artifacts atomically
