@@ -6,6 +6,10 @@ on:
       - "v*"
   workflow_dispatch:
     inputs:
+      release_tag:
+        description: "Existing release tag to build and publish"
+        required: false
+        type: string
       rollback_tag:
         description: "Existing release tag to restore as the rollback target"
         required: false
@@ -20,12 +24,12 @@ concurrency:
 
 env:
   NODE_VERSION: 22
-  UPDATE_CHANNEL: ${{ startsWith(github.ref_name, 'v') && contains(github.ref_name, '-') && 'beta' || 'latest' }}
+  UPDATE_CHANNEL: ${{ contains(inputs.release_tag || github.ref_name, '-') && 'beta' || 'latest' }}
 
 jobs:
   build:
     name: Build ${{ matrix.name }}
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || inputs.release_tag != ''
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -49,6 +53,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -66,7 +72,7 @@ jobs:
 
       - name: Validate release version
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         shell: bash
         run: |
           release_version="${RELEASE_TAG#v}"
@@ -134,12 +140,14 @@ jobs:
 
   publish:
     name: Publish after all targets pass
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || inputs.release_tag != ''
     needs: build
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
 
       - name: Download platform artifacts
         uses: actions/download-artifact@v4
@@ -151,17 +159,19 @@ jobs:
       - name: Create release only after the matrix is green
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         shell: bash
         run: |
           if [[ "$UPDATE_CHANNEL" == "beta" ]]; then
-            gh release create "$GITHUB_REF_NAME" --title "Open Bible $GITHUB_REF_NAME" --generate-notes --prerelease
+            gh release create "$RELEASE_TAG" --title "Open Bible $RELEASE_TAG" --generate-notes --prerelease
           else
-            gh release create "$GITHUB_REF_NAME" --title "Open Bible $GITHUB_REF_NAME" --generate-notes
+            gh release create "$RELEASE_TAG" --title "Open Bible $RELEASE_TAG" --generate-notes
           fi
 
       - name: Upload all artifacts atomically
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         shell: bash
         run: |
           shopt -s nullglob
@@ -170,7 +180,7 @@ jobs:
             [[ -f "$artifact" ]] && artifacts+=("$artifact")
           done
           test "${#artifacts[@]}" -gt 0 || { echo "No Electron artifacts found"; exit 1; }
-          gh release upload "$GITHUB_REF_NAME" "${artifacts[@]}" --clobber
+          gh release upload "$RELEASE_TAG" "${artifacts[@]}" --clobber
 
   rollback:
     name: Validate rollback target

@@ -14,6 +14,8 @@ describe("Electron release workflow", () => {
     expect(workflow).toContain("needs: build")
     expect(workflow).toContain("Upload all artifacts atomically")
     expect(workflow).toContain("rollback_tag")
+    expect(workflow).toContain("release_tag")
+    expect(workflow).toContain("inputs.release_tag || github.ref")
     expect(workflow).toContain("Validate release version")
     expect(workflow).toContain("RELEASE_VERSION")
     expect(workflow).toContain("NEXT_PUBLIC_API_ORIGIN")
