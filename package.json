@@ -1,12 +1,15 @@
 {
   "name": "open-bible",
-  "version": "0.8.7",
+  "version": "0.8.8",
   "private": false,
   "packageManager": "pnpm@10.22.0",
   "engines": {
     "node": "22.x"
   },
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "pnpm --filter @open-bible/web dev",
     "build": "pnpm --filter @open-bible/web build",
