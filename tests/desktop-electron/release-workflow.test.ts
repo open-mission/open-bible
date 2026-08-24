@@ -19,6 +19,7 @@ describe("Electron release workflow", () => {
     expect(workflow).toContain("allow_unsigned")
     expect(workflow).toContain("UNSIGNED_BUILD")
     expect(workflow).toContain("unsigned test build")
+    expect(workflow).toContain("CSC_IDENTITY_AUTO_DISCOVERY")
     expect(workflow).toContain("Validate release version")
     expect(workflow).toContain("RELEASE_VERSION")
     expect(workflow).toContain("NEXT_PUBLIC_API_ORIGIN")

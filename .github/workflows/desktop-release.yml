@@ -126,6 +126,7 @@ jobs:
           ELECTRON_BUILDER_TARGET: ${{ matrix.target }}
           ELECTRON_UPDATE_CHANNEL: ${{ env.UPDATE_CHANNEL }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ env.UNSIGNED_BUILD == 'true' && 'false' || 'true' }}
           CSC_LINK: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_LINK || matrix.signing == 'macos' && secrets.ELECTRON_MACOS_CSC_LINK || '' }}
           CSC_KEY_PASSWORD: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_KEY_PASSWORD || matrix.signing == 'macos' && secrets.ELECTRON_MACOS_CSC_KEY_PASSWORD || '' }}
         run: pnpm --filter @open-bible/desktop-tauri build

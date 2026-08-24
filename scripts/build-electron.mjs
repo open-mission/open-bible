@@ -11,6 +11,7 @@ const target = process.env.ELECTRON_BUILDER_TARGET
 const platform = process.env.ELECTRON_BUILDER_PLATFORM
 const updateChannel = process.env.ELECTRON_UPDATE_CHANNEL
 const releaseVersion = process.env.RELEASE_VERSION
+const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm"
 
 if (releaseVersion && !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(releaseVersion)) {
   throw new Error(`Invalid RELEASE_VERSION: ${releaseVersion}`)
@@ -26,7 +27,7 @@ function run(command, args) {
   })
 }
 
-run("pnpm", [
+run(pnpmCommand, [
   "exec",
   "esbuild",
   "src/main.ts",
@@ -37,7 +38,7 @@ run("pnpm", [
   "--external:electron-updater",
   "--outfile=dist/main.mjs",
 ])
-run("pnpm", [
+run(pnpmCommand, [
   "exec",
   "esbuild",
   "src/preload.ts",
@@ -49,7 +50,7 @@ run("pnpm", [
 ])
 
 if (isDevelopment) {
-  run("pnpm", ["exec", "electron", "dist/main.mjs"])
+  run(pnpmCommand, ["exec", "electron", "dist/main.mjs"])
 } else {
   try {
     await access(resolve(root, "apps/web/out/index.html"))
@@ -57,9 +58,9 @@ if (isDevelopment) {
     throw new Error("Static Web export is required before packaging Electron")
   }
 
-  const builderArgs = ["exec", "electron-builder", "--config", "electron-builder.yml"]
+  const builderArgs = ["exec", "electron-builder", "--config", "electron-builder.yml", "--publish", "never"]
   if (target) builderArgs.push(`--${platform ?? "linux"}`, target)
   if (updateChannel) builderArgs.push(`--config.publish.channel=${updateChannel}`)
   if (releaseVersion) builderArgs.push(`--config.extraMetadata.version=${releaseVersion}`)
-  run("pnpm", builderArgs)
+  run(pnpmCommand, builderArgs)
 }
