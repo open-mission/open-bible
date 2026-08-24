@@ -2,8 +2,8 @@ import { readFileSync } from "fs"
 import withPWAInit from "@ducanh2912/next-pwa"
 import { withSentryConfig } from "@sentry/nextjs"
 
-const pkg = JSON.parse(readFileSync("./package.json", "utf-8"))
-const changelog = readFileSync("./CHANGELOG.md", "utf-8")
+const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf-8"))
+const changelog = readFileSync(new URL("../../CHANGELOG.md", import.meta.url), "utf-8")
 
 const withPWA = withPWAInit({
   dest: "public",

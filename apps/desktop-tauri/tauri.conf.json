@@ -1,13 +1,13 @@
 {
-  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "$schema": "../../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Open Bible",
   "version": "0.8.7",
   "identifier": "app.openbible.desktop",
   "build": {
-    "frontendDist": "../out",
+    "frontendDist": "../web/out",
     "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build:tauri"
+    "beforeDevCommand": "pnpm --dir ../web dev",
+    "beforeBuildCommand": "node ../../scripts/build-tauri.mjs"
   },
   "app": {
     "windows": [

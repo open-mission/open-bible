@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { parseBibleRef } from "../features/bible-reader/utils/parse-bible-ref"
+import { parseBibleRef } from "../apps/web/features/bible-reader/utils/parse-bible-ref"
 
 describe("parseBibleRef", () => {
   describe("returns null for invalid inputs", () => {

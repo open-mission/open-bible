@@ -1,0 +1,13 @@
+{
+  "name": "@open-bible/desktop-tauri",
+  "version": "0.8.7",
+  "private": true,
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4"
+  }
+}

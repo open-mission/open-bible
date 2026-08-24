@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { app } from "../lib/api/hono-app";
+import { app } from "../apps/web/lib/api/hono-app";
 
 describe("Tauri Update Proxy API", () => {
   const originalFetch = global.fetch;

@@ -6,6 +6,9 @@ import type { Verse } from "@/lib/types"
 import { API_ORIGIN } from "@/lib/api-base"
 import { database } from "@/lib/database/database"
 import { triggerReloadToast } from "@/lib/settings-toast"
+import { listVersions, searchVerses as searchVersesUseCase } from "@open-bible/application-bible"
+import { WebBibleCatalog, WebBibleSearch } from "@open-bible/adapters-web"
+import { fetchVersions, searchVerses as fetchSearchVerses } from "@/lib/api-client"
 
 export interface VersionMeta {
   id: string
@@ -72,6 +75,7 @@ interface BibleVersionContextValue {
   installVersion: (id: string) => Promise<void>
   uninstallVersion: (id: string) => Promise<void>
   getVerses: (bookId: string, chapter: number, specificVersionId?: string) => Promise<Verse[]>
+  searchVerses: (query: string, specificVersionId?: string) => Promise<Verse[]>
   refreshInstalled: () => Promise<void>
   isVersionsLoaded: boolean
 }
@@ -160,10 +164,35 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
   const [defaultVersionId, setDefaultVersionIdState] = useState(loadDefaultVersionId)
   const [versionId, setVersionIdState] = useState<string>("")
   const [installedVersions, setInstalledVersions] = useState<VersionMeta[]>([])
-  const availableVersions: AvailableVersion[] = AVAILABLE_VERSIONS_LIST
+  const [availableVersions, setAvailableVersions] = useState<AvailableVersion[]>(AVAILABLE_VERSIONS_LIST)
   const [isInstalling, setIsInstalling] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null)
   const [isVersionsLoaded, setIsVersionsLoaded] = useState(false)
+
+  const catalog = useMemo(
+    () => new WebBibleCatalog(async () => {
+      const versions = await fetchVersions(true)
+      return versions.map((version) => ({
+        id: version.id,
+        name: version.name,
+        totalBooks: "totalBooks" in version ? version.totalBooks : undefined,
+      }))
+    }),
+    []
+  )
+  const search = useMemo(
+    () => new WebBibleSearch(async (id, query) => {
+      const result = await fetchSearchVerses(id, query, 100, true)
+      return result.results.map((verse) => ({
+        id: `${id}-${verse.bookId}-${verse.chapter}-${verse.verse}`,
+        bookId: verse.bookId,
+        chapter: verse.chapter,
+        verse: verse.verse,
+        text: verse.text,
+      }))
+    }),
+    []
+  )
 
 
   // Ref to keep installedVersions stable for getVerses callback (Fix 7)
@@ -222,6 +251,20 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
     }, 0)
     return () => clearTimeout(timer)
   }, [refreshInstalled])
+
+  useEffect(() => {
+    listVersions(catalog)
+      .then((versions) => {
+        if (versions.length > 0) {
+          setAvailableVersions(versions.map((version) => ({
+            id: version.id,
+            name: version.name,
+            totalBooks: version.totalBooks ?? 66,
+          })))
+        }
+      })
+      .catch(() => {})
+  }, [catalog])
 
   // Boot the local SQLite layer once on mount (client-only).
   useEffect(() => {
@@ -289,6 +332,14 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
       }
     },
     [versionId, defaultVersionId]
+  )
+
+  const searchVerses = useCallback(
+    async (query: string, specificVersionId?: string) => {
+      const currentVersion = specificVersionId || versionId || defaultVersionId || FALLBACK_VERSION
+      return searchVersesUseCase(search, currentVersion, query)
+    },
+    [defaultVersionId, search, versionId]
   )
 
   const installVersion = useCallback(async (id: string) => {
@@ -409,6 +460,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
       installVersion,
       uninstallVersion,
       getVerses,
+      searchVerses,
       refreshInstalled,
       isVersionsLoaded,
     }),
@@ -422,6 +474,7 @@ export function BibleVersionProvider({ children }: { children: ReactNode }) {
       installVersion,
       uninstallVersion,
       getVerses,
+      searchVerses,
       refreshInstalled,
       isVersionsLoaded,
     ]
