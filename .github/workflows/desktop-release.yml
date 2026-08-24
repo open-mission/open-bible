@@ -35,14 +35,17 @@ jobs:
             os: ubuntu-24.04
             target: AppImage
             artifact: linux
+            signing: none
           - name: macOS
             os: macos-14
             target: ""
             artifact: macos
+            signing: macos
           - name: Windows
             os: windows-latest
             target: ""
             artifact: windows
+            signing: windows
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -88,13 +91,14 @@ jobs:
           echo "RELEASE_VERSION=$release_version" >> "$GITHUB_ENV"
 
       - name: Validate signing configuration
+        if: matrix.signing != 'none'
         shell: bash
         env:
-          CSC_LINK: ${{ secrets.ELECTRON_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.ELECTRON_CSC_KEY_PASSWORD }}
+          CSC_LINK: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_LINK || secrets.ELECTRON_MACOS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_KEY_PASSWORD || secrets.ELECTRON_MACOS_CSC_KEY_PASSWORD }}
         run: |
-          test -n "$CSC_LINK" || { echo "ELECTRON_CSC_LINK is required for signed releases"; exit 1; }
-          test -n "$CSC_KEY_PASSWORD" || { echo "ELECTRON_CSC_KEY_PASSWORD is required for signed releases"; exit 1; }
+          test -n "$CSC_LINK" || { echo "Platform signing certificate is required"; exit 1; }
+          test -n "$CSC_KEY_PASSWORD" || { echo "Platform signing password is required"; exit 1; }
 
       - name: Build static Web renderer
         env:
@@ -110,8 +114,8 @@ jobs:
           ELECTRON_BUILDER_TARGET: ${{ matrix.target }}
           ELECTRON_UPDATE_CHANNEL: ${{ env.UPDATE_CHANNEL }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_LINK: ${{ secrets.ELECTRON_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.ELECTRON_CSC_KEY_PASSWORD }}
+          CSC_LINK: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_LINK || matrix.signing == 'macos' && secrets.ELECTRON_MACOS_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_KEY_PASSWORD || matrix.signing == 'macos' && secrets.ELECTRON_MACOS_CSC_KEY_PASSWORD || '' }}
         run: pnpm --filter @open-bible/desktop-tauri build
 
       - name: Upload platform artifacts
