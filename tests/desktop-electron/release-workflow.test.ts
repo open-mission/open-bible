@@ -15,6 +15,7 @@ describe("Electron release workflow", () => {
     expect(workflow).toContain("Upload all artifacts atomically")
     expect(workflow).toContain("rollback_tag")
     expect(workflow).toContain("release_tag")
+    expect(workflow).toContain("source_ref")
     expect(workflow).toContain("inputs.release_tag || github.ref")
     expect(workflow).toContain("allow_unsigned")
     expect(workflow).toContain("UNSIGNED_BUILD")

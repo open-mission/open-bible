@@ -10,6 +10,10 @@ on:
         description: "Existing release tag to build and publish"
         required: false
         type: string
+      source_ref:
+        description: "Git ref containing the build scripts and source"
+        required: false
+        type: string
       allow_unsigned:
         description: "Build unsigned installers for manual testing only"
         required: false
@@ -60,7 +64,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.source_ref || inputs.release_tag || github.ref }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -154,7 +158,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ inputs.source_ref || inputs.release_tag || github.ref }}
 
       - name: Download platform artifacts
         uses: actions/download-artifact@v4
