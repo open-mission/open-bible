@@ -36,8 +36,13 @@ describe("Electron release workflow", () => {
 
   it("passes the tag version to Electron packaging", async () => {
     const buildScript = await readFile(resolve(root, "scripts/build-electron.mjs"), "utf8")
+    const builderConfig = await readFile(
+      resolve(root, "apps/desktop-tauri/electron-builder.yml"),
+      "utf8",
+    )
 
     expect(buildScript).toContain("RELEASE_VERSION")
     expect(buildScript).toContain("extraMetadata.version")
+    expect(builderConfig).toContain("artifactName: Open-Bible-${version}.${ext}")
   })
 })
