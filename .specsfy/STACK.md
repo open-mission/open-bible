@@ -27,3 +27,6 @@ uma. Preserve decisões humanas nas seções livres deste arquivo.
 
 Acrescente aqui escolhas, restrições e contexto que não podem ser inferidos dos
 manifests.
+
+- O monorepo mantém a aplicação Next.js em `apps/web`; a Vercel deve usar a
+  raiz do repositório como Root Directory e executar o filtro desse workspace.

@@ -8,7 +8,7 @@ import { useBibleVersion } from "@/features/bible-reader/context/bible-version-c
 import { COLOR_LABELS, COLOR_SWATCHES, type ThemeColor, type ThemeMode } from "@/features/theme/utils/theme"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { WorkspaceModeSetting } from "@/features/workspace/components/workspace-mode-setting"
-import { isTauri } from "@/lib/is-tauri"
+import { isDesktop as isDesktopRuntime } from "@/lib/desktop-runtime"
 import { parseLatestEntry, changelogSrc } from "@/lib/release-notes/changelog"
 import { cn } from "@/lib/utils"
 import { useReleaseNotes } from "@/features/release-notes/components/release-notes-provider"
@@ -34,11 +34,11 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
     updateChannel,
     setChannel,
     checkForUpdates,
-    tauriStatus,
-    tauriProgress,
-    tauriError,
-    tauriDownloadInstall,
-    tauriRelaunch,
+    desktopStatus,
+    desktopProgress,
+    desktopError,
+    desktopDownloadInstall,
+    desktopRelaunch,
     latestVersion,
     changelog
   } = useReleaseNotes()
@@ -116,27 +116,11 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
 
   const latestEntry = parseLatestEntry(changelogSrc)
 
-  // States for Tauri auto-updater
-  const [appVersion, setAppVersion] = useState<string>("")
-
-  // Fetch app version on mount inside Tauri
-  useEffect(() => {
-    if (!isTauri) return
-
-    async function fetchVersion() {
-      try {
-        const { getVersion } = await import("@tauri-apps/api/app")
-        const version = await getVersion()
-        setAppVersion(version)
-      } catch (err) {
-        console.error("Erro ao obter versão do app:", err)
-      }
-    }
-    fetchVersion()
-  }, [])
+  // Desktop and Web use the same version injected at build time.
+  const [appVersion] = useState(() => getAppVersion())
 
   const handleCheckUpdate = async () => {
-    if (!isTauri) return
+    if (!isDesktopRuntime) return
     await checkForUpdates(true)
   }
 
@@ -702,14 +686,14 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
             <div className="flex justify-between items-center text-sm border-b border-border/40 pb-3">
               <span className="text-muted-foreground font-medium">Versão atual:</span>
               <span className="font-mono bg-muted px-2 py-0.5 rounded text-foreground font-semibold">
-                v{isTauri ? appVersion : getAppVersion()}
+                v{isDesktopRuntime ? appVersion : getAppVersion()}
               </span>
             </div>
 
-            {isTauri ? (
-              /* Tauri platform updates layout */
+            {isDesktopRuntime ? (
+              /* Desktop platform updates layout */
               <>
-                {tauriStatus === "idle" && (
+                {desktopStatus === "idle" && (
                   <div className="flex justify-end">
                     <button
                       onClick={handleCheckUpdate}
@@ -720,14 +704,14 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   </div>
                 )}
 
-                {tauriStatus === "checking" && (
+                {desktopStatus === "checking" && (
                   <div className="flex items-center gap-3 py-2">
                     <RefreshCw className="h-4 w-4 animate-spin text-primary" />
                     <span className="text-sm text-muted-foreground">Buscando novas atualizações...</span>
                   </div>
                 )}
 
-                {tauriStatus === "no-update" && (
+                {desktopStatus === "no-update" && (
                   <div className="space-y-4">
                     <p className="text-sm text-emerald-500 font-medium flex items-center gap-2">
                       <Check className="h-4 w-4" />
@@ -744,7 +728,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   </div>
                 )}
 
-                {tauriStatus === "available" && (
+                {desktopStatus === "available" && (
                   <div className="space-y-4">
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
                       <h3 className="text-sm font-semibold text-foreground">
@@ -759,7 +743,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
 
                     <div className="flex justify-end">
                       <button
-                        onClick={tauriDownloadInstall}
+                        onClick={desktopDownloadInstall}
                         className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs"
                       >
                         Baixar e Instalar
@@ -768,29 +752,29 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   </div>
                 )}
 
-                {tauriStatus === "downloading" && (
+                {desktopStatus === "downloading" && (
                   <div className="space-y-3 py-2">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Baixando atualização...</span>
-                      <span className="font-semibold text-primary">{tauriProgress}%</span>
+                      <span className="font-semibold text-primary">{desktopProgress}%</span>
                     </div>
                     <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
                       <div
                         className="bg-primary h-full transition-all duration-300 rounded-full"
-                        style={{ width: `${tauriProgress}%` }}
+                        style={{ width: `${desktopProgress}%` }}
                       />
                     </div>
                   </div>
                 )}
 
-                {tauriStatus === "downloaded" && (
+                {desktopStatus === "downloaded" && (
                   <div className="space-y-4">
                     <p className="text-sm text-emerald-500 font-medium">
                       Atualização baixada com sucesso! O aplicativo precisa ser reiniciado para aplicar as mudanças.
                     </p>
                     <div className="flex justify-end">
                       <button
-                        onClick={tauriRelaunch}
+                        onClick={desktopRelaunch}
                         className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-colors rounded-lg cursor-pointer shadow-xs animate-pulse"
                       >
                         Reiniciar Agora
@@ -799,14 +783,14 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
                   </div>
                 )}
 
-                {tauriStatus === "error" && (
+                {desktopStatus === "error" && (
                   <div className="space-y-4">
                     <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
                       <p className="text-sm font-semibold text-destructive mb-1">
                         Falha ao processar atualização
                       </p>
                       <p className="text-xs text-muted-foreground font-mono truncate">
-                        {tauriError}
+                        {desktopError}
                       </p>
                     </div>
                     <div className="flex justify-end gap-2">
@@ -976,7 +960,7 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
               </div>
               <div className="flex flex-col gap-1 text-[11px] font-mono text-muted-foreground/60">
                 <span>Versão do App: v{getAppVersion()}</span>
-                <span>Plataforma: {isTauri ? "Desktop App" : "Web PWA"}</span>
+                <span>Plataforma: {isDesktopRuntime ? "Desktop App" : "Web PWA"}</span>
               </div>
             </div>
 

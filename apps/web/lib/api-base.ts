@@ -1,3 +1,4 @@
-// Web (SSR na Vercel): "" → rotas /api relativas do próprio site.
-// Desktop (Tauri export): NEXT_PUBLIC_API_ORIGIN aponta para a API remota.
-export const API_ORIGIN = process.env.NEXT_PUBLIC_API_ORIGIN ?? ""
+// Web (SSR na Vercel) uses relative /api routes; desktop exports use the remote API.
+export const API_ORIGIN =
+  process.env.NEXT_PUBLIC_API_ORIGIN ??
+  (process.env.TAURI_BUILD === "1" ? "https://openbible-prod.vercel.app" : "")

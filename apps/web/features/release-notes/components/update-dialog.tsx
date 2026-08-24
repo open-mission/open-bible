@@ -106,12 +106,12 @@ export function UpdateDialog() {
     changelog,
     dismiss,
     updateApp,
-    isTauri,
-    tauriStatus,
-    tauriProgress,
-    tauriError,
-    tauriDownloadInstall,
-    tauriRelaunch,
+    isDesktop,
+    desktopStatus,
+    desktopProgress,
+    desktopError,
+    desktopDownloadInstall,
+    desktopRelaunch,
   } = useReleaseNotes()
 
   if (!hasUpdate) return null
@@ -121,12 +121,12 @@ export function UpdateDialog() {
       open={hasUpdate}
       onOpenChange={(open) => {
         // Prevent accidental closing during download
-        if (tauriStatus === "downloading") return
+        if (desktopStatus === "downloading") return
         if (!open) dismiss()
       }}
     >
       <DialogContent
-        showCloseButton={tauriStatus !== "downloading"}
+        showCloseButton={desktopStatus !== "downloading"}
         className="sm:max-w-md border border-border bg-popover text-popover-foreground shadow-2xl rounded-2xl p-6"
       >
         <DialogHeader className="flex flex-col items-center text-center gap-4">
@@ -162,41 +162,40 @@ export function UpdateDialog() {
           </div>
         </div>
 
-        {/* Tauri download progress visual cues */}
-        {isTauri && tauriStatus === "downloading" && (
+        {isDesktop && desktopStatus === "downloading" && (
           <div className="space-y-2 py-2 text-left">
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground">Baixando atualização...</span>
-              <span className="font-semibold text-primary font-mono">{tauriProgress}%</span>
+               <span className="font-semibold text-primary font-mono">{desktopProgress}%</span>
             </div>
             <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
               <div
                 className="bg-primary h-full transition-all duration-300 rounded-full"
-                style={{ width: `${tauriProgress}%` }}
+                 style={{ width: `${desktopProgress}%` }}
               />
             </div>
           </div>
         )}
 
-        {isTauri && tauriStatus === "downloaded" && (
+        {isDesktop && desktopStatus === "downloaded" && (
           <p className="text-xs text-emerald-500 font-medium my-2 text-center">
             ✓ Atualização baixada! O app precisa reiniciar para aplicar.
           </p>
         )}
 
-        {isTauri && tauriStatus === "error" && (
+        {isDesktop && desktopStatus === "error" && (
           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 my-2 text-left">
             <p className="text-xs font-semibold text-destructive mb-1">
               Falha ao processar atualização
             </p>
             <p className="text-[10px] text-muted-foreground font-mono truncate">
-              {tauriError}
+               {desktopError}
             </p>
           </div>
         )}
 
         <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-2">
-          {tauriStatus !== "downloading" && (
+          {desktopStatus !== "downloading" && (
             <Button
               variant="ghost"
               size="sm"
@@ -209,21 +208,21 @@ export function UpdateDialog() {
           <Button
             size="sm"
             onClick={
-              isTauri
-                ? tauriStatus === "downloaded"
-                  ? tauriRelaunch
-                  : tauriDownloadInstall
+              isDesktop
+                ? desktopStatus === "downloaded"
+                  ? desktopRelaunch
+                  : desktopDownloadInstall
                 : updateApp
             }
-            disabled={tauriStatus === "downloading"}
+            disabled={desktopStatus === "downloading"}
             className="w-full sm:w-auto text-xs cursor-pointer h-9 px-5 rounded-lg font-medium order-1 sm:order-2 bg-primary text-primary-foreground hover:bg-primary/95 transition-all shadow-md active:scale-[0.98]"
           >
-            {isTauri
-              ? tauriStatus === "downloaded"
+            {isDesktop
+              ? desktopStatus === "downloaded"
                 ? "Reiniciar Agora"
-                : tauriStatus === "downloading"
-                ? `Baixando (${tauriProgress}%)`
-                : tauriStatus === "error"
+                : desktopStatus === "downloading"
+                ? `Baixando (${desktopProgress}%)`
+                : desktopStatus === "error"
                 ? "Tentar Novamente"
                 : "Baixar e Instalar"
               : hasPwaUpdate

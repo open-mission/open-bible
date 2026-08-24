@@ -53,12 +53,17 @@ const nextConfig = {
     })
     return config
   },
-  transpilePackages: ["@open-bible/ui"],
+  transpilePackages: [
+    "@open-bible/application-bible",
+    "@open-bible/adapters-web",
+    "@open-bible/contracts",
+    "@open-bible/domain-bible",
+  ],
   turbopack: {},
   // Desktop (Tauri): static export, sem PWA/Service Worker e sem headers().
   // Web (Vercel): SSR + next-pwa + headers do SW/manifest.
   ...(isTauri
-    ? { output: "export" }
+    ? { output: "export", pageExtensions: ["tsx", "jsx"] }
     : {
         async headers() {
           return [

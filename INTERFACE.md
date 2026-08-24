@@ -16,11 +16,19 @@ Para Next.js, explicite App Router, Server Components, Client Components e front
 
 | Item | Localização ou valor | Uso no projeto |
 | --- | --- | --- |
-| Tokens e tema | A mapear | Cores, tipografia, espaçamento, raio e tema |
-| Configuração shadcn/ui | A mapear | `components.json`, aliases e registry |
-| Registry ReUI | A mapear | Itens gratuitos `@reui/c-*` |
-| Primitives compartilhadas | A mapear | Componentes em `ui/` ou diretório equivalente |
-| Composições de domínio | A mapear | Componentes em `features/` ou diretório equivalente |
+| Tokens e tema | `apps/web/app/globals.css`, `apps/web/lib/theme.ts` | Cores, tipografia, espaçamento, raio e temas controlados por `next-themes`. |
+| Configuração shadcn/ui | `apps/web/components.json` | Base UI/shadcn com aliases `@/components`, `@/lib` e `@/hooks`. |
+| Registry ReUI | Não usado nesta superfície | Não criar uma composição ReUI para Configurações ou updater sem necessidade comprovada. |
+| Primitives compartilhadas | `apps/web/components/ui/` | `Dialog`, `Drawer` e `Button` são as primitives reutilizadas nesta superfície. |
+| Composições de domínio | `apps/web/features/config/`, `apps/web/features/release-notes/` | Configurações e atualização são compostas nas features, não na rota. |
+
+## Boundaries
+
+- App Router: `apps/web/app/` contém a rota `/config`; a página é Client Component porque coordena router, sidebar e componentes interativos.
+- Server Components: podem compor o shell quando não precisam de estado ou browser APIs.
+- Client Components: `ConfigPage`, `ConfigDialog`, `ConfigContent`, `UpdateDialog` e `TauriMenuListener` usam `"use client"`.
+- Runtime desktop: `apps/web/lib/desktop-runtime.ts` é o único contrato consumido pela UI para eventos nativos, updater e relaunch. O preload Electron permanece fora do renderer.
+- Fallback Web/Tauri: o mesmo adapter seleciona Web, Tauri ou Electron; a UI não acessa `window.desktopRuntime` diretamente.
 
 ## Blocos criados e reaproveitáveis
 
@@ -31,13 +39,21 @@ vazio, upload ou ação em lote.
 
 | Bloco | Tipo | Arquivo | Origem | Finalidade e API pública | Estados e acessibilidade | Consumidores | Reaproveitar ou estender |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| A mapear | Primitive, composição ou domínio | A mapear | shadcn/ui, ReUI ou próprio | Props, eventos e dados esperados | Foco, teclado, loading, vazio, erro e sucesso | Telas e outros blocos | Quando usar; qual bloco estender antes de criar outro |
+| ConfigContent | Composição de domínio | `apps/web/features/config/components/config-content.tsx` | Próprio + shadcn/ui | `defaultTab?: string`; usa contextos de tema, versão bíblica e release-notes | Abas, foco, estados de verificação, download, sucesso e erro; ações são botões operáveis por teclado | `ConfigDialog`, `/config` | Reutilizar para qualquer superfície de preferências; não duplicar os painéis de versão, tema ou atualização. |
+| ConfigDialog | Composição de domínio | `apps/web/features/config/components/config-dialog.tsx` | shadcn/ui `Dialog` e `Drawer` | `open`, `onOpenChange`, `focus?: "changelog"` | Dialog centralizado em viewport >= 768px; Drawer em mobile; fecha por controles padrão e preserva foco | Sidebar, mobile nav, workspace header | Reutilizar para abrir preferências em contexto; manter `ConfigContent` compartilhado. |
+| DesktopTitlebar | Shell desktop | `apps/web/features/layout/components/desktop-titlebar.tsx` | shadcn/ui `Menubar` + `DesktopRuntime` | Sem props; menu de Configurações/Sair e controles de janela | Drag region, foco por teclado, controles Minimize/Maximize/Close; macOS posiciona controles à esquerda, Linux/Windows à direita | Root layout Electron | Reutilizar como titlebar do shell Electron; não duplicar controles nativos no renderer. |
+| UpdateDialog | Composição de domínio | `apps/web/features/release-notes/components/update-dialog.tsx` | shadcn/ui `Dialog`, `Button` | Usa `useReleaseNotes`; ações de dismiss, download/install e relaunch | Estados `available`, `downloading`, `downloaded` e `error`; bloqueia fechamento e botão durante download; retry após erro | Shell global de release notes | Reutilizar o diálogo; não expor objetos Electron nem criar outro fluxo de updater. |
+| TauriMenuListener | Bridge de composição | `apps/web/features/layout/components/tauri-menu-listener.tsx` | Próprio + Next Router | Sem props; registra `desktopRuntime.onOpenSettings` | Invisível; cleanup do listener no unmount; fallback Tauri navega para `/config` | Layout legado Tauri | Manter o nome do arquivo por compatibilidade; Electron usa `DesktopTitlebar`. |
+| DesktopRuntime | Contrato de runtime | `apps/web/lib/desktop-runtime.ts` | Próprio | `kind`, `onOpenSettings`, `updater.check`, `updater.downloadInstall`, `updater.relaunch` | Web sem ações nativas; Tauri fallback; Electron com IPC allowlisted e erros serializáveis | Provider de release notes e listener de menu | É a única porta para runtime desktop; não importar APIs Tauri/Electron nos componentes. |
 
 ## Telas e composição
 
 | Tela ou rota | Arquivo | Componentes React usados | Dados e ações | Estados |
 | --- | --- | --- | --- | --- |
-| A mapear | A mapear | A mapear | A mapear | Carregando, vazio, erro e sucesso |
+| Janela principal desktop | `apps/desktop-tauri/src/main.ts` + renderer Web | BrowserWindow frameless, protocolo `open-bible://`, preload e `DesktopTitlebar` | Menubar React, controles IPC e ações de janela por plataforma | Janela segura; Linux/Windows mostram controles à direita e macOS à esquerda |
+| Configurações em contexto | `ConfigDialog` + `ConfigContent` | `Dialog` desktop ou `Drawer` mobile, abas e controles de preferência | Versão bíblica, tema, leitura, canal de atualização e updater | Idle, checking, available, downloading, downloaded, error; foco e fechamento controlados |
+| Configurações por rota | `apps/web/app/config/page.tsx` | `SidebarProvider`, `SidebarInset`, `MobileNav`, `ConfigContent` | Deep link, fallback Web/PWA e retorno via router | Carregamento normal da rota; navegação de retorno; mesma composição de ConfigContent |
+| Atualização do aplicativo | `apps/web/features/release-notes/components/release-notes-provider.tsx` + `apps/web/features/release-notes/components/update-dialog.tsx` | `DesktopRuntime`, `Dialog`, `Button` | Verificação, download/install, dismiss e relaunch | Sem atualização, disponível, progresso, baixada, erro recuperável e retry |
 
 ## Regras de composição
 

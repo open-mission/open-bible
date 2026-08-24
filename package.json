@@ -3,6 +3,9 @@
   "version": "0.8.7",
   "private": false,
   "packageManager": "pnpm@10.22.0",
+  "engines": {
+    "node": "22.x"
+  },
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "pnpm --filter @open-bible/web dev",
@@ -31,7 +34,7 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx,js,mjs}": "eslint --fix"
+    "*.{ts,tsx,js,mjs}": "eslint --config apps/web/eslint.config.mjs --fix"
   },
   "dependencies": {
     "@open-bible/application-bible": "workspace:*",
@@ -103,13 +106,5 @@
     "tailwindcss": "^4.2.0",
     "typescript": "6.0.3",
     "vitest": "^4.1.10"
-  },
-  "pnpm": {
-    "overrides": {
-      "hono": "4.12.25"
-    },
-    "onlyBuiltDependencies": [
-      "better-sqlite3"
-    ]
   }
 }

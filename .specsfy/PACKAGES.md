@@ -74,4 +74,14 @@
 | npm | desenvolvimento | vitest | ^4.1.10 | Next generation testing framework powered by Vite | https://github.com/vitest-dev/vitest |
 | npm | produção | @open-bible/domain-bible | workspace:* | Finalidade não descrita nos metadados locais. |  |
 | npm | produção | @open-bible/contracts | workspace:* | Finalidade não descrita nos metadados locais. |  |
+| npm | produção | electron-updater | 6.8.9 | Cross platform updater for electron applications | https://github.com/electron-userland/electron-builder |
+| npm | desenvolvimento | electron | 43.4.1 | Build cross platform desktop apps with JavaScript, HTML, and CSS | https://github.com/electron/electron |
+| npm | desenvolvimento | electron-builder | 26.15.3 | A complete solution to package and build a ready for distribution Electron app for MacOS, Windows and Linux with “auto update” support out of the box | https://github.com/electron-userland/electron-builder |
+| npm | desenvolvimento | esbuild | 0.28.2 | An extremely fast JavaScript and CSS bundler and minifier. | https://github.com/evanw/esbuild |
+| npm | desenvolvimento | tsx | 4.23.12 | TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files | privatenumber/tsx |
 <!-- specsfy:documentator:end -->
+
+## Observações de entrega
+
+- A instalação de dependências usa o lockfile compartilhado do pnpm na raiz do
+  monorepo.

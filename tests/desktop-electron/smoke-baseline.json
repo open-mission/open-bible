@@ -1,0 +1,15 @@
+{
+  "renderer": "apps/web/out/index.html",
+  "preload": "apps/desktop-tauri/dist/preload.js",
+  "platforms": ["linux", "macos", "windows"],
+  "security": {
+    "contextIsolation": true,
+    "sandbox": true,
+    "nodeIntegration": false
+  },
+  "budgets": {
+    "startupMs": 5000,
+    "offlineReaderReadyMs": 3000
+  },
+  "fallback": "tauri"
+}

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { AnalyticsGate } from "@/features/layout/components/analytics-gate";
 import { OpfsStatusGate } from "@/features/layout/components/opfs-status-gate";
 import { TauriMenuListener } from "@/features/layout/components/tauri-menu-listener";
+import { DesktopTitlebar } from "@/features/layout/components/desktop-titlebar";
 import { Inter, Lora, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/features/theme/components/theme-provider";
 import { BibleVersionProvider } from "@/features/bible-reader/context/bible-version-context";
@@ -88,6 +89,7 @@ export default function RootLayout({
     >
       <body className={cn("font-sans antialiased")}>
         <TauriMenuListener />
+        <DesktopTitlebar />
         <ThemeProvider>
           <BibleVersionProvider>
             <AppNavigationProvider>

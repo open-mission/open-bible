@@ -1,0 +1,32 @@
+appId: org.openmission.openbible
+productName: Open Bible
+executableName: open-bible
+directories:
+  output: ../../dist/electron
+  buildResources: icons
+files:
+  - dist/**
+  - package.json
+extraResources:
+  - from: ../web/out
+    to: web/out
+asar: true
+linux:
+  category: Education
+  maintainer: Open Mission <openmission@users.noreply.github.com>
+  target:
+    - AppImage
+    - deb
+mac:
+  target:
+    - dmg
+    - zip
+win:
+  target:
+    - nsis
+publish:
+  provider: github
+  owner: open-mission
+  repo: open-bible
+  releaseType: draft
+  channel: latest

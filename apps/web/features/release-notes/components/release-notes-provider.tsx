@@ -13,11 +13,12 @@ import {
   type UpdateChannel,
 } from "@/lib/release-notes/version";
 import { useServiceWorkerUpdate } from "@/features/service-worker/hooks/use-sw-update";
-import { isTauri } from "@/lib/is-tauri";
+import {
+  desktopRuntime,
+  isDesktop,
+  type DesktopUpdaterStatus,
+} from "@/lib/desktop-runtime";
 import * as Sentry from "@sentry/nextjs";
-import type { Update } from "@tauri-apps/plugin-updater";
-
-export type TauriUpdaterStatus = "idle" | "checking" | "available" | "no-update" | "downloading" | "downloaded" | "error";
 
 interface ReleaseNotesContextType {
   hasUpdate: boolean;
@@ -34,13 +35,12 @@ interface ReleaseNotesContextType {
   setChannel: (channel: UpdateChannel) => void;
   checkForUpdates: (force?: boolean) => Promise<{ success: boolean; hasUpdate: boolean }>;
   
-  // Tauri specific additions
-  isTauri: boolean;
-  tauriStatus: TauriUpdaterStatus;
-  tauriProgress: number;
-  tauriError: string;
-  tauriDownloadInstall: () => Promise<void>;
-  tauriRelaunch: () => Promise<void>;
+  isDesktop: boolean;
+  desktopStatus: DesktopUpdaterStatus;
+  desktopProgress: number;
+  desktopError: string;
+  desktopDownloadInstall: () => Promise<void>;
+  desktopRelaunch: () => Promise<void>;
 }
 
 const ReleaseNotesContext = createContext<ReleaseNotesContextType | undefined>(undefined);
@@ -63,63 +63,56 @@ export function ReleaseNotesProvider({ children }: { children: React.ReactNode }
     return getUpdateChannel();
   });
 
-  // Tauri native updater states
-  const [tauriStatus, setTauriStatus] = useState<TauriUpdaterStatus>("idle");
-  const [tauriProgress, setTauriProgress] = useState<number>(0);
-  const [tauriError, setTauriError] = useState<string>("");
-  const [tauriUpdateObj, setTauriUpdateObj] = useState<Update | null>(null);
+  const [desktopStatus, setDesktopStatus] = useState<DesktopUpdaterStatus>("idle");
+  const [desktopProgress, setDesktopProgress] = useState<number>(0);
+  const [desktopError, setDesktopError] = useState<string>("");
 
-  const tauriDownloadInstall = async () => {
-    if (!tauriUpdateObj) return;
-    setTauriStatus("downloading");
-    setTauriProgress(0);
-    setTauriError("");
+  const desktopDownloadInstall = async () => {
+    setDesktopStatus("downloading");
+    setDesktopProgress(0);
+    setDesktopError("");
+    const stopProgress = desktopRuntime.updater.onProgress?.(setDesktopProgress);
 
     Sentry.addBreadcrumb({
-      category: "tauri-updater",
-      message: "Starting Tauri update download and install from dialog/provider",
+      category: "desktop-updater",
+      message: "Starting desktop update download and install from dialog/provider",
       level: "info",
     });
 
     try {
-      await tauriUpdateObj.downloadAndInstall((event: any) => {
-        if (event?.event === "Started") {
-          setTauriProgress(0);
-        } else if (event?.event === "Progress") {
-          if (event.data?.contentLength && event.data?.progress != null) {
-            const pct = Math.round((event.data.progress / event.data.contentLength) * 100);
-            setTauriProgress(pct);
-          }
-        } else if (event?.event === "Finished") {
-          setTauriProgress(100);
-        }
-      });
-      setTauriStatus("downloaded");
-      Sentry.captureMessage("Tauri update download and install completed successfully", "info");
+      const update = await desktopRuntime.updater.downloadInstall();
+      if (update.status === "error") {
+        throw new Error(update.error || "Desktop update download failed");
+      }
+      if (update.status !== "downloaded") throw new Error("Update is not ready to install");
+      setDesktopProgress(update.progress ?? 100);
+      setDesktopStatus("downloaded");
+      Sentry.captureMessage("Desktop update download and install completed successfully", "info");
     } catch (err: unknown) {
-      console.error("Erro ao baixar e instalar atualização do Tauri:", err);
-      setTauriStatus("error");
+      console.error("Erro ao baixar e instalar atualização do desktop:", err);
+      setDesktopStatus("error");
       const errStr = (err instanceof Error ? err : new Error(String(err))).toString();
-      setTauriError(errStr);
+      setDesktopError(errStr);
       Sentry.captureException(err, {
-        tags: { context: "tauri_download_install" },
+        tags: { context: "desktop_download_install" },
       });
+    } finally {
+      stopProgress?.();
     }
   };
 
-  const tauriRelaunch = async () => {
+  const desktopRelaunch = async () => {
     Sentry.addBreadcrumb({
-      category: "tauri-updater",
-      message: "Attempting app relaunch after update",
+      category: "desktop-updater",
+      message: "Attempting desktop app relaunch after update",
       level: "info",
     });
     try {
-      const { relaunch } = await import("@tauri-apps/plugin-process");
-      await relaunch();
+      await desktopRuntime.updater.relaunch();
     } catch (err) {
-      console.error("Erro ao reiniciar o aplicativo:", err);
+      console.error("Erro ao reiniciar o aplicativo desktop:", err);
       Sentry.captureException(err, {
-        tags: { context: "tauri_relaunch" },
+        tags: { context: "desktop_relaunch" },
       });
     }
   };
@@ -128,37 +121,34 @@ export function ReleaseNotesProvider({ children }: { children: React.ReactNode }
     const appVersion = getAppVersion();
     const dismissed = getDismissedUpdateVersion();
 
-    if (isTauri) {
-      setTauriStatus("checking");
-      setTauriError("");
+    if (isDesktop) {
+      setDesktopStatus("checking");
+        setDesktopError("");
       try {
-        const { check } = await import("@tauri-apps/plugin-updater");
-        const update = await check({
-          headers: {
-            "X-Update-Channel": channel
-          }
-        });
-        if (update) {
-          setTauriUpdateObj(update);
+        const update = await desktopRuntime.updater.check(channel);
+        if (update.status === "error") {
+          throw new Error(update.error || "Desktop update check failed");
+        }
+        if (update.status === "available" && update.version) {
           setLatestVersion(update.version);
-          setChangelog(update.body || "");
-          setTauriStatus("available");
+          setChangelog(update.changelog || "");
+           setDesktopStatus("available");
           setHasAppUpdate(true);
-          Sentry.captureMessage(`Tauri updater found new version: ${update.version}`, "info");
+          Sentry.captureMessage(`Desktop updater found new version: ${update.version}`, "info");
           return { success: true, hasUpdate: true };
         } else {
-          setTauriStatus("no-update");
+           setDesktopStatus("no-update");
           setHasAppUpdate(false);
           return { success: true, hasUpdate: false };
         }
-      } catch (err: any) {
-        console.error("Error in Tauri update check:", err);
-        setTauriStatus("error");
+      } catch (err: unknown) {
+        console.error("Error in desktop update check:", err);
+        setDesktopStatus("error");
         const errStr = (err instanceof Error ? err : new Error(String(err))).toString();
-        setTauriError(errStr);
+        setDesktopError(errStr);
         setHasAppUpdate(false);
         Sentry.captureException(err, {
-          tags: { context: "tauri_check_update" },
+          tags: { context: "desktop_check_update" },
         });
         return { success: false, hasUpdate: false };
       }
@@ -274,8 +264,8 @@ export function ReleaseNotesProvider({ children }: { children: React.ReactNode }
     return checkVersion(channel, force);
   };
 
-  // PWA dialog opens ONLY on SW updates. Tauri dialog opens on App updates.
-  const hasUpdate = isTauri
+  // PWA uses service-worker updates; desktop uses the native updater.
+  const hasUpdate = isDesktop
     ? (hasAppUpdate && !isDismissed)
     : (hasPwaUpdate && !isDismissed);
 
@@ -286,8 +276,8 @@ export function ReleaseNotesProvider({ children }: { children: React.ReactNode }
   const updateApp = () => {
     if (hasPwaUpdate) {
       updateNow();
-    } else if (isTauri) {
-      tauriDownloadInstall();
+    } else if (isDesktop) {
+      desktopDownloadInstall();
     } else if (releaseUrl) {
       window.open(releaseUrl, "_blank", "noopener,noreferrer");
     }
@@ -315,12 +305,12 @@ export function ReleaseNotesProvider({ children }: { children: React.ReactNode }
         setChannel,
         checkForUpdates,
         
-        isTauri,
-        tauriStatus,
-        tauriProgress,
-        tauriError,
-        tauriDownloadInstall,
-        tauriRelaunch,
+         isDesktop,
+         desktopStatus,
+         desktopProgress,
+         desktopError,
+         desktopDownloadInstall,
+         desktopRelaunch,
       }}
     >
       {children}
@@ -335,4 +325,3 @@ export function useReleaseNotes() {
   }
   return context;
 }
-

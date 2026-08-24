@@ -5,8 +5,8 @@
 
 | Tipo | Quantidade |
 | --- | --- |
-| Código | 617 |
-| Testes | 10 |
+| Código | 1816 |
+| Testes | 40 |
 
 ## Diagramas
 
