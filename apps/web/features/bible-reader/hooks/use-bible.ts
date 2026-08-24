@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import type { Verse } from "@/lib/types"
 import { useBibleVersion } from "@/features/bible-reader/context/bible-version-context"
+import { getChapter } from "@open-bible/application-bible"
+import { WebBibleReader } from "@open-bible/adapters-web"
 
 export function useBibleVerses(bookId: string | null, chapter: number | null) {
   const { getVerses, versionId, installedVersions } = useBibleVersion()
@@ -33,7 +35,14 @@ export function useBibleVerses(bookId: string | null, chapter: number | null) {
 
     setLoading(true)
     setError(null)
-    getVerses(bookId, chapter, versionId)
+    getChapter(
+      new WebBibleReader((readerVersionId, readerBookId, readerChapter) =>
+        getVerses(readerBookId, readerChapter, readerVersionId)
+      ),
+      versionId,
+      bookId,
+      chapter
+    )
       .then((result) => {
         setVerses(result)
         setLoading(false)

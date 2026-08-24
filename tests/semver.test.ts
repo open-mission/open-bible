@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { compareSemver, isPrerelease } from "../lib/release-notes/version";
+import { compareSemver, isPrerelease } from "../apps/web/lib/release-notes/version";
 
 describe("isPrerelease", () => {
   it("detects pre-release versions with hyphen", () => {

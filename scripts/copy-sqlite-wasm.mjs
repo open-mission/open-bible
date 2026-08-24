@@ -11,7 +11,8 @@ import { cp, mkdir, access } from "node:fs/promises"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
-const root = dirname(fileURLToPath(import.meta.url)) + "/.."
+const root = dirname(fileURLToPath(import.meta.url)) + "/../apps/web"
+const repositoryRoot = dirname(fileURLToPath(import.meta.url)) + "/.."
 
 const SRC_JSWASM = join(root, "node_modules/@sqlite.org/sqlite-wasm/dist")
 const DST_JSWASM = join(root, "public/sqlite-wasm/jswasm")
@@ -20,7 +21,7 @@ const DST_JSWASM = join(root, "public/sqlite-wasm/jswasm")
 const SRC_WORKER = join(root, "lib/database/sqlite-worker.source.js")
 const DST_WORKER = join(root, "public/sqlite-wasm/open-bible.worker.js")
 
-const SRC_ARA = join(root, "resources/bibles/ARA.sqlite")
+const SRC_ARA = join(repositoryRoot, "resources/bibles/ARA.sqlite")
 const DST_ARA = join(root, "public/bibles/ara.db")
 
 async function exists(p) {

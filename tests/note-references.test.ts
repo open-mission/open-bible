@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { rangesOverlap } from "../lib/database/user/repositories/noteReferencesRepository"
+import { rangesOverlap } from "../apps/web/lib/database/user/repositories/noteReferencesRepository"
 
 describe("rangesOverlap", () => {
   it("matches a single verse against a single-verse reference", () => {
