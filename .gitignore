@@ -24,6 +24,8 @@ bun.lockb
 
 # tauri build stash (temporary app/api relocation during desktop export)
 /.tauri-build-stash/
+/src-tauri/target/
+/src-tauri/gen/
 
 # production
 /build
