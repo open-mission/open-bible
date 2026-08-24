@@ -124,7 +124,18 @@ jobs:
           TURSO_AUTH_TOKEN: ci-placeholder-token
         run: pnpm --filter @open-bible/web build
 
-      - name: Build Electron package
+      - name: Build Electron package (unsigned)
+        if: env.UNSIGNED_BUILD == 'true'
+        env:
+          RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
+          ELECTRON_BUILDER_TARGET: ${{ matrix.target }}
+          ELECTRON_UPDATE_CHANNEL: ${{ env.UPDATE_CHANNEL }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: pnpm --filter @open-bible/desktop-tauri build
+
+      - name: Build Electron package (signed)
+        if: env.UNSIGNED_BUILD != 'true'
         env:
           RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
           ELECTRON_BUILDER_TARGET: ${{ matrix.target }}

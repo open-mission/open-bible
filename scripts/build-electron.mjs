@@ -11,7 +11,7 @@ const target = process.env.ELECTRON_BUILDER_TARGET
 const platform = process.env.ELECTRON_BUILDER_PLATFORM
 const updateChannel = process.env.ELECTRON_UPDATE_CHANNEL
 const releaseVersion = process.env.RELEASE_VERSION
-const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm"
+const pnpmCommand = "pnpm"
 
 if (releaseVersion && !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(releaseVersion)) {
   throw new Error(`Invalid RELEASE_VERSION: ${releaseVersion}`)
@@ -24,6 +24,7 @@ function run(command, args) {
   execFileSync(command, args, {
     cwd: desktopRoot,
     stdio: "inherit",
+    shell: process.platform === "win32",
   })
 }
 
