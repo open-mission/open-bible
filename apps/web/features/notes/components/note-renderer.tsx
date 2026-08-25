@@ -20,7 +20,7 @@ export function NoteRenderer({ content, className }: NoteRendererProps) {
     content: parseNoteContent(content) || createEmptyNoteDocument(),
     editorProps: {
       attributes: {
-        class: "note-rich-content",
+        class: "note-rich-content typeset typeset-notes",
       },
     },
   })

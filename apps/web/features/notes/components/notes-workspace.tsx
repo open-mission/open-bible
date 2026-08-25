@@ -110,7 +110,10 @@ export function NotesWorkspace() {
               <h1 className="text-base font-semibold text-foreground">Notas</h1>
               <p className="text-xs text-muted-foreground">Seu espaço de reflexão</p>
             </div>
-            <Button type="button" size="icon-sm" onClick={compose} aria-label="Nova nota"><Plus /></Button>
+            <Button type="button" size="sm" onClick={compose}>
+              <Plus data-icon="inline-start" />
+              Nova nota
+            </Button>
           </div>
           <InputGroup className="h-9! rounded-lg! border-input/30 bg-background shadow-none!">
             <InputGroupAddon><Search className="size-4 opacity-50" /></InputGroupAddon>

@@ -112,7 +112,7 @@ export function NoteEditor({
     autofocus: autoFocus ? "end" : false,
     editorProps: {
       attributes: {
-        class: "note-rich-content min-h-[18rem] px-1 py-3 focus:outline-none sm:min-h-[24rem]",
+        class: "note-rich-content typeset typeset-notes min-h-[18rem] px-1 py-3 focus:outline-none sm:min-h-[24rem]",
         "data-placeholder": placeholder,
         "aria-label": "Conteúdo da nota",
       },

@@ -1,7 +1,6 @@
 "use client"
 
-import { NoteRenderer } from "./note-renderer"
-import { isEmptyHtml } from "../utils/html"
+import { isEmptyHtml, stripHtml } from "../utils/html"
 import { referenceLabel } from "../utils/reference-label"
 import { cn } from "@/lib/utils"
 import type { NoteReference } from "@/lib/database/user/schema"
@@ -36,9 +35,9 @@ export function NoteListItem({ entry, onOpen, className }: NoteListItemProps) {
       {empty ? (
         <p className="mt-2 text-sm italic text-muted-foreground/70">Nota sem texto</p>
       ) : (
-        <div className="mt-2 line-clamp-4 max-h-24 overflow-hidden pointer-events-none">
-          <NoteRenderer key={entry.note.id} content={entry.note.content} />
-        </div>
+        <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-foreground/80">
+          {stripHtml(entry.note.content)}
+        </p>
       )}
       {entry.references.length > 1 && (
         <p className="mt-2 text-[10px] text-muted-foreground/70">
