@@ -3,7 +3,7 @@
 | Metainformação | Valor |
 | --- | --- |
 | ID | BACKLOG-0007 |
-| Status | Captured |
+| Status | Promoted |
 | Produto | Open Bible |
 | Épico | Estudo e anotações |
 | Funcionalidade | Notas |
@@ -11,7 +11,7 @@
 | Prioridade | Alta |
 | Milestones | |
 | Criado em | 2026-08-25 |
-| Spec promovida | Nenhuma |
+| Spec promovida | specs/defined/0007-funcionalidade-de-notas-com-editor-notion-com-blocos-e-referencias-biblicas/spec.md |
 
 ## Ideia original
 

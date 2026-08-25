@@ -5,13 +5,13 @@
 | Formato | Specsfy/2.0 |
 | ID | SPEC-0007 |
 | Slug | 0007-funcionalidade-de-notas-com-editor-notion-com-blocos-e-referencias-biblicas |
-| Status | Draft |
+| Status | Defined |
 | Effort | 6 |
 | Effort updated at | 2026-08-25 |
 | Effort rationale | Editor Tiptap JSON + 6 blocos + bibleReference custom + slash/bubble menu + canvas branco; standard-high. |
 | ClickUp Task | |
 | Milestones | |
-| Definition Gate | Pending |
+| Definition Gate | Passed |
 | Plan Gate | Pending |
 | Delivery Gate | Pending |
 | Evidence Contract | 1 |
@@ -176,7 +176,7 @@ Feature: Fallback bibleReference
 
 #### AC-005 — Persistir JSON e note_references
 
-**Cobre**: US-003, FR-005, NFR-001
+**Cobre**: US-003, FR-003, FR-004, FR-005, NFR-001
 
 ```gherkin
 @US-003 @FR-005 @NFR-001 @AC-005
@@ -190,7 +190,7 @@ Feature: Persistência
 
 #### AC-006 — Recarregar idêntico
 
-**Cobre**: US-003, FR-005, NFR-001
+**Cobre**: US-003, FR-003, FR-005, NFR-001
 
 ```gherkin
 @US-003 @FR-005 @NFR-001 @AC-006
@@ -363,8 +363,8 @@ apps/web/features/notes/extensions/bible-reference.ts
 
 #### Menus e navegação principal
 
-- **Menu principal** (AppSidebar/MobileTabBar): Leitura `/`, Highlights `/highlights`, Notas `/notes` (ativo), Config `/config`.
-- **Secundário**: slash menu, bubble menu, picker bibleReference.
+- **Menu principal** (AppSidebar desktop, MobileTabBar mobile) — **itens** e **destinos**: Leitura → `/`, Highlights → `/highlights`, Notas → `/notes` (ativo, permissão anon local), Configurações → `/config`; responsivo: sidebar colapsa <768px.
+- **Menus secundários** — itens e destinos: slash menu (`/`) com blocos (parágrafo, heading, lista...), bubble menu (bold/italic), picker bibleReference (Selects versão/livro/cap/vers → preview); todos sem rota, overlay no canvas.
 
 #### Formulários e ações
 
@@ -435,9 +435,9 @@ apps/web/features/notes/extensions/bible-reference.ts
 
 #### Gate do Ato I — Definição
 
-- **Resultado**: Pending
+- **Resultado**: Passed
 - **Comando**: `node .agents/skills/specsfy-04-validate/scripts/validate_spec.mjs specs/draft/0007-funcionalidade-de-notas-com-editor-notion-com-blocos-e-referencias-biblicas/spec.md`
-- **Achados**: Pending.
+- **Achados**: READY — 3 US / 5 FR / 2 NFR com ≥3 AC cada (10 AC), canvas branco Notion com slash/bubble e bibleReference validado.
 
 #### Gate do Ato II — Plano
 
