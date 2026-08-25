@@ -9,8 +9,6 @@ import {
   Highlighter,
   Notebook,
 } from "lucide-react"
-import { useIsMobile } from "@/lib/use-media-query"
-import { cn } from "@/lib/utils"
 
 interface StubViewShellProps {
   title: string
@@ -20,13 +18,9 @@ interface StubViewShellProps {
 
 function StubViewShell({ title, description, icon: Icon }: StubViewShellProps) {
   const { navigate } = useAppNavigation()
-  const isMobile = useIsMobile()
 
   return (
-    <div className={cn(
-      "flex flex-col h-full",
-      isMobile && "pb-[calc(4.875rem+env(safe-area-inset-bottom))]"
-    )}>
+    <div className="flex flex-col h-full">
       <header className="flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4 py-3 shrink-0">
         <button
           onClick={() => navigate("reader")}
@@ -67,8 +61,7 @@ function HighlightsStubView() {
   )
 }
 
-export function ViewContainer({ onOpenCommandPalette, openBookChapterSignal }: {
-  onOpenCommandPalette?: () => void
+export function ViewContainer({ openBookChapterSignal }: {
   openBookChapterSignal?: number
 }) {
   const { activeView } = useAppNavigation()

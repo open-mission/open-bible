@@ -1,21 +1,16 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/features/navigation/components/app-sidebar"
+import { AppDock } from "@/features/navigation/components/app-dock"
 import { CommandPalette } from "@/features/navigation/components/command-palette"
-import { MobileTabBar } from "@/features/navigation/components/mobile-tab-bar"
 import { ViewContainer } from "@/features/navigation/components/view-container"
-import { useIsMobile } from "@/lib/use-media-query"
 import { useWorkspaceMode } from "@/features/workspace/hooks/use-workspace-mode"
 
 export default function Home() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [bookChapterSignal, setBookChapterSignal] = useState(0)
-  const isMobile = useIsMobile()
-  const { mode, loaded } = useWorkspaceMode()
+  const { loaded } = useWorkspaceMode()
 
-  const openCommandPalette = useCallback(() => setCommandPaletteOpen(true), [])
   const openBookChapter = useCallback(() => setBookChapterSignal((s) => s + 1), [])
 
   useEffect(() => {
@@ -49,14 +44,12 @@ export default function Home() {
 
   return (
     <>
-      <SidebarProvider className="h-dvh" defaultOpen={false} style={{ "--sidebar-width-icon": "3.5rem" } as React.CSSProperties}>
-        {!isMobile && <AppSidebar onOpenCommandPalette={openCommandPalette} />}
-        <SidebarInset className="w-auto overflow-hidden h-full">
+      <div className="flex h-dvh flex-col overflow-hidden bg-background">
+        <div className="flex flex-1 flex-col overflow-hidden pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
           <ViewContainer openBookChapterSignal={bookChapterSignal} />
-        </SidebarInset>
-      </SidebarProvider>
-
-      {isMobile && <MobileTabBar />}
+        </div>
+        <AppDock onOpenCommandPalette={() => setCommandPaletteOpen(true)} />
+      </div>
 
       <CommandPalette
         open={commandPaletteOpen}
