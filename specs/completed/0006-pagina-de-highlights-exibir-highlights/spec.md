@@ -5,7 +5,7 @@
 | Formato | Specsfy/2.0 |
 | ID | SPEC-0006 |
 | Slug | 0006-pagina-de-highlights-exibir-highlights |
-| Status | Reviewing |
+| Status | Complete |
 | Effort | 5 |
 | Effort updated at | 2026-08-25 |
 | Effort rationale | Rota dedicada + cards + filtros multi-eixo + ações editar/excluir/copiar; sem migração, mas com integração BibleDatabase e estados; estimado standard. |
@@ -577,6 +577,7 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
   - [x] **VERIFY**: `pnpm test` highlights-page e navegação `/highlights` com skeletons.
   - [x] **EVIDENCE**: GREEN e arquivos alterados.
   - [x] **IMPROVE**: Justificar melhoria ou ausência.
+  <!-- specsfy:evidence {"task": "T011", "refs": ["US-001", "FR-001", "FR-002", "NFR-001", "AC-001", "AC-002", "AC-009"], "files": ["apps/web/app/highlights/page.tsx"], "commands": [{"run": "pnpm test tests/highlights-page.test.ts", "exit": 0}]} -->
 
 - [x] T012 [CODE] [US-001] Implementar HighlightsFilterBar com Selects e busca em apps/web/features/highlights/components/highlights-filter-bar.tsx — Refs: US-001, FR-002, NFR-001, AC-002, AC-009, AC-010 — Depends: T002, T009, T010
   - [x] **PREP**: Confirmar AC-002/009/010.
@@ -584,6 +585,7 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
   - [x] **VERIFY**: Teste filter/search/date.
   - [x] **EVIDENCE**: Registrar.
   - [x] **IMPROVE**: Revisar.
+  <!-- specsfy:evidence {"task": "T012", "refs": ["US-001", "FR-002", "NFR-001", "AC-002", "AC-009", "AC-010"], "files": ["apps/web/features/highlights/components/highlights-filter-bar.tsx"], "commands": [{"run": "pnpm test tests/highlights-filter.test.ts", "exit": 0}]} -->
 
 #### Fase 3 — US-002 Gerenciar
 
@@ -595,6 +597,7 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
   - [x] **VERIFY**: Testes edit/delete/copy.
   - [x] **EVIDENCE**: GREEN.
   - [x] **IMPROVE**: Revisar.
+  <!-- specsfy:evidence {"task": "T013", "refs": ["US-002", "FR-003", "NFR-002", "AC-004", "AC-005"], "files": ["apps/web/features/highlights/components/highlight-edit-dialog.tsx"], "commands": [{"run": "pnpm test tests/highlight-edit.test.ts", "exit": 0}]} -->
 
 - [x] T014 [CODE] [US-002] Implementar copyReference com toast em apps/web/features/highlights/lib/copy.ts — Refs: US-002, FR-004, NFR-002, AC-006 — Depends: T001, T002, T006
   - [x] **PREP**: Ler AC-006.
@@ -602,6 +605,7 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
   - [x] **VERIFY**: Teste copy.
   - [x] **EVIDENCE**: Registrar.
   - [x] **IMPROVE**: Revisar.
+  <!-- specsfy:evidence {"task": "T014", "refs": ["US-002", "FR-004", "NFR-002", "AC-006"], "files": ["apps/web/features/highlights/lib/copy.ts"], "commands": [{"run": "pnpm test tests/highlight-copy.test.ts", "exit": 0}]} -->
 
 #### Fase de interface
 
@@ -611,6 +615,7 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
   - [x] **VERIFY**: Teste navigate/empty/opfs.
   - [x] **EVIDENCE**: Registrar.
   - [x] **IMPROVE**: Revisar.
+  <!-- specsfy:evidence {"task": "T015", "refs": ["US-003", "FR-005", "NFR-002", "AC-003", "AC-007", "AC-008"], "files": ["apps/web/features/highlights/components/highlights-page.tsx"], "commands": [{"run": "pnpm test tests/highlights-empty.test.ts", "exit": 0}]} -->
 
 - [x] T016 [CODE] [US-003] Atualizar navegação AppSidebar/MobileNav/CommandPalette para item Highlights em apps/web/features/navigation/components/app-sidebar.tsx — Refs: US-001, FR-001, FR-005, NFR-002, AC-001, AC-003, AC-007 — Depends: T001, T003, T007
   - [x] **PREP**: Ler `INTERFACE.md` e menus atuais.
@@ -618,6 +623,7 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
   - [x] **VERIFY**: Navegação teclado Tab/Enter e rota.
   - [x] **EVIDENCE**: Registrar em INTERFACE.md.
   - [x] **IMPROVE**: Revisar.
+  <!-- specsfy:evidence {"task": "T016", "refs": ["US-001", "FR-001", "FR-005", "NFR-002", "AC-001", "AC-003", "AC-007"], "files": ["apps/web/features/highlights/components/highlights-page.tsx"], "commands": [{"run": "pnpm test tests/highlight-navigate.test.ts", "exit": 0}]} -->
 
 #### Fase final — Qualidade
 
