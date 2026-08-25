@@ -5,6 +5,7 @@ import { useWorkspaceMode } from "@/features/workspace/hooks/use-workspace-mode"
 import { SimpleHome } from "@/features/workspace/components/simple-home"
 import { AdvancedHome } from "@/features/workspace/components/advanced-home"
 import { NotesBrowser } from "@/features/notes/components/notes-browser"
+import { NotesProvider } from "@/features/notes/context/notes-context"
 import { AllHighlightsBrowser } from "@/features/highlights/components/all-highlights-browser"
 import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations"
 
@@ -25,7 +26,19 @@ function HighlightsView({ active }: { active: boolean }) {
 }
 
 function NotesView({ active }: { active: boolean }) {
-  return <NotesBrowser mode="all" active={active} />
+  return (
+    <NotesProvider
+      bookId={null}
+      chapter={null}
+      versionId="ara"
+      open={active}
+      target={null}
+      onOpen={() => undefined}
+      onClose={() => undefined}
+    >
+      <NotesBrowser mode="all" active={active} />
+    </NotesProvider>
+  )
 }
 
 export function ViewContainer({ openBookChapterSignal }: {
