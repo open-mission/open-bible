@@ -79,6 +79,19 @@
 | npm | desenvolvimento | electron-builder | 26.15.3 | A complete solution to package and build a ready for distribution Electron app for MacOS, Windows and Linux with “auto update” support out of the box | https://github.com/electron-userland/electron-builder |
 | npm | desenvolvimento | esbuild | 0.28.2 | An extremely fast JavaScript and CSS bundler and minifier. | https://github.com/evanw/esbuild |
 | npm | desenvolvimento | tsx | 4.23.12 | TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files | privatenumber/tsx |
+| npm | produção | @opentui/core | 0.5.8 | OpenTUI is a TypeScript library on a native Zig core for building terminal user interfaces (TUIs) | https://github.com/anomalyco/opentui |
+| npm | produção | @opentui/react | 0.5.8 | React renderer for building terminal user interfaces using OpenTUI core | https://github.com/anomalyco/opentui |
+| npm | produção | better-sqlite3 | ^12.11.1 | The fastest and simplest library for SQLite in Node.js. | git://github.com/WiseLibs/better-sqlite3 |
+| npm | desenvolvimento | @types/bun | ^1.2.0 | TypeScript definitions for bun | https://github.com/DefinitelyTyped/DefinitelyTyped |
+| npm | desenvolvimento | @types/node | ^26.0.0 | TypeScript definitions for node | https://github.com/DefinitelyTyped/DefinitelyTyped |
+| npm | desenvolvimento | tsx | ^4.19.0 | TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files | privatenumber/tsx |
+| npm | produção | @tiptap/extension-bubble-menu | ^3.28.0 | bubble-menu extension for tiptap | https://github.com/ueberdosis/tiptap |
+| npm | produção | next | 16.3.2 | The React Framework | vercel/next.js |
+| npm | produção | react | 19.2.8 | React is a JavaScript library for building user interfaces. | https://github.com/facebook/react |
+| npm | produção | react-dom | 19.2.8 | React package for working with the DOM. | https://github.com/facebook/react |
+| npm | desenvolvimento | @types/react | 19.2.18 | TypeScript definitions for react | https://github.com/DefinitelyTyped/DefinitelyTyped |
+| npm | desenvolvimento | @types/react-dom | 19.2.5 | TypeScript definitions for react-dom | https://github.com/DefinitelyTyped/DefinitelyTyped |
+| npm | desenvolvimento | eslint-config-next | 16.3.2 | ESLint configuration used by Next.js. | vercel/next.js |
 <!-- specsfy:documentator:end -->
 
 ## Observações de entrega

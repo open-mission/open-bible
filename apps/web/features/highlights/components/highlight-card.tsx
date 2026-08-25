@@ -2,6 +2,7 @@
 
 import { useCallback } from "react"
 import {
+  Copy,
   Pencil,
   Trash2,
 } from "lucide-react"
@@ -14,12 +15,16 @@ interface HighlightCardProps {
   entry: AllHighlightEntry
   onEdit: (id: string) => void
   onDelete: (id: string) => void
+  onNavigate: (verse: AllHighlightEntry["verses"][number]) => void
+  onCopy: () => void
 }
 
 export function HighlightCard({
   entry,
   onEdit,
   onDelete,
+  onNavigate,
+  onCopy,
 }: HighlightCardProps) {
   const style = getNeonStyle(entry.highlight.color)
 
@@ -63,9 +68,15 @@ export function HighlightCard({
           </span>
 
           {/* Reference Range */}
-          <span className="text-xs font-semibold text-muted-foreground truncate max-w-[150px] font-sans">
+          <button
+            type="button"
+            className="max-w-[150px] truncate text-left text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline font-sans"
+            onClick={() => entry.verses[0] && onNavigate(entry.verses[0])}
+            disabled={entry.verses.length === 0}
+            aria-label={`Abrir ${getReferenceText()} no leitor`}
+          >
             {getReferenceText()}
-          </span>
+          </button>
 
           {/* Edit / Delete Actions */}
           <div className="ml-auto flex items-center gap-0.5">
@@ -78,6 +89,17 @@ export function HighlightCard({
               title="Editar destaque"
             >
               <Pencil className="size-3.5" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onCopy}
+              className="text-muted-foreground hover:text-foreground shrink-0"
+              title="Copiar referência"
+              aria-label="Copiar referência"
+            >
+              <Copy className="size-3.5" />
             </Button>
             <Button
               type="button"
@@ -108,9 +130,14 @@ export function HighlightCard({
             <div className="relative z-10 flex flex-col gap-3">
               {entry.verseItems.map((v, idx) => (
                 <div key={idx} className="flex flex-col gap-1">
-                  <p className="font-serif text-sm italic leading-relaxed text-foreground/90 break-words text-pretty">
+                  <button
+                    type="button"
+                    className="text-left font-serif text-sm italic leading-relaxed text-foreground/90 break-words text-pretty hover:text-primary"
+                    onClick={() => entry.verses[idx] && onNavigate(entry.verses[idx])}
+                    aria-label={`Abrir ${v.reference} no leitor`}
+                  >
                     {v.text}
-                  </p>
+                  </button>
                   <span
                     className="text-[10px] font-bold uppercase tracking-wider mt-0.5 font-sans"
                     style={{ color: `${style.hex}b3` }}

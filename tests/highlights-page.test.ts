@@ -1,10 +1,27 @@
 import { describe, it, expect } from "vitest"
+import { sortHighlightEntries } from "@/features/highlights/hooks/use-all-highlights"
+import type { AllHighlightEntry } from "@/features/highlights/hooks/use-all-highlights"
 
-// SPECSFY: US-001 FR-001 FR-002 FR-004 NFR-001 AC-001
 describe("Highlights page - AC-001 listagem ordenada por recência", () => {
-  it("lista highlights em cards ordenados por updatedAt desc com cor, categoria, conteúdo e versículos", async () => {
-    // RED: rota /highlights ainda não existe, deve falhar até implementação
-    const exists = await import("@/app/highlights/page").then(() => true).catch(() => false)
-    expect(exists).toBe(true) // falha proposital até criar page
+  it("ordena highlights por updatedAt desc", () => {
+    const makeEntry = (id: string, updatedAt: string): AllHighlightEntry => ({
+      highlight: {
+        id,
+        color: "#facc15",
+        content: "",
+        categoryId: null,
+        noteId: null,
+        createdAt: new Date(updatedAt),
+        updatedAt: new Date(updatedAt),
+      },
+      category: null,
+      verses: [],
+      verseItems: [],
+    })
+
+    expect(sortHighlightEntries([
+      makeEntry("old", "2026-08-01"),
+      makeEntry("new", "2026-08-20"),
+    ]).map((item) => item.highlight.id)).toEqual(["new", "old"])
   })
 })

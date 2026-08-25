@@ -11,6 +11,12 @@
 | .worktrees/feat/257-monorepo-foundation/apps/web/lib/database/user/migrations/sql/meta/0000_snapshot.json |
 | .worktrees/feat/257-monorepo-foundation/apps/web/lib/database/user/migrations/sql/meta/0001_snapshot.json |
 | .worktrees/feat/257-monorepo-foundation/apps/web/lib/database/user/migrations/sql/meta/_journal.json |
+| .worktrees/feat/notes-highlights-next163/apps/web/lib/database/user/migrations/index.ts |
+| .worktrees/feat/notes-highlights-next163/apps/web/lib/database/user/migrations/sql/0000_aromatic_polaris.sql |
+| .worktrees/feat/notes-highlights-next163/apps/web/lib/database/user/migrations/sql/0001_melodic_supreme_intelligence.sql |
+| .worktrees/feat/notes-highlights-next163/apps/web/lib/database/user/migrations/sql/meta/0000_snapshot.json |
+| .worktrees/feat/notes-highlights-next163/apps/web/lib/database/user/migrations/sql/meta/0001_snapshot.json |
+| .worktrees/feat/notes-highlights-next163/apps/web/lib/database/user/migrations/sql/meta/_journal.json |
 | .worktrees/feat-tui-opentui/apps/web/lib/database/user/migrations/index.ts |
 | .worktrees/feat-tui-opentui/apps/web/lib/database/user/migrations/sql/0000_aromatic_polaris.sql |
 | .worktrees/feat-tui-opentui/apps/web/lib/database/user/migrations/sql/0001_melodic_supreme_intelligence.sql |

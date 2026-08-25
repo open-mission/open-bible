@@ -1,8 +1,13 @@
 import { describe, it, expect } from "vitest"
-// SPECSFY: US-003 FR-005 NFR-002 AC-007
+import { buildHighlightNavigation } from "@/features/highlights/components/all-highlights-browser"
+
 describe("Highlights AC-007 navegar", () => {
-  it("navega do card ao leitor no versículo exato", async () => {
-    const exists = await import("@/features/highlights/components/highlights-page").then(() => true).catch(() => false)
-    expect(exists).toBe(true)
+  it("gera a rota do leitor com livro, capítulo e versículo", () => {
+    expect(buildHighlightNavigation({ id: "v1", highlightId: "h1", book: "joao", chapter: 3, verse: 16, bible: "ara" })).toEqual({
+      book: "joao",
+      chapter: 3,
+      version: "ara",
+      href: "/?book=joao&chapter=3&verse=16",
+    })
   })
 })

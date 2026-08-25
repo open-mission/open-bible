@@ -24,7 +24,7 @@ interface HighlightEditorProps {
     categoryId: string | null;
     content: string;
   }) => Promise<void>;
-  onCreate: (patch: {
+  onCreate?: (patch: {
     color: string;
     categoryId: string | null;
     content: string;
@@ -49,7 +49,7 @@ function HighlightEditorContent({
     categoryId: string | null;
     content: string;
   }) => Promise<void>;
-  onCreate: (patch: {
+  onCreate?: (patch: {
     color: string;
     categoryId: string | null;
     content: string;
@@ -86,6 +86,7 @@ function HighlightEditorContent({
     setSaving(true);
     try {
       if (isCreateMode) {
+        if (!onCreate) throw new Error("Create handler is required in create mode")
         if (categoryIds.length === 0) {
           await onCreate({ color, categoryId: null, content });
         } else {
@@ -94,18 +95,7 @@ function HighlightEditorContent({
           }
         }
       } else {
-        // Edit mode
-        if (categoryIds.length === 0) {
-          await onSave({ color, categoryId: null, content });
-        } else {
-          // Update original highlight with the first tag
-          await onSave({ color, categoryId: categoryIds[0], content });
-
-          // Create additional highlights for the other tags
-          for (let i = 1; i < categoryIds.length; i++) {
-            await onCreate({ color, categoryId: categoryIds[i], content });
-          }
-        }
+        await onSave({ color, categoryId: categoryIds[0] ?? null, content });
       }
       onClose();
     } catch {

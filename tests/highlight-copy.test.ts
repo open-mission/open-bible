@@ -1,8 +1,14 @@
 import { describe, it, expect } from "vitest"
-// SPECSFY: US-002 FR-004 NFR-002 AC-006
+import { formatHighlightReference } from "@/features/highlights/lib/copy"
+
 describe("Highlights AC-006 copiar", () => {
-  it("copia referência formatada para clipboard", async () => {
-    const exists = await import("@/features/highlights/lib/copy").then(() => true).catch(() => false)
-    expect(exists).toBe(true)
+  it("formata referência com Bíblia, intervalo e conteúdo", () => {
+    expect(formatHighlightReference({
+      verses: [
+        { book: "joao", chapter: 3, verse: 16, bible: "ara" },
+        { book: "joao", chapter: 3, verse: 17, bible: "ara" },
+      ],
+      content: "amor",
+    })).toBe("João 3:16-17 (ARA) - amor")
   })
 })
