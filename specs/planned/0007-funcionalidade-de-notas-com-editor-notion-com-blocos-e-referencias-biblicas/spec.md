@@ -5,14 +5,14 @@
 | Formato | Specsfy/2.0 |
 | ID | SPEC-0007 |
 | Slug | 0007-funcionalidade-de-notas-com-editor-notion-com-blocos-e-referencias-biblicas |
-| Status | Defined |
+| Status | Planned |
 | Effort | 6 |
 | Effort updated at | 2026-08-25 |
 | Effort rationale | Editor Tiptap JSON + 6 blocos + bibleReference custom + slash/bubble menu + canvas branco; standard-high. |
 | ClickUp Task | |
 | Milestones | |
 | Definition Gate | Passed |
-| Plan Gate | Pending |
+| Plan Gate | Passed |
 | Delivery Gate | Pending |
 | Evidence Contract | 1 |
 | Interface para pessoas | Sim |
@@ -441,9 +441,9 @@ apps/web/features/notes/extensions/bible-reference.ts
 
 #### Gate do Ato II — Plano
 
-- **Resultado**: Pending
-- **Comando**: `node .agents/skills/specsfy-05-tasks/scripts/validate_tasks.mjs specs/draft/0007-funcionalidade-de-notas-com-editor-notion-com-blocos-e-referencias-biblicas/spec.md`
-- **Achados**: Pending.
+- **Resultado**: Passed
+- **Comando**: `node .agents/skills/specsfy-05-tasks/scripts/validate_tasks.mjs specs/defined/0007-funcionalidade-de-notas-com-editor-notion-com-blocos-e-referencias-biblicas/spec.md --allow-draft` → VALID DRAFT; interface OK; 16 tarefas (TDD 10 + CODE 5 + TEST 1).
+- **Achados**: READY — plano validado, caminho crítico TDD → T011 → T012 → T013 → T016.
 
 #### Gate do Ato III — Entrega
 
@@ -453,11 +453,148 @@ apps/web/features/notes/extensions/bible-reference.ts
 
 ### 14. Tarefas
 
-Tarefas serão geradas em `specsfy-05-tasks`.
+Formato:
+`- [ ] TNNN [P?] [TIPO] [US-NNN?] Ação com caminho — Refs: IDs — Depends: IDs|none`
+
+Cada tarefa possui exatamente este checklist, atualizado durante a execução:
+
+```markdown
+  - [ ] **PREP**: Confirmar escopo, IDs, dependências e baseline.
+  - [ ] **EXECUTE**: Produzir a entrega no caminho declarado.
+  - [ ] **VERIFY**: Executar a verificação focal adequada.
+  - [ ] **EVIDENCE**: Registrar comando, resultado e IDs nas seções 11–13.
+  - [ ] **IMPROVE**: Registrar melhoria aplicada ou ausência justificada.
+```
+
+#### Fase 1 — RED TDD informado pelo BDD
+
+- [ ] T001 [TEST] [TDD] [US-001] Derivar de AC-001 canvas branco em tests/notes-canvas.test.ts — Refs: US-001, FR-001, FR-002, NFR-002, AC-001 — Depends: none
+  - [ ] **PREP**: Ler Gherkin AC-001.
+  - [ ] **EXECUTE**: Escrever caso Vitest SPECSFY: AC-001 canvas branco.
+  - [ ] **VERIFY**: RED (canvas sem placeholder).
+  - [ ] **EVIDENCE**: Registrar causa RED.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T002 [TEST] [TDD] [US-001] Derivar de AC-002 blocos em tests/notes-blocks.test.ts — Refs: US-001, FR-002, NFR-002, AC-002 — Depends: none
+  - [ ] **PREP**: Ler AC-002.
+  - [ ] **EXECUTE**: Caso SPECSFY: AC-002 blocos essenciais.
+  - [ ] **VERIFY**: RED.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T003 [TEST] [TDD] [US-002] Derivar de AC-003 bibleReference com preview em tests/notes-bible-ref.test.ts — Refs: US-002, FR-003, FR-004, NFR-001, AC-003 — Depends: none
+  - [ ] **PREP**: Ler AC-003.
+  - [ ] **EXECUTE**: Caso SPECSFY: AC-003 bibleReference.
+  - [ ] **VERIFY**: RED.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T004 [TEST] [TDD] [US-002] Derivar de AC-004 fallback em tests/notes-bible-fallback.test.ts — Refs: US-002, FR-003, NFR-001, AC-004 — Depends: none
+  - [ ] **PREP**: Ler AC-004.
+  - [ ] **EXECUTE**: Caso SPECSFY: AC-004 fallback.
+  - [ ] **VERIFY**: RED.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T005 [TEST] [TDD] [US-003] Derivar de AC-005 persistir em tests/notes-persist.test.ts — Refs: US-003, FR-003, FR-004, FR-005, NFR-001, AC-005 — Depends: none
+  - [ ] **PREP**: Ler AC-005.
+  - [ ] **EXECUTE**: Caso SPECSFY: AC-005 persistir.
+  - [ ] **VERIFY**: RED.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T006 [TEST] [TDD] [US-003] Derivar de AC-006 recarregar em tests/notes-reload.test.ts — Refs: US-003, FR-003, FR-005, NFR-001, AC-006 — Depends: none
+  - [ ] **PREP**: Ler AC-006.
+  - [ ] **EXECUTE**: Caso SPECSFY: AC-006 recarregar.
+  - [ ] **VERIFY**: RED.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T007 [TEST] [TDD] [US-003] Derivar de AC-007 export Markdown em tests/notes-markdown-export.test.ts — Refs: US-003, FR-005, NFR-002, AC-007 — Depends: none
+  - [ ] **PREP**: Ler AC-007.
+  - [ ] **EXECUTE**: Caso SPECSFY: AC-007 export Markdown.
+  - [ ] **VERIFY**: RED.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T008 [TEST] [TDD] [US-001] Derivar de AC-008 bubble menu em tests/notes-bubble.test.ts — Refs: US-001, FR-001, FR-002, NFR-002, AC-008 — Depends: none
+  - [ ] **PREP**: Ler AC-008.
+  - [ ] **EXECUTE**: Caso SPECSFY: AC-008 bubble menu.
+  - [ ] **VERIFY**: RED.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T009 [TEST] [TDD] [US-001] Derivar de AC-009 estados em tests/notes-empty-opfs.test.ts — Refs: US-001, FR-001, NFR-002, AC-009 — Depends: none
+  - [ ] **PREP**: Ler AC-009.
+  - [ ] **EXECUTE**: Caso SPECSFY: AC-009 vazio/OPFS.
+  - [ ] **VERIFY**: RED.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T010 [TEST] [TDD] [US-002] Derivar de AC-010 navegar em tests/notes-navigate.test.ts — Refs: US-002, FR-004, NFR-002, AC-010 — Depends: none
+  - [ ] **PREP**: Ler AC-010.
+  - [ ] **EXECUTE**: Caso SPECSFY: AC-010 navegar.
+  - [ ] **VERIFY**: RED.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+
+#### Fase 2 — US-001 Canvas e blocos
+
+- [ ] T011 [CODE] [US-001] Implementar canvas branco Notion em apps/web/features/notes/components/note-editor.tsx — Refs: US-001, FR-001, FR-002, NFR-002, AC-001, AC-002, AC-008 — Depends: T001, T002, T008
+  - [ ] **PREP**: Confirmar RED T001/T002/T008 e Tiptap.
+  - [ ] **EXECUTE**: Canvas sem borda, placeholder, slash menu, bubble menu, estilos Tailwind.
+  - [ ] **VERIFY**: Testes canvas/blocks/bubble.
+  - [ ] **EVIDENCE**: GREEN.
+  - [ ] **IMPROVE**: Revisar.
+
+#### Fase 3 — US-002 bibleReference
+
+- [ ] T012 [CODE] [US-002] Implementar extensão bibleReference com picker e preview em apps/web/features/notes/extensions/bible-reference.ts — Refs: US-002, FR-003, FR-004, NFR-001, AC-003, AC-004, AC-010 — Depends: T003, T004, T010
+  - [ ] **PREP**: Confirmar RED T003/T004/T010 e BibleDatabase.
+  - [ ] **EXECUTE**: Tiptap Node, picker Selects, preview, link.
+  - [ ] **VERIFY**: Testes bible-ref/fallback/navigate.
+  - [ ] **EVIDENCE**: GREEN.
+  - [ ] **IMPROVE**: Revisar.
+
+#### Fase 4 — US-003 Persistência
+
+- [ ] T013 [CODE] [US-003] Implementar persistência JSON + note_references rebuild em apps/web/features/notes/components/note-editor.tsx — Refs: US-003, FR-003, FR-004, FR-005, NFR-001, AC-005, AC-006 — Depends: T003, T005, T006
+  - [ ] **PREP**: Confirmar RED T005/T006.
+  - [ ] **EXECUTE**: Debounce 500ms, save JSON, rebuild note_references.
+  - [ ] **VERIFY**: Testes persist/reload.
+  - [ ] **EVIDENCE**: GREEN.
+  - [ ] **IMPROVE**: Revisar.
+
+- [ ] T014 [CODE] [US-003] Implementar export Markdown em apps/web/features/notes/lib/markdown-export.ts — Refs: US-003, FR-005, NFR-002, AC-007 — Depends: T005, T006, T007
+  - [ ] **PREP**: Ler AC-007.
+  - [ ] **EXECUTE**: Conversor JSON→Markdown com links bible://.
+  - [ ] **VERIFY**: Teste markdown-export.
+  - [ ] **EVIDENCE**: GREEN.
+  - [ ] **IMPROVE**: Revisar.
+
+#### Fase de interface
+
+- [ ] T015 [CODE] [US-001] Atualizar layout /notes lista+canvas e navegação em apps/web/features/notes/components/notes-browser.tsx — Refs: US-001, FR-001, NFR-002, AC-001, AC-009 — Depends: T001, T008, T009
+  - [ ] **PREP**: Ler INTERFACE.md e seção 10.
+  - [ ] **EXECUTE**: Lista esquerda 300px + canvas 700px, estados vazio/loading, registrar em INTERFACE.md.
+  - [ ] **VERIFY**: Navegação teclado e responsivo.
+  - [ ] **EVIDENCE**: Registrar em INTERFACE.md.
+  - [ ] **IMPROVE**: Revisar.
+
+#### Fase final — Qualidade
+
+- [ ] T016 [TEST] Executar regressão e rastreabilidade em tests/notes-regression.test.ts — Refs: US-001, US-002, US-003, FR-001, FR-002, FR-003, FR-004, FR-005, NFR-001, NFR-002, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010 — Depends: T011, T012, T013, T014, T015
+  - [ ] **PREP**: Identificar suites.
+  - [ ] **EXECUTE**: `pnpm test` + `pnpm lint` + `pnpm build`.
+  - [ ] **VERIFY**: Sem gaps.
+  - [ ] **EVIDENCE**: Registrar contagens.
+  - [ ] **IMPROVE**: Retrospectiva.
 
 ### 15. Ordem de execução
 
-- Caminho crítico: canvas → blocos → bibleReference → persistência.
+- Caminho crítico: T001-T010 (TDD) → T011 → T012 → T013 → T015 → T016.
+- Tarefas paralelas: T014 após T005; T015 após T011.
+- Estratégia de MVP: US-001 canvas antes de US-002 bibleReference.
 
 ## Ato III — Entregar e validar
 
