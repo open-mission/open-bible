@@ -3,15 +3,15 @@
 | Metainformação | Valor |
 | --- | --- |
 | ID | BACKLOG-0003 |
-| Status | Ready for specification |
+| Status | Promoted |
 | Produto | Open Bible |
 | Épico | Aplicativo desktop multiplataforma |
 | Funcionalidade | Shell desktop Electron |
 | Tipo | Técnico |
-| Prioridade | Não priorizado |
+| Prioridade | Alta |
 | Milestones | |
 | Criado em | 2026-08-24 |
-| Spec promovida | Nenhuma |
+| Spec promovida | specs/in-progress/0003-migrar-desktop-de-tauri-para-electron/spec.md |
 
 ## Ideia original
 
@@ -113,7 +113,6 @@ Entrega posterior à fundação do monorepo. O código atual está em apps/deskt
 
 ## Qualidades e operação
 
-- Segurança: a avaliar.
 - Segurança: `contextIsolation` e sandbox habilitados, `nodeIntegration` desabilitado, IPC allowlist e artefatos assinados; nenhum segredo server-side no renderer.
 - Privacidade: nenhum dado novo coletado; o banco local permanece no dispositivo e a API remota mantém a origem existente.
 - Desempenho e volume: o renderer deve iniciar sem tela branca e o acesso offline deve manter o comportamento atual; medir startup e carregamento de capítulo contra o baseline Tauri durante a validação.
@@ -156,13 +155,13 @@ Entrega posterior à fundação do monorepo. O código atual está em apps/deskt
 
 ## Pronto para desenvolvimento
 
-- [ ] O problema e a pessoa beneficiada estão claros.
-- [ ] O evento inicial e o resultado esperado estão claros.
-- [ ] Permissões, regras e exceções relevantes estão claras.
-- [ ] O resultado pode ser verificado objetivamente.
-- [ ] Segurança, privacidade e desempenho foram avaliados conforme o risco.
-- [ ] Fora de escopo, dependências e decisões pendentes estão registrados.
+- [x] O problema e a pessoa beneficiada estão claros.
+- [x] O evento inicial e o resultado esperado estão claros.
+- [x] Permissões, regras e exceções relevantes estão claras.
+- [x] O resultado pode ser verificado objetivamente.
+- [x] Segurança, privacidade e desempenho foram avaliados conforme o risco.
+- [x] Fora de escopo, dependências e decisões pendentes estão registrados.
 
 ## Próximo passo
 
-Aprofundar nesta etapa até o item ficar pronto para `$specsfy-03-specify`.
+Promovido para `specs/in-progress/0003-migrar-desktop-de-tauri-para-electron/spec.md` (Definition/Plan Gates Passed, Delivery In Progress) — concluir validação de assinatura real, smoke manual nos 3 sistemas e transição para `completed`.

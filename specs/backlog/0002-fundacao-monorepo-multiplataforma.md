@@ -4,14 +4,14 @@
 | --- | --- |
 | ID | BACKLOG-0002 |
 | Status | Promoted |
-| Produto | A esclarecer |
-| Épico | A esclarecer |
-| Funcionalidade | A esclarecer |
+| Produto | Open Bible |
+| Épico | Fundação e organização multiplataforma |
+| Funcionalidade | Monorepo com pacotes compartilhados |
 | Tipo | Técnico |
-| Prioridade | Não priorizado |
+| Prioridade | Alta |
 | Milestones | |
 | Criado em | 2026-08-23 |
-| Spec promovida | specs/draft/0002-fundacao-monorepo-multiplataforma/spec.md |
+| Spec promovida | specs/completed/0002-fundacao-monorepo-multiplataforma/spec.md |
 
 ## Ideia original
 
@@ -40,7 +40,9 @@ O projeto usa Next.js, SQLite WASM com OPFS e Tauri. A direção confirmada é s
 
 ## Comportamento esperado
 
-A esclarecer.
+- Workspaces `apps/web`, `apps/desktop-tauri` e `packages/*` configurados na raiz.
+- Contratos, domínio, aplicação e adaptadores Web extraídos e sem imports de plataforma.
+- PWA e Tauri legado mantêm leitura, busca, parsing e build existentes.
 
 ## Regras de negócio
 
@@ -54,27 +56,30 @@ A esclarecer.
 
 ## Critérios de aceitação
 
-- A esclarecer antes de considerar o item refinado.
+- Scenario: Ler capítulo instalado após migração — PWA consulta capítulo pelo caso de uso compartilhado e recebe os mesmos versículos.
+- Scenario: Buscar sem APIs de browser — caso de uso aplica busca case-insensitive sem importar módulos de apps.
+- Scenario: Construir Tauri legado — shell em `apps/desktop-tauri` consome export Web sem remover rotas da PWA.
 
 ## Qualidades e operação
 
-- Segurança: a avaliar.
-- Privacidade: a avaliar.
-- Desempenho e volume: a avaliar.
-- Auditoria e observabilidade: a avaliar.
+- Segurança: domínio sem imports de plataforma; fronteiras validadas.
+- Privacidade: sem coleta nova; dados locais preservados.
+- Desempenho e volume: build Web e leitura mantidos; sem regressão.
+- Auditoria e observabilidade: lint, testes e build verdes registrados na spec.
 
 ## Dependências
 
-- Nenhuma registrada.
+- pnpm workspaces, Next.js, Vitest, SQLite WASM e Tauri existentes.
 
 ## Situações de erro
 
-- A esclarecer.
+- Versão não instalada preserva retorno vazio sem alterar dados.
+- Falha de build não move arquivos fora da aplicação-alvo.
 
 ## Escopo
 
-- Dentro: a esclarecer.
-- Fora: a esclarecer.
+- Dentro: criar workspaces, mover PWA e Tauri, extrair contratos/domínio/aplicação/adapters Web.
+- Fora: Electron, OpenTUI, UI nativa, sync, migrations, notas, destaques, preferências e atualizações.
 
 ## Dúvidas, decisões e riscos
 
@@ -87,13 +92,13 @@ A esclarecer.
 
 ## Pronto para desenvolvimento
 
-- [ ] O problema e a pessoa beneficiada estão claros.
-- [ ] O evento inicial e o resultado esperado estão claros.
-- [ ] Permissões, regras e exceções relevantes estão claras.
-- [ ] O resultado pode ser verificado objetivamente.
-- [ ] Segurança, privacidade e desempenho foram avaliados conforme o risco.
-- [ ] Fora de escopo, dependências e decisões pendentes estão registrados.
+- [x] O problema e a pessoa beneficiada estão claros.
+- [x] O evento inicial e o resultado esperado estão claros.
+- [x] Permissões, regras e exceções relevantes estão claras.
+- [x] O resultado pode ser verificado objetivamente.
+- [x] Segurança, privacidade e desempenho foram avaliados conforme o risco.
+- [x] Fora de escopo, dependências e decisões pendentes estão registrados.
 
 ## Próximo passo
 
-Aprofundar nesta etapa até o item ficar pronto para `$specsfy-03-specify`.
+Concluído — promovido para `specs/completed/0002-fundacao-monorepo-multiplataforma/spec.md` (Delivery Gate Passed).
