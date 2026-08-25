@@ -172,7 +172,7 @@ jobs:
           ref: ${{ inputs.source_ref || inputs.release_tag || github.ref }}
 
       - name: Download platform artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist/electron
           pattern: electron-*
