@@ -12,7 +12,8 @@ import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..")
-const API_DIR = join(root, "app", "api")
+const webRoot = join(root, "apps", "web")
+const API_DIR = join(webRoot, "app", "api")
 const STASH_DIR = join(root, ".tauri-build-stash")
 const STASHED_API = join(STASH_DIR, "api")
 
@@ -43,6 +44,10 @@ try {
     NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV ?? "production",
     NEXT_PUBLIC_API_ORIGIN:
       process.env.NEXT_PUBLIC_API_ORIGIN ?? "https://openbible-prod.vercel.app",
+    NEXT_PUBLIC_APP_URL:
+      process.env.NEXT_PUBLIC_APP_URL ??
+      process.env.NEXT_PUBLIC_API_ORIGIN ??
+      "https://openbible-prod.vercel.app",
   }
 
   // The SQLite WASM worker + sqlite3.wasm + OPFS proxy live in public/sqlite-wasm/,
@@ -50,9 +55,9 @@ try {
   // copy:wasm). `next build` is invoked directly below, bypassing that hook, so we
   // must copy the assets first — otherwise the static export ships without the
   // worker and the desktop app opens to a blank screen (worker 404 at runtime).
-  execSync("node scripts/copy-sqlite-wasm.mjs", { cwd: root, stdio: "inherit", env })
+  execSync("node ../../scripts/copy-sqlite-wasm.mjs", { cwd: webRoot, stdio: "inherit", env })
 
-  execSync("next build --webpack", { cwd: root, stdio: "inherit", env })
+  execSync("next build --webpack", { cwd: webRoot, stdio: "inherit", env })
 } finally {
   if (apiWasMoved && existsSync(STASHED_API)) {
     rmSync(API_DIR, { recursive: true, force: true })

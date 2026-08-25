@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+**/node_modules/
 
 # bun lockfile (projeto usa pnpm)
 bun.lockb
@@ -18,9 +19,13 @@ bun.lockb
 # next.js
 /.next/
 /out/
+**/.next/
+**/out/
 
 # tauri build stash (temporary app/api relocation during desktop export)
 /.tauri-build-stash/
+/src-tauri/target/
+/src-tauri/gen/
 
 # production
 /build
@@ -40,10 +45,12 @@ yarn-error.log*
 
 # generated bible data (build output from resources/bibles/*.sqlite)
 /public/data/bibles/
+**/public/data/bibles/
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts.env.local
+**/next-env.d.ts
 
 # next-pwa auto-generated files
 /public/fallback-*.js
@@ -53,11 +60,20 @@ next-env.d.ts.env.local
 /public/workbox-*.js
 /public/workbox-*.js.map
 /public/sw.js.map
+**/public/fallback-*.js
+**/public/fallback-*.js.map
+**/public/swe-worker-*.js
+**/public/swe-worker-*.js.map
+**/public/workbox-*.js
+**/public/workbox-*.js.map
+**/public/sw.js.map
 
 
 # generated SQLite WASM assets + seed bibles (copied from node_modules/resources)
 /public/sqlite-wasm/
 /public/bibles/
+**/public/sqlite-wasm/
+**/public/bibles/
 
 # AI tool configs (consolidated in .agents/)
 /.claude/
@@ -67,6 +83,10 @@ next-env.d.ts.env.local
 /.cline/
 /.trae/
 /.continue/
+/.gemini/
+
+# impeccable local state (generated)
+/.impeccable/
 
 # opencode config (local)
 /opencode.json
@@ -78,4 +98,3 @@ next-env.d.ts.env.local
 .context/runtime/
 .context/logs/
 .context/**/archive/
-

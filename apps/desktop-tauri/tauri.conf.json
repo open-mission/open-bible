@@ -1,0 +1,59 @@
+{
+  "$schema": "../../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Open Bible",
+  "version": "0.8.8",
+  "identifier": "app.openbible.desktop",
+  "build": {
+    "frontendDist": "../web/out",
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "pnpm --dir ../web dev",
+    "beforeBuildCommand": "node ../../scripts/build-tauri.mjs"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Open Bible",
+        "width": 1100,
+        "height": 800,
+        "minWidth": 400,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self' 'wasm-unsafe-eval'",
+        "connect-src": "'self' https://openbible-prod.vercel.app",
+        "img-src": "'self' blob: data: asset: http://asset.localhost",
+        "style-src": "'self' 'unsafe-inline'",
+        "font-src": "'self' data:"
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "android": {
+      "debugApplicationIdSuffix": ".debug"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI3MURDRDJGMDM4OEI2QjMKUldTenRvZ0RMODBkdDg4OWVMYXd2b2tnZko3bVpXb3dvdWZFZ21ld2t5WDFSdktmamtLa2ZXZkoK",
+      "endpoints": [
+        "https://openbible-prod.vercel.app/api/updates/tauri?version={{current_version}}&target={{target}}&arch={{arch}}"
+      ]
+    }
+  }
+}

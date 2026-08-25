@@ -153,41 +153,40 @@ async function main() {
     }
   }
 
-  // 4. Update package.json, tauri.conf.json, and Cargo.toml
+  // 4. Update every package that is shipped or embeds the application version.
   pkg.version = nextVersion;
-  const tauriConfigPath = path.resolve(__dirname, '../src-tauri/tauri.conf.json');
-  const cargoPath = path.resolve(__dirname, '../src-tauri/Cargo.toml');
+  const versionJsonPaths = [
+    pkgPath,
+    path.resolve(__dirname, '../apps/web/package.json'),
+    path.resolve(__dirname, '../apps/desktop-tauri/package.json'),
+    path.resolve(__dirname, '../apps/desktop-tauri/tauri.conf.json'),
+  ];
+  const cargoPath = path.resolve(__dirname, '../apps/desktop-tauri/Cargo.toml');
 
   if (!dryRun) {
-    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-    console.log('Updated package.json');
-
-    if (fs.existsSync(tauriConfigPath)) {
-      const tauriConfig = JSON.parse(fs.readFileSync(tauriConfigPath, 'utf8'));
-      tauriConfig.version = nextVersion;
-      fs.writeFileSync(tauriConfigPath, JSON.stringify(tauriConfig, null, 2) + '\n', 'utf8');
-      console.log('Updated src-tauri/tauri.conf.json');
+    for (const jsonPath of versionJsonPaths) {
+      const manifest = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+      manifest.version = nextVersion;
+      fs.writeFileSync(jsonPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+      console.log(`Updated ${path.relative(path.resolve(__dirname, '..'), jsonPath)}`);
     }
 
     if (fs.existsSync(cargoPath)) {
       let cargoContent = fs.readFileSync(cargoPath, 'utf8');
       cargoContent = cargoContent.replace(/^version = "[^"]*"/m, `version = "${nextVersion}"`);
       fs.writeFileSync(cargoPath, cargoContent, 'utf8');
-      console.log('Updated src-tauri/Cargo.toml');
+      console.log('Updated apps/desktop-tauri/Cargo.toml');
     }
   } else {
-    console.log(`[Dry Run] Would write to package.json: version = ${nextVersion}`);
-    console.log(`[Dry Run] Would write to src-tauri/tauri.conf.json: version = ${nextVersion}`);
-    console.log(`[Dry Run] Would write to src-tauri/Cargo.toml: version = ${nextVersion}`);
+    for (const jsonPath of versionJsonPaths) {
+      console.log(`[Dry Run] Would write to ${path.relative(path.resolve(__dirname, '..'), jsonPath)}: version = ${nextVersion}`);
+    }
+    console.log(`[Dry Run] Would write to apps/desktop-tauri/Cargo.toml: version = ${nextVersion}`);
   }
 
-  // 5. Git commit & tag
   const tag = `v${nextVersion}`;
-  runCmd(`git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml`, dryRun);
-  runCmd(`git commit -m "chore(release): ${tag}"`, dryRun);
-  runCmd(`git tag -a ${tag} -m "${tag}"`, dryRun);
 
-  // 6. Update CHANGELOG.md
+  // 5. Update CHANGELOG.md before creating the single release commit.
   const currentDate = new Date().toISOString().split('T')[0];
   let changelogContent = '';
   if (!dryRun) {
@@ -202,7 +201,7 @@ ${sectionName}
 ### ${getChangelogSection(bumpType)}
 - ${getDefaultChangelogEntry(nextVersion, currentVersion)}
 
-[${nextVersion}]: https://github.com/open-mission/open-bible/compare/${tag.replace('v', '')}...${tag.replace('v', '')}
+[${nextVersion}]: https://github.com/open-mission/open-bible/compare/v${currentVersion}...${tag}
 `;
 
     const lines = changelogContent.split('\n');
@@ -223,25 +222,25 @@ ${sectionName}
     console.log(`${sectionName}\n\n### ${changeLogSection}\n- ${defaultChangeLogEntry}\n`);
   }
 
-  // 7. Push code & tags
-  // Determine current branch name
+  // 6. Commit and push the tag. The desktop CI creates the GitHub Release only
+  // after every platform artifact has passed.
+  const versionPaths = versionJsonPaths
+    .map((filePath) => path.relative(path.resolve(__dirname, '..'), filePath))
+    .concat('apps/desktop-tauri/Cargo.toml');
+  runCmd(`git add ${versionPaths.join(' ')} CHANGELOG.md`, dryRun);
+  runCmd(`git commit -m "chore(release): ${tag}"`, dryRun);
+  runCmd(`git tag -a ${tag} -m "${tag}"`, dryRun);
+
   let currentBranch = 'develop';
   try {
     currentBranch = execSync('git branch --show-current').toString().trim();
   } catch {
     // Fallback if git command fails or is detached
   }
-  runCmd(`git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml CHANGELOG.md`, dryRun);
-  runCmd(`git commit -m "docs(changelog): ${tag}"`, dryRun);
   runCmd(`git push origin ${currentBranch}`, dryRun);
   runCmd(`git push origin ${tag}`, dryRun);
 
-  // 8. Create GitHub Release
-  const isPrerelease = nextVersion.includes('-');
-  const prereleaseFlag = isPrerelease ? ' --prerelease' : '';
-  runCmd(`gh release create ${tag} --generate-notes${prereleaseFlag}`, dryRun);
-
-  console.log(`\n\x1b[32mSuccessfully released ${tag}!\x1b[0m`);
+  console.log(`\n\x1b[32mSuccessfully tagged ${tag}; desktop CI will publish the release after the matrix passes.\x1b[0m`);
 }
 
 main().catch((err) => {

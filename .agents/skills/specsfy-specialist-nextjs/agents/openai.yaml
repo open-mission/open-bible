@@ -1,0 +1,4 @@
+interface:
+  display_name: "Specsfy - Especialista - Next.js"
+  short_description: "Next.js com boundaries e cache explícitos"
+  default_prompt: "Use $specsfy-specialist-nextjs para orientar esta tarefa com padrões e validação especializados."

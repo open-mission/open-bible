@@ -1,0 +1,120 @@
+import { readFileSync } from "fs"
+import withPWAInit from "@ducanh2912/next-pwa"
+import { withSentryConfig } from "@sentry/nextjs"
+
+const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf-8"))
+const changelog = readFileSync(new URL("../../CHANGELOG.md", import.meta.url), "utf-8")
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  fallbacks: {
+    document: "/~offline",
+  },
+  extendDefaultRuntimeCaching: true,
+  workboxOptions: {
+    runtimeCaching: [
+      {
+        // Never cache the SQLite download proxy — Workbox caching a 4MB+ binary
+        // simultaneously with the OPFS write causes the importDb to hang in production.
+        urlPattern: /\/api\/bibles\/download\//i,
+        handler: "NetworkOnly",
+      },
+    ],
+  },
+})
+
+const isTauri = process.env.TAURI_BUILD === "1"
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  images: {
+    unoptimized: true,
+  },
+  env: {
+    NEXT_PUBLIC_APP_VERSION: pkg.version,
+    NEXT_PUBLIC_CHANGELOG: changelog,
+  },
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.cache = false
+    }
+    config.module.rules.push({
+      resourceQuery: /raw/,
+      type: "asset/source",
+    })
+    return config
+  },
+  transpilePackages: [
+    "@open-bible/application-bible",
+    "@open-bible/adapters-web",
+    "@open-bible/contracts",
+    "@open-bible/domain-bible",
+  ],
+  turbopack: {},
+  // Desktop (Tauri): static export, sem PWA/Service Worker e sem headers().
+  // Web (Vercel): SSR + next-pwa + headers do SW/manifest.
+  ...(isTauri
+    ? { output: "export", pageExtensions: ["tsx", "jsx"] }
+    : {
+        async headers() {
+          return [
+            {
+              source: "/sw.js",
+              headers: [
+                {
+                  key: "Content-Type",
+                  value: "application/javascript; charset=utf-8",
+                },
+                {
+                  key: "Cache-Control",
+                  value: "no-cache, no-store, must-revalidate",
+                },
+                {
+                  key: "Service-Worker-Allowed",
+                  value: "/",
+                },
+              ],
+            },
+            {
+              source: "/manifest.json",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=0, must-revalidate",
+                },
+              ],
+            },
+          ]
+        },
+      }),
+}
+
+const finalConfig = isTauri ? nextConfig : withPWA(nextConfig)
+
+export default withSentryConfig(finalConfig, {
+  // Sentry organization and project for source map uploads
+  org: "open-mission",
+  project: "javascript-nextjs",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Silent until real auth token is configured in .env.local
+  silent: true,
+  widenClientFileUpload: true,
+  // Tauri static export does not upload source maps
+  sourcemaps: {
+    disable: isTauri,
+  },
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+    excludeReplayShadowDom: true,
+    excludeReplayIframe: true,
+  },
+})

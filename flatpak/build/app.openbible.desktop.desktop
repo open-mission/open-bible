@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Open Bible
+Comment=Leitor bíblico offline-first com suporte a múltiplas versões
+Exec=open-bible
+Icon=app.openbible.desktop
+Terminal=false
+Categories=Utility;Religion;

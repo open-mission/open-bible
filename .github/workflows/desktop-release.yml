@@ -4,157 +4,222 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing release tag to build and publish"
+        required: false
+        type: string
+      source_ref:
+        description: "Git ref containing the build scripts and source"
+        required: false
+        type: string
+      allow_unsigned:
+        description: "Build unsigned installers for manual testing only"
+        required: false
+        default: false
+        type: boolean
+      rollback_tag:
+        description: "Existing release tag to restore as the rollback target"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 22
+  UPDATE_CHANNEL: ${{ contains(inputs.release_tag || github.ref_name, '-') && 'beta' || 'latest' }}
+  UNSIGNED_BUILD: ${{ inputs.allow_unsigned == true && github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
 
 jobs:
   build:
-    permissions:
-      contents: write
+    name: Build ${{ matrix.name }}
+    if: github.event_name == 'push' || inputs.release_tag != ''
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
-            args: "--target universal-apple-darwin"
-          - platform: ubuntu-24.04
-            args: ""
-          - platform: windows-latest
-            args: ""
-    runs-on: ${{ matrix.platform }}
+          - name: Linux
+            os: ubuntu-24.04
+            target: AppImage
+            artifact: linux
+            signing: none
+          - name: macOS
+            os: macos-14
+            target: ""
+            artifact: macos
+            signing: macos
+          - name: Windows
+            os: windows-latest
+            target: ""
+            artifact: windows
+            signing: windows
     steps:
-      - uses: actions/checkout@v7
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: "./src-tauri -> target"
-
-      - name: Install Linux system dependencies
-        if: matrix.platform == 'ubuntu-24.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+          ref: ${{ inputs.source_ref || inputs.release_tag || github.ref }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
 
-      - name: Configure pnpm
-        run: pnpm config set fetch-timeout 120000
-
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      # better-sqlite3 is a dev-only native module (used only by server import
-      # scripts) and is NOT imported by the desktop build. Its node-gyp postinstall
-      # is the only step that fails on Windows runners. --ignore-scripts skips
-      # native postinstall builds — safe here because the Tauri/Rust side compiles
-      # with its own toolchain and the Next.js static export needs no native Node
-      # modules.
-      - name: Install frontend dependencies
+      - name: Install dependencies
+        # The desktop build does not use server-side native dependencies such as
+        # better-sqlite3, so do not run their install scripts on release runners.
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Prepare TAURI signing key
-        shell: node {0}
+      - name: Validate release version
         env:
-          RAW_SECRET: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+        shell: bash
         run: |
-          const fs = require('fs');
-          const rawSecret = process.env.RAW_SECRET || '';
-          if (!rawSecret) {
-            console.error('Error: TAURI_SIGNING_PRIVATE_KEY secret is not set!');
-            process.exit(1);
-          }
-          
-          let cleanedKey = '';
-          if (rawSecret.startsWith('untrusted comment:')) {
-            console.log('TAURI_SIGNING_PRIVATE_KEY is stored as raw text. Base64-encoding...');
-            cleanedKey = Buffer.from(rawSecret).toString('base64');
-          } else {
-            console.log('TAURI_SIGNING_PRIVATE_KEY is base64-encoded. Cleaning...');
-            cleanedKey = rawSecret.replace(/[\r\n\s]/g, '');
-          }
-          
-          fs.appendFileSync(process.env.GITHUB_ENV, `TAURI_SIGNING_PRIVATE_KEY=${cleanedKey}\n`);
-          console.log('Success: TAURI_SIGNING_PRIVATE_KEY cleaned and set in environment.');
-      - name: Normalize version for MSI/Windows
-        shell: node {0}
-        run: |
-          const fs = require('fs');
-          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          const cleanVersion = pkg.version.split('-')[0];
-          console.log(`Original version: ${pkg.version}, Normalized version: ${cleanVersion}`);
-          
-          pkg.version = cleanVersion;
-          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-          
-          if (fs.existsSync('src-tauri/tauri.conf.json')) {
-            const tauriConfig = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
-            tauriConfig.version = cleanVersion;
-            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(tauriConfig, null, 2) + '\n', 'utf8');
-            console.log('Updated src-tauri/tauri.conf.json');
-          }
-          
-          const cargoPath = 'src-tauri/Cargo.toml';
-          if (fs.existsSync(cargoPath)) {
-            let cargoContent = fs.readFileSync(cargoPath, 'utf8');
-            cargoContent = cargoContent.replace(/^version = "[^"]*"/m, `version = "${cleanVersion}"`);
-            fs.writeFileSync(cargoPath, cargoContent, 'utf8');
-            console.log('Updated src-tauri/Cargo.toml');
-          }
+          release_version="${RELEASE_TAG#v}"
+          test "$release_version" != "$RELEASE_TAG" || { echo "Release tags must start with v"; exit 1; }
+          RELEASE_VERSION="$release_version" node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs"
 
-      - name: Build and release desktop app
-        uses: tauri-apps/tauri-action@v1
+          const expected = process.env.RELEASE_VERSION
+          const manifests = [
+            "package.json",
+            "apps/web/package.json",
+            "apps/desktop-tauri/package.json",
+          ]
+
+          for (const file of manifests) {
+            const version = JSON.parse(readFileSync(file, "utf8")).version
+            if (version !== expected) {
+              throw new Error(`${file} has ${version}; expected ${expected}`)
+            }
+          }
+          NODE
+          echo "RELEASE_VERSION=$release_version" >> "$GITHUB_ENV"
+
+      - name: Validate signing configuration
+        if: matrix.signing != 'none' && env.UNSIGNED_BUILD != 'true'
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_LINK || secrets.ELECTRON_MACOS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_KEY_PASSWORD || secrets.ELECTRON_MACOS_CSC_KEY_PASSWORD }}
+        run: |
+          test -n "$CSC_LINK" || { echo "Platform signing certificate is required"; exit 1; }
+          test -n "$CSC_KEY_PASSWORD" || { echo "Platform signing password is required"; exit 1; }
+
+      - name: Build static Web renderer
+        env:
           TAURI_BUILD: "1"
-          NEXT_PUBLIC_APP_ENV: "production"
-          NEXT_PUBLIC_API_ORIGIN: "https://openbible-prod.vercel.app"
-          TAURI_SIGNING_PRIVATE_KEY: ${{ env.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Open Bible ${{ github.ref_name }}"
-          releaseDraft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
-          args: ${{ matrix.args }}
+          NEXT_PUBLIC_API_ORIGIN: https://openbible-prod.vercel.app
+          TURSO_DATABASE_URL: libsql://ci-placeholder.turso.io
+          TURSO_AUTH_TOKEN: ci-placeholder-token
+        run: pnpm --filter @open-bible/web build
 
-      - name: Install Flatpak and Flatpak Builder
-        if: matrix.platform == 'ubuntu-24.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder
-
-      - name: Install Flatpak Runtime and SDK
-        if: matrix.platform == 'ubuntu-24.04'
-        run: |
-          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y flathub org.gnome.Platform//46 org.gnome.Sdk//46
-
-      - name: Build Flatpak Bundle
-        if: matrix.platform == 'ubuntu-24.04'
-        run: |
-          mkdir -p flatpak/build
-          cp src-tauri/target/release/open-bible flatpak/build/open-bible
-          chmod +x flatpak/build/open-bible
-          cp flatpak/app.openbible.desktop.desktop flatpak/build/
-          cp flatpak/app.openbible.desktop.metainfo.xml flatpak/build/
-          cp src-tauri/icons/128x128.png flatpak/build/icon_128.png
-          cp src-tauri/icons/icon.png flatpak/build/icon_512.png
-          
-          flatpak-builder --user --force-clean --repo=repo build-dir flatpak/app.openbible.desktop.yml
-          flatpak build-bundle repo open-bible.flatpak app.openbible.desktop
-
-      - name: Upload Flatpak to GitHub Release
-        if: matrix.platform == 'ubuntu-24.04'
+      - name: Build Electron package (unsigned)
+        if: env.UNSIGNED_BUILD == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload ${{ github.ref_name }} open-bible.flatpak --clobber
+          RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
+          ELECTRON_BUILDER_TARGET: ${{ matrix.target }}
+          ELECTRON_UPDATE_CHANNEL: ${{ env.UPDATE_CHANNEL }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: pnpm --filter @open-bible/desktop-tauri build
 
+      - name: Build Electron package (signed)
+        if: env.UNSIGNED_BUILD != 'true'
+        env:
+          RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
+          ELECTRON_BUILDER_TARGET: ${{ matrix.target }}
+          ELECTRON_UPDATE_CHANNEL: ${{ env.UPDATE_CHANNEL }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ env.UNSIGNED_BUILD == 'true' && 'false' || 'true' }}
+          CSC_LINK: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_LINK || matrix.signing == 'macos' && secrets.ELECTRON_MACOS_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.signing == 'windows' && secrets.ELECTRON_WINDOWS_CSC_KEY_PASSWORD || matrix.signing == 'macos' && secrets.ELECTRON_MACOS_CSC_KEY_PASSWORD || '' }}
+        run: pnpm --filter @open-bible/desktop-tauri build
+
+      - name: Upload platform artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-${{ matrix.artifact }}
+          path: |
+            dist/electron/*.AppImage
+            dist/electron/*.deb
+            dist/electron/*.dmg
+            dist/electron/*.zip
+            dist/electron/*.exe
+            dist/electron/*.yml
+            dist/electron/*.blockmap
+          if-no-files-found: error
+
+  publish:
+    name: Publish after all targets pass
+    if: github.event_name == 'push' || inputs.release_tag != ''
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.source_ref || inputs.release_tag || github.ref }}
+
+      - name: Download platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/electron
+          pattern: electron-*
+          merge-multiple: true
+
+      - name: Create release only after the matrix is green
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+        shell: bash
+        run: |
+          release_title="Open Bible $RELEASE_TAG"
+          if [[ "$UNSIGNED_BUILD" == "true" ]]; then
+            release_title="$release_title (unsigned test build)"
+          fi
+          if [[ "$UPDATE_CHANNEL" == "beta" ]]; then
+            gh release create "$RELEASE_TAG" --title "$release_title" --generate-notes --prerelease
+          elif [[ "$UNSIGNED_BUILD" == "true" ]]; then
+            gh release create "$RELEASE_TAG" --title "$release_title" --generate-notes --prerelease
+          else
+            gh release create "$RELEASE_TAG" --title "$release_title" --generate-notes
+          fi
+
+      - name: Upload all artifacts atomically
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          artifacts=()
+          for artifact in dist/electron/*; do
+            [[ -f "$artifact" ]] && artifacts+=("$artifact")
+          done
+          test "${#artifacts[@]}" -gt 0 || { echo "No Electron artifacts found"; exit 1; }
+          gh release upload "$RELEASE_TAG" "${artifacts[@]}" --clobber
+
+  rollback:
+    name: Validate rollback target
+    if: github.event_name == 'workflow_dispatch' && inputs.rollback_tag != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate existing release without publishing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ROLLBACK_TAG: ${{ inputs.rollback_tag }}
+        run: |
+          gh release view "$ROLLBACK_TAG" --json tagName,name,isDraft,isPrerelease
+          echo "Rollback target validated: $ROLLBACK_TAG"
+          echo "Restore this release through the updater channel; do not delete or republish artifacts."

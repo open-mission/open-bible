@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+
+overrides:
+  hono: 4.12.25
+
+onlyBuiltDependencies:
+  - better-sqlite3
