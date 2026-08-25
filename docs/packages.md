@@ -72,11 +72,18 @@
 | Terceiro | desenvolvimento | tailwindcss | ^4.2.0 | A utility-first CSS framework for rapidly building custom user interfaces. | https://github.com/tailwindlabs/tailwindcss | https://github.com/tailwindlabs/tailwindcss |
 | Terceiro | desenvolvimento | typescript | 6.0.3 | TypeScript is a language for application scale JavaScript development | https://github.com/microsoft/TypeScript | https://github.com/microsoft/TypeScript |
 | Terceiro | desenvolvimento | vitest | ^4.1.10 | Next generation testing framework powered by Vite | https://github.com/vitest-dev/vitest | https://github.com/vitest-dev/vitest |
-| Terceiro | produção | @open-bible/domain-bible | workspace:* | Finalidade não descrita nos metadados locais. |  | — |
-| Terceiro | produção | @open-bible/contracts | workspace:* | Finalidade não descrita nos metadados locais. |  | — |
 | Terceiro | produção | electron-updater | 6.8.9 | Cross platform updater for electron applications | https://github.com/electron-userland/electron-builder | https://github.com/electron-userland/electron-builder |
 | Terceiro | desenvolvimento | electron | 43.4.1 | Build cross platform desktop apps with JavaScript, HTML, and CSS | https://github.com/electron/electron | https://github.com/electron/electron |
 | Terceiro | desenvolvimento | electron-builder | 26.15.3 | A complete solution to package and build a ready for distribution Electron app for MacOS, Windows and Linux with “auto update” support out of the box | https://github.com/electron-userland/electron-builder | https://github.com/electron-userland/electron-builder |
 | Terceiro | desenvolvimento | esbuild | 0.28.2 | An extremely fast JavaScript and CSS bundler and minifier. | https://github.com/evanw/esbuild | https://github.com/evanw/esbuild |
 | Terceiro | desenvolvimento | tsx | 4.23.12 | TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files | privatenumber/tsx | — |
+| Terceiro | produção | @opentui/core | 0.5.8 | OpenTUI is a TypeScript library on a native Zig core for building terminal user interfaces (TUIs) | https://github.com/anomalyco/opentui | https://github.com/anomalyco/opentui |
+| Terceiro | produção | @opentui/react | 0.5.8 | React renderer for building terminal user interfaces using OpenTUI core | https://github.com/anomalyco/opentui | https://github.com/anomalyco/opentui |
+| Terceiro | produção | better-sqlite3 | ^12.11.1 | The fastest and simplest library for SQLite in Node.js. | git://github.com/WiseLibs/better-sqlite3 | git://github.com/WiseLibs/better-sqlite3 |
+| Terceiro | desenvolvimento | @types/bun | ^1.2.0 | TypeScript definitions for bun | https://github.com/DefinitelyTyped/DefinitelyTyped | https://github.com/DefinitelyTyped/DefinitelyTyped |
+| Terceiro | desenvolvimento | @types/node | ^26.0.0 | TypeScript definitions for node | https://github.com/DefinitelyTyped/DefinitelyTyped | https://github.com/DefinitelyTyped/DefinitelyTyped |
+| Terceiro | desenvolvimento | tsx | ^4.19.0 | TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files | privatenumber/tsx | — |
+| Terceiro | produção | @open-bible/domain-bible | workspace:* | Finalidade não descrita nos metadados locais. |  | — |
+| Terceiro | produção | @tiptap/core | 3.28.0 | headless rich text editor | https://github.com/ueberdosis/tiptap | https://github.com/ueberdosis/tiptap |
+| Terceiro | produção | @open-bible/contracts | workspace:* | Finalidade não descrita nos metadados locais. |  | — |
 <!-- specsfy:documentator:end -->

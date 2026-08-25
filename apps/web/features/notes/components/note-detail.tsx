@@ -77,7 +77,7 @@ export function NoteDetail({ entry, onBack, onEdit, onDelete, subtitle }: NoteDe
         {empty ? (
           <p className="text-sm italic text-muted-foreground/70">Nota sem texto</p>
         ) : (
-          <NoteRenderer key={entry.note.id + (entry.note.updatedAt?.toString() ?? "")} html={entry.note.content} />
+          <NoteRenderer key={entry.note.id + (entry.note.updatedAt?.toString() ?? "")} content={entry.note.content} />
         )}
         </div>
       </div>

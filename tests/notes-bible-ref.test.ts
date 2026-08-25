@@ -1,10 +1,26 @@
 import { describe, it, expect } from "vitest"
-import fs from "fs"
+import {
+  bibleReferenceHref,
+  buildBibleReferenceDocument,
+  extractBibleReferences,
+} from "@/features/notes/lib/note-document"
 // SPECSFY: US-002 FR-003 FR-004 NFR-001 AC-003
 describe("Notes AC-003 bibleReference com preview", () => {
-  it("bloco bibleReference existe com preview via BibleDatabase", () => {
-    const src = fs.readFileSync("apps/web/features/notes/extensions/bible-reference.ts", "utf8")
-    expect(src).toContain("BibleReference")
-    expect(src).toContain("BibleDatabase")
+  it("serializa os atributos e produz o link do leitor", () => {
+    const document = buildBibleReferenceDocument({
+      bible: "ara",
+      book: "jhn",
+      chapter: 3,
+      verseStart: 16,
+      verseEnd: null,
+    })
+    expect(extractBibleReferences(document)).toEqual([{
+      bible: "ara",
+      book: "jhn",
+      chapter: 3,
+      verseStart: 16,
+      verseEnd: null,
+    }])
+    expect(bibleReferenceHref(extractBibleReferences(document)[0])).toBe("/?book=jhn&chapter=3&verse=16")
   })
 })
