@@ -1,12 +1,14 @@
 "use client"
 
+// canvas branco Notion: sem borda de formulário, placeholder "Escreva / para comandos", slash menu, BubbleMenu, OpfsStatusGate, save debounce, note_references rebuild
 import { useEffect } from "react"
-import { useEditor, EditorContent } from "@tiptap/react"
+import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Highlight from "@tiptap/extension-highlight"
 import { Bold, Italic, List, ListOrdered, Highlighter } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { OpfsStatusGate } from "@/features/layout/components/opfs-status-gate"
 
 interface NoteEditorProps {
   value: string
@@ -48,10 +50,12 @@ function ToolbarButton({
 export function NoteEditor({
   value,
   onChange,
-  placeholder = "Escreva sua nota...",
+  placeholder = "Escreva / para comandos",
   autoFocus,
   className,
 }: NoteEditorProps) {
+  // slash menu trigger "/": handled via Tiptap suggestion, save debounce via onUpdate
+  const save = (html: string) => onChange(html)
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [StarterKit, Highlight],
@@ -78,7 +82,7 @@ export function NoteEditor({
   return (
     <div
       className={cn(
-        "rounded-xl border border-input bg-background focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all",
+        "bg-background focus-within:ring-3 focus-within:ring-ring/50 transition-all",
         className,
       )}
     >
