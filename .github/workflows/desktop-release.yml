@@ -147,7 +147,7 @@ jobs:
         run: pnpm --filter @open-bible/desktop-tauri build
 
       - name: Upload platform artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: electron-${{ matrix.artifact }}
           path: |
