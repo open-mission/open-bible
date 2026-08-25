@@ -3,12 +3,72 @@
 <!-- specsfy:documentator:start -->
 ## Resumo
 
-- Arquivos de teste: 229.
+- Arquivos de teste: 290.
 - Runner: Vitest.
 - Scripts: dev: pnpm --filter @open-bible/web dev; build: pnpm --filter @open-bible/web build; build:tauri: pnpm --filter @open-bible/desktop-tauri build; build:data: node scripts/build-bible-data.mjs; db:init: node scripts/init-db.mjs; db:import: node scripts/import-bibles.mjs; copy:wasm: pnpm --filter @open-bible/web copy:wasm; predev: ; prebuild: ; start: pnpm --filter @open-bible/web start; tauri: pnpm --filter @open-bible/desktop-tauri tauri; desktop:dev: pnpm --filter @open-bible/desktop-tauri dev; desktop:build: pnpm --filter @open-bible/desktop-tauri build; lint: pnpm --filter @open-bible/web lint; test: vitest run; test:tdd: vitest run; release: node scripts/release.mjs; commit: git-cz; prepare: husky.
 
 | Arquivo |
 | --- |
+| .worktrees/feat/007-notas-notion-implementation/apps/tui/tests/bible-manager.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/apps/tui/tests/book-picker.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/apps/tui/tests/download.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/apps/tui/tests/filter-books.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/apps/tui/tests/installed-store.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/apps/tui/tests/navigation-state.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/apps/tui/tests/parse-reference.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/apps/tui/tests/paths.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/arch-package.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/build-tauri/build-tauri.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/build-tauri/copy-wasm.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/build-tauri/next-config.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/build-tauri/out-assets.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/build-tauri/tauri-build.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/build-tauri/tauri-conf.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/api-boundary.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/build-matrix.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/dev-command.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/menu-settings.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/opfs-runtime.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/preload-security.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/release-failure.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/release-version.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/release-workflow.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/rollback.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/smoke-baseline.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/updater-failure.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/updater-success.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/desktop-electron/web-boundary.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlight-copy.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlight-delete.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlight-edit.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlight-navigate.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlights-date.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlights-empty.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlights-filter.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlights-opfs.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlights-page.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/highlights-search.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/note-references.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-bible-fallback.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-bible-ref.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-blocks.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-bubble.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-canvas.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-empty-opfs.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-markdown-export.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-navigate.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-persist.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-regression.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/notes-reload.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/packages/adapters-web.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/packages/bible-application.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/packages/boundaries.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/parse-bible-ref.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/release-notes-format.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/semver.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/updater-api.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/utils.test.ts |
+| .worktrees/feat/007-notas-notion-implementation/tests/workspace/tauri-legacy.test.ts |
 | .worktrees/feat/257-monorepo-foundation/tests/arch-package.test.ts |
 | .worktrees/feat/257-monorepo-foundation/tests/note-references.test.ts |
 | .worktrees/feat/257-monorepo-foundation/tests/packages/adapters-web.test.ts |
@@ -228,6 +288,7 @@
 | tests/notes-markdown-export.test.ts |
 | tests/notes-navigate.test.ts |
 | tests/notes-persist.test.ts |
+| tests/notes-regression.test.ts |
 | tests/notes-reload.test.ts |
 | tests/packages/adapters-web.test.ts |
 | tests/packages/bible-application.test.ts |

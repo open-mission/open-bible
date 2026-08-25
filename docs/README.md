@@ -4,8 +4,8 @@
 ## Visão geral
 
 - Frameworks detectados: Next.js, React.
-- Arquivos de código: 4561.
-- Arquivos de teste: 229.
+- Arquivos de código: 5357.
+- Arquivos de teste: 290.
 
 ## Roteiro
 

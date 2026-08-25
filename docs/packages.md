@@ -72,8 +72,6 @@
 | Terceiro | desenvolvimento | tailwindcss | ^4.2.0 | A utility-first CSS framework for rapidly building custom user interfaces. | https://github.com/tailwindlabs/tailwindcss | https://github.com/tailwindlabs/tailwindcss |
 | Terceiro | desenvolvimento | typescript | 6.0.3 | TypeScript is a language for application scale JavaScript development | https://github.com/microsoft/TypeScript | https://github.com/microsoft/TypeScript |
 | Terceiro | desenvolvimento | vitest | ^4.1.10 | Next generation testing framework powered by Vite | https://github.com/vitest-dev/vitest | https://github.com/vitest-dev/vitest |
-| Terceiro | produção | @open-bible/domain-bible | workspace:* | Finalidade não descrita nos metadados locais. |  | — |
-| Terceiro | produção | @open-bible/contracts | workspace:* | Finalidade não descrita nos metadados locais. |  | — |
 | Terceiro | produção | electron-updater | 6.8.9 | Cross platform updater for electron applications | https://github.com/electron-userland/electron-builder | https://github.com/electron-userland/electron-builder |
 | Terceiro | desenvolvimento | electron | 43.4.1 | Build cross platform desktop apps with JavaScript, HTML, and CSS | https://github.com/electron/electron | https://github.com/electron/electron |
 | Terceiro | desenvolvimento | electron-builder | 26.15.3 | A complete solution to package and build a ready for distribution Electron app for MacOS, Windows and Linux with “auto update” support out of the box | https://github.com/electron-userland/electron-builder | https://github.com/electron-userland/electron-builder |
@@ -85,6 +83,9 @@
 | Terceiro | desenvolvimento | @types/bun | ^1.2.0 | TypeScript definitions for bun | https://github.com/DefinitelyTyped/DefinitelyTyped | https://github.com/DefinitelyTyped/DefinitelyTyped |
 | Terceiro | desenvolvimento | @types/node | ^26.0.0 | TypeScript definitions for node | https://github.com/DefinitelyTyped/DefinitelyTyped | https://github.com/DefinitelyTyped/DefinitelyTyped |
 | Terceiro | desenvolvimento | tsx | ^4.19.0 | TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files | privatenumber/tsx | — |
+| Terceiro | produção | @open-bible/domain-bible | workspace:* | Finalidade não descrita nos metadados locais. |  | — |
+| Terceiro | produção | @tiptap/core | 3.28.0 | headless rich text editor | https://github.com/ueberdosis/tiptap | https://github.com/ueberdosis/tiptap |
+| Terceiro | produção | @open-bible/contracts | workspace:* | Finalidade não descrita nos metadados locais. |  | — |
 | Terceiro | produção | @tiptap/extension-bubble-menu | ^3.28.0 | bubble-menu extension for tiptap | https://github.com/ueberdosis/tiptap | https://github.com/ueberdosis/tiptap |
 | Terceiro | produção | next | 16.3.2 | The React Framework | vercel/next.js | — |
 | Terceiro | produção | react | 19.2.8 | React is a JavaScript library for building user interfaces. | https://github.com/facebook/react | https://github.com/facebook/react |

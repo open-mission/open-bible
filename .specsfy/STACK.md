@@ -30,3 +30,5 @@ manifests.
 
 - O monorepo mantém a aplicação Next.js em `apps/web`; a Vercel deve usar a
   raiz do repositório como Root Directory e executar o filtro desse workspace.
+- O editor de notas usa Tiptap 3 com persistência JSON no SQLite WASM local; a
+  extensão `bibleReference` consulta as bases bíblicas instaladas no cliente.

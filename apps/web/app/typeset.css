@@ -1,0 +1,132 @@
+/* shadcn/typeset: https://ui.shadcn.com/docs/typeset */
+@layer components {
+  .typeset {
+    --typeset-font-body: inherit;
+    --typeset-font-heading: var(--font-heading);
+    --typeset-font-mono: var(--font-mono);
+    --typeset-size: 1em;
+    --typeset-leading: 1.75;
+    --typeset-flow: 1.25em;
+    color: var(--color-foreground, currentColor);
+    font-family: var(--typeset-font-body);
+    font-size: var(--typeset-size);
+    line-height: var(--typeset-leading);
+    overflow-wrap: break-word;
+  }
+
+  .typeset-notes {
+    --typeset-font-body: var(--font-sans);
+    --typeset-font-heading: var(--font-serif);
+    --typeset-font-mono: var(--font-mono);
+    --typeset-size: 1rem;
+    --typeset-leading: 1.75;
+    --typeset-flow: 1.25em;
+  }
+
+  .typeset :where(p) {
+    margin-block: var(--typeset-flow) 0;
+  }
+
+  .typeset :where(h1, h2, h3, h4, h5, h6) {
+    color: var(--color-foreground, currentColor);
+    font-family: var(--typeset-font-heading);
+    font-weight: 600;
+    margin-block-end: 0;
+  }
+
+  .typeset :where(h1) {
+    font-size: 1.75em;
+    line-height: 1.3;
+    margin-block-start: var(--typeset-flow);
+  }
+
+  .typeset :where(h2) {
+    font-size: 1.25em;
+    line-height: 1.4;
+    margin-block-start: calc(var(--typeset-flow) * 1.4);
+  }
+
+  .typeset :where(h3) {
+    font-size: 1.125em;
+    line-height: 1.45;
+    margin-block-start: var(--typeset-flow);
+  }
+
+  .typeset :where(h4, h5, h6) {
+    font-size: 1em;
+    line-height: 1.5;
+    margin-block-start: var(--typeset-flow);
+  }
+
+  .typeset :where(h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + *) {
+    margin-block-start: 1em;
+  }
+
+  .typeset :where(ul, ol) {
+    margin-block: var(--typeset-flow) 0;
+    padding-inline-start: 1.5em;
+  }
+
+  .typeset :where(ul) {
+    list-style-type: disc;
+  }
+
+  .typeset :where(ol) {
+    list-style-type: decimal;
+  }
+
+  .typeset :where(li) {
+    margin-block-start: 0.5em;
+    padding-inline-start: 0.4em;
+  }
+
+  .typeset :where(strong, b) {
+    font-weight: 600;
+  }
+
+  .typeset :where(em) {
+    font-style: italic;
+  }
+
+  .typeset :where(mark) {
+    background-color: color-mix(in oklab, oklch(0.86 0.17 95) 40%, transparent);
+    border-radius: 0.2em;
+    color: inherit;
+    padding: 0.05em 0.15em;
+  }
+
+  .typeset :where(blockquote) {
+    border-inline-start: 2px solid var(--color-border, currentColor);
+    margin-block: var(--typeset-flow) 0;
+    padding-inline-start: 1em;
+  }
+
+  .typeset :where(pre) {
+    background-color: var(--color-muted, color-mix(in oklab, currentColor 8%, transparent));
+    border-radius: var(--radius, 0.5em);
+    font-family: var(--typeset-font-mono);
+    font-size: 0.875em;
+    line-height: 1.5;
+    margin-block: var(--typeset-flow) 0;
+    overflow-x: auto;
+    padding: 0.75em 1em;
+  }
+
+  .typeset :where(:not(pre) > code) {
+    background-color: var(--color-muted, color-mix(in oklab, currentColor 8%, transparent));
+    border-radius: min(calc(var(--radius, 0.5em) * 0.6), 0.35em);
+    font-family: var(--typeset-font-mono);
+    font-size: 0.85em;
+    padding: 0.125em 0.3em;
+  }
+
+  .typeset :where(hr) {
+    border: 0;
+    border-block-start: 1px solid var(--color-border, currentColor);
+    margin-block: calc(var(--typeset-flow) * 2.4) 0;
+  }
+
+  .typeset > :where(:first-child) {
+    margin-block-start: 0;
+  }
+}

@@ -24,10 +24,10 @@ function NotesView({ active }: { active: boolean }) {
       bookId={null}
       chapter={null}
       versionId="ara"
-      open={false}
+      open={active}
       target={null}
-      onOpen={() => {}}
-      onClose={() => {}}
+      onOpen={() => undefined}
+      onClose={() => undefined}
     >
       <NotesBrowser mode="all" active={active} />
     </NotesProvider>

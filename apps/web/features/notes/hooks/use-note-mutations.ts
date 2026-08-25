@@ -4,26 +4,19 @@ import { useCallback } from "react"
 import { database } from "@/lib/database/database"
 import { useNotesContext } from "../context/notes-context"
 import type { NoteTarget } from "../types"
+import { extractBibleReferences } from "../lib/note-document"
 
 export function useNoteMutations() {
   const { refresh } = useNotesContext()
 
   const createNote = useCallback(
-    async (input: { target: NoteTarget; content: string; title?: string | null }) => {
+    async (input: { target?: NoteTarget | null; content: string; title?: string | null }) => {
       await database.initialize()
       const note = await database.notes.create({
         title: input.title ?? null,
         content: input.content,
       })
-      await database.noteReferences.add({
-        noteId: note.id,
-        bible: input.target.bible,
-        book: input.target.book,
-        chapter: input.target.chapter,
-        verseStart: input.target.verseStart,
-        verseEnd: input.target.verseEnd ?? null,
-        order: 0,
-      })
+      await syncReferences(note.id, input.content, input.target ?? undefined)
       await refresh()
       return note
     },
@@ -34,6 +27,7 @@ export function useNoteMutations() {
     async (id: string, patch: { title?: string | null; content?: string }) => {
       await database.initialize()
       await database.notes.update(id, patch)
+      if (patch.content !== undefined) await syncReferences(id, patch.content)
       await refresh()
     },
     [refresh],
@@ -50,4 +44,17 @@ export function useNoteMutations() {
   )
 
   return { createNote, updateNote, deleteNote }
+}
+
+async function syncReferences(id: string, content: string, fallback?: NoteTarget) {
+  const references = extractBibleReferences(content)
+  await database.noteReferences.removeByNote(id)
+  const source = references.length > 0
+    ? references
+    : fallback
+      ? [{ ...fallback, verseEnd: fallback.verseEnd ?? null }]
+      : []
+  for (const [order, reference] of source.entries()) {
+    await database.noteReferences.add({ noteId: id, ...reference, order })
+  }
 }

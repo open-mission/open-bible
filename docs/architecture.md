@@ -5,8 +5,8 @@
 
 | Tipo | Quantidade |
 | --- | --- |
-| Código | 4561 |
-| Testes | 229 |
+| Código | 5357 |
+| Testes | 290 |
 
 ## Diagramas
 
