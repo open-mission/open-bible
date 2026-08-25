@@ -8,15 +8,31 @@ import * as Sentry from "@sentry/nextjs"
 // normal layout) are not loaded in this fallback shell.
 export default function GlobalError({
   error,
-  reset,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
 }) {
   useEffect(() => {
     Sentry.captureException(error)
     console.error("Erro global:", error)
   }, [error])
+
+  async function recover() {
+    try {
+      if ("serviceWorker" in navigator) {
+        await Promise.all(
+          (await navigator.serviceWorker.getRegistrations()).map((registration) =>
+            registration.unregister(),
+          ),
+        )
+      }
+      if ("caches" in window) {
+        await Promise.all((await caches.keys()).map((key) => caches.delete(key)))
+      }
+      localStorage.removeItem("openbible:active-view")
+    } finally {
+      window.location.replace(`/?recovery=${Date.now()}`)
+    }
+  }
 
   return (
     <html lang="pt-BR">
@@ -46,7 +62,7 @@ export default function GlobalError({
             página. Se o problema persistir, reinicie o aplicativo.
           </p>
           <button
-            onClick={reset}
+            onClick={recover}
             style={{
               marginTop: 8,
               padding: "8px 16px",

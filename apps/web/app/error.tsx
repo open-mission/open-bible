@@ -4,14 +4,30 @@ import { useEffect } from "react"
 
 export default function ErrorBoundary({
   error,
-  reset,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
 }) {
   useEffect(() => {
     console.error("Erro na aplicação:", error)
   }, [error])
+
+  async function recover() {
+    try {
+      if ("serviceWorker" in navigator) {
+        await Promise.all(
+          (await navigator.serviceWorker.getRegistrations()).map((registration) =>
+            registration.unregister(),
+          ),
+        )
+      }
+      if ("caches" in window) {
+        await Promise.all((await caches.keys()).map((key) => caches.delete(key)))
+      }
+      localStorage.removeItem("openbible:active-view")
+    } finally {
+      window.location.replace(`/?recovery=${Date.now()}`)
+    }
+  }
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background p-6 text-center">
@@ -21,7 +37,7 @@ export default function ErrorBoundary({
         página. Se o problema persistir, reinicie o aplicativo.
       </p>
       <button
-        onClick={reset}
+        onClick={recover}
         className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
       >
         Tentar novamente
