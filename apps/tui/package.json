@@ -1,0 +1,31 @@
+{
+  "name": "@open-bible/tui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "open-bible-tui": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:tdd": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@opentui/core": "0.5.8",
+    "@opentui/react": "0.5.8",
+    "better-sqlite3": "^12.11.1",
+    "react": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^26.0.0",
+    "@types/react": "19.2.14",
+    "tsx": "^4.19.0",
+    "typescript": "6.0.3",
+    "vitest": "^4.1.10"
+  }
+}
