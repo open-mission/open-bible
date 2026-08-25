@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useKeyboard } from "@opentui/react"
 import { BibleManager } from "../db/bible-manager.js"
 import { InstalledStore } from "../db/installed-store.js"
 import { listRemoteVersions, downloadBible } from "../services/download.js"
+import { filterBooks } from "../lib/filter-books.js"
+import { parseReference } from "../lib/parse-reference.js"
+import { NavigationState } from "../state/navigation-state.js"
+import { BookPicker } from "./components/BookPicker.js"
 
 type Panel = "versions" | "books" | "chapters" | "verses"
 
@@ -18,38 +22,64 @@ export function App() {
   const [panel, setPanel] = useState<Panel>("versions")
   const [error, setError] = useState<string | null>(null)
 
-  // picker (like web version picker)
-  const [showPicker, setShowPicker] = useState(false)
+  // download picker (existing, now on D)
+  const [showDownloadPicker, setShowDownloadPicker] = useState(false)
   const [remoteVersions, setRemoteVersions] = useState<{ id: string; name: string }[]>([])
   const [pickerIdx, setPickerIdx] = useState(0)
   const [downloading, setDownloading] = useState<string | null>(null)
   const [pickerError, setPickerError] = useState<string | null>(null)
   const [loadingRemote, setLoadingRemote] = useState(false)
 
+  // book picker (new, on d) - spec 0005
+  const [showBookPicker, setShowBookPicker] = useState(false)
+  const [bookQuery, setBookQuery] = useState("")
+  const [bookPickerChapter, setBookPickerChapter] = useState<number | null>(null)
+  const [bookPickerVerse, setBookPickerVerse] = useState<number | null>(null)
+
+  // global ref input (:) and history (h)
+  const [showRefInput, setShowRefInput] = useState(false)
+  const [refInput, setRefInput] = useState("")
+  const [showHistory, setShowHistory] = useState(false)
+
   const manager = new BibleManager()
+  const navState = useMemo(() => new NavigationState(), [])
 
   const refreshInstalled = () => {
     const store = new InstalledStore()
     const installed = store.list()
     store.close()
     setVersions(installed.map(v => ({ id: v.id, name: v.name })))
-    if (installed.length > 0 && !selectedVersion) {
-      setSelectedVersion(installed[0].id)
+    if (installed.length > 0) {
+      // restore last position if available
+      const last = navState.lastBook && installed.some(v => v.id === navState.lastBook) ? navState.lastBook : installed[0].id
+      // Actually lastBook is bookId, not version. For version, use first installed or lastBook's version? Simplify: use first installed
+      if (!selectedVersion) setSelectedVersion(installed[0].id)
+      // If navState has lastChapter for that book, restore chapter
+      if (navState.lastChapter) setChapter(navState.lastChapter)
       setPanel("books")
-    } else if (installed.length === 0) {
+    } else {
       setSelectedVersion(null)
     }
   }
 
   useEffect(() => {
     refreshInstalled()
+    // restore books/chapter from navState if possible
+    if (navState.lastBook) {
+      // will be handled after books load
+    }
   }, [])
 
   useEffect(() => {
     if (!selectedVersion) return
     const b = manager.getBooks(selectedVersion)
     setBooks(b as any)
-    if (b.length > 0) setBookIdx(0)
+    if (b.length > 0) {
+      const idx = navState.lastBook ? b.findIndex(x => x.id === navState.lastBook) : 0
+      setBookIdx(idx >= 0 ? idx : 0)
+      if (navState.lastChapter) setChapter(navState.lastChapter)
+      else setBookIdx(0)
+    }
   }, [selectedVersion])
 
   useEffect(() => {
@@ -58,15 +88,18 @@ export function App() {
     if (!book) return
     const vs = manager.getChapterVerses(selectedVersion, book.id, chapter)
     setVerses(vs)
+    // persist history
+    if (book && vs.length > 0) {
+      navState.addHistory({ bookId: book.id, chapter, verse: vs[0].verse })
+    }
   }, [selectedVersion, books, bookIdx, chapter])
 
-  const openPicker = async () => {
-    setShowPicker(true)
+  const openDownloadPicker = async () => {
+    setShowDownloadPicker(true)
     setPickerError(null)
     setLoadingRemote(true)
     try {
       const remotes = await listRemoteVersions()
-      // filter out already installed? keep all but mark installed
       setRemoteVersions(remotes)
       setPickerIdx(0)
     } catch (e) {
@@ -84,7 +117,7 @@ export function App() {
       refreshInstalled()
       setSelectedVersion(versionId)
       setPanel("books")
-      setShowPicker(false)
+      setShowDownloadPicker(false)
       setError(null)
     } catch (e) {
       setPickerError((e as Error).message)
@@ -93,11 +126,70 @@ export function App() {
     }
   }
 
+  const handleBookPickerSelect = (bookId: string, chap?: number, verse?: number) => {
+    const idx = books.findIndex(b => b.id === bookId)
+    if (idx >= 0) setBookIdx(idx)
+    if (chap) setChapter(chap)
+    // if verse provided, we could scroll to verse but for now just set chapter and let verses load, history will handle
+    if (chap && verse) {
+      navState.addHistory({ bookId, chapter: chap, verse })
+    } else if (chap) {
+      navState.addHistory({ bookId, chapter: chap })
+    } else {
+      navState.addHistory({ bookId, chapter: 1 })
+    }
+    setShowBookPicker(false)
+    setPanel("verses")
+  }
+
   useKeyboard((key) => {
-    // picker has priority
-    if (showPicker) {
+    // history modal priority
+    if (showHistory) {
+      if (key.name === "escape" || key.name === "q" || key.name === "h") {
+        setShowHistory(false)
+        return
+      }
+      if (key.name === "up" || key.name === "down") {
+        // simple: close and handle via picker? For now just close
+      }
+      return
+    }
+    // ref input priority
+    if (showRefInput) {
+      if (key.name === "escape") {
+        setShowRefInput(false)
+        setRefInput("")
+        return
+      }
+      if (key.name === "return" || key.name === "enter") {
+        const parsed = parseReference(refInput)
+        if (parsed) {
+          const idx = books.findIndex(b => b.id === parsed.bookId)
+          if (idx >= 0) setBookIdx(idx)
+          setChapter(parsed.chapter)
+          navState.addHistory({ bookId: parsed.bookId, chapter: parsed.chapter, verse: parsed.verse })
+          setPanel("verses")
+          setShowRefInput(false)
+          setRefInput("")
+          setError(null)
+        } else {
+          setError(`Referência inválida: ${refInput} (ex: Gn 1:1)`)
+        }
+        return
+      }
+      // typing handled via input component? For now, we use simple text input via key.name
+      // This is simplified: actual input would be via <input> component, but we handle via key events for demo
+      if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+        setRefInput(prev => prev + key.sequence)
+      } else if (key.name === "backspace") {
+        setRefInput(prev => prev.slice(0, -1))
+      }
+      return
+    }
+    // download picker priority (D)
+    if (showDownloadPicker) {
       if (key.name === "escape" || key.name === "q") {
-        setShowPicker(false)
+        setShowDownloadPicker(false)
         return
       }
       if (key.name === "up") setPickerIdx(i => Math.max(0, i - 1))
@@ -108,13 +200,39 @@ export function App() {
       }
       return
     }
+    // book picker priority (d)
+    if (showBookPicker) {
+      if (key.name === "escape") {
+        setShowBookPicker(false)
+        return
+      }
+      // BookPicker handles its own filtering via its internal input, but we also handle Esc
+      return
+    }
 
     if (key.name === "q" || (key.ctrl && key.name === "c")) {
       process.exit(0)
     }
-    // open picker like web version picker
+    if (key.name === "?" ) {
+      setError("Atalhos: d picker livros, : referência Gn 1:1, h histórico, Tab painel, n/p capítulo, Esc volta, q sai")
+      setTimeout(() => setError(null), 3000)
+      return
+    }
+    if (key.name === ":") {
+      setShowRefInput(true)
+      setRefInput("")
+      return
+    }
+    if (key.name === "h") {
+      setShowHistory(true)
+      return
+    }
     if (key.name === "d") {
-      openPicker()
+      setShowBookPicker(true)
+      return
+    }
+    if (key.name === "D") {
+      openDownloadPicker()
       return
     }
     if (key.name === "tab") {
@@ -143,6 +261,14 @@ export function App() {
       if (key.name === "p") setChapter(c => Math.max(1, c - 1))
       if (key.name === "escape") setPanel("chapters")
       if (key.name === "b") setPanel("books")
+      if (key.name === "backspace") {
+        const hist = navState.history[1]
+        if (hist) {
+          const idx = books.findIndex(b => b.id === hist.bookId)
+          if (idx >= 0) setBookIdx(idx)
+          setChapter(hist.chapter)
+        }
+      }
     }
     if (panel === "versions") {
       if (key.name === "up" || key.name === "down") {
@@ -161,13 +287,26 @@ export function App() {
     <box flexDirection="column" width="100%" height="100%" backgroundColor="#0f172a">
       <box height={1} backgroundColor="#1e293b" paddingLeft={1} paddingRight={1}>
         <text>
-          <strong>Open Bible TUI</strong>  {selectedVersion ? `| ${selectedVersion}` : ""} {currentBook ? `| ${currentBook.name} ${chapter}` : ""}  | Tab: painel  q: sair  n/p: cap  d: baixar
+          <strong>Open Bible TUI</strong>  {selectedVersion ? `| ${selectedVersion}` : ""} {currentBook ? `| ${currentBook.name} ${chapter}` : ""}  | Tab: painel  q: sair  n/p: cap  d: picker  ::ref  h:hist
         </text>
       </box>
 
-      {showPicker ? (
+      {showRefInput ? (
         <box flexDirection="column" flexGrow={1} padding={1} borderStyle="single" borderColor="cyan">
-          <text><strong>Baixar versão (picker como na web) — ↑↓ navegar  Enter baixar  Esc fechar</strong></text>
+          <text><strong>Referência (ex: Gn 1:1, 1Jo 3:16) — Enter navega, Esc fecha</strong></text>
+          <text>{refInput}_</text>
+          {error && <text color="red">{error}</text>}
+        </box>
+      ) : showHistory ? (
+        <box flexDirection="column" flexGrow={1} padding={1} borderStyle="single" borderColor="cyan">
+          <text><strong>Histórico — h fechar, Backspace volta</strong></text>
+          {navState.history.length === 0 ? <text>Nenhum histórico</text> : navState.history.map((h, i) => (
+            <text key={i}>{h.bookId} {h.chapter}{h.verse ? `:${h.verse}` : ""}</text>
+          ))}
+        </box>
+      ) : showDownloadPicker ? (
+        <box flexDirection="column" flexGrow={1} padding={1} borderStyle="single" borderColor="cyan">
+          <text><strong>Baixar versão — ↑↓ navegar  Enter baixar  Esc fechar</strong></text>
           {loadingRemote ? (
             <text>Carregando versões remotas...</text>
           ) : (
@@ -185,13 +324,14 @@ export function App() {
             </box>
           )}
           {pickerError && <text color="red">{pickerError}</text>}
-          {downloading && <text>Baixando {downloading}... aguarde (R2 direto se API offline)</text>}
-          <text dimColor>Picker usa API /api/bibles se disponível, senão lista estática R2 (16 versões). Fallback direto https://pub-2e657f.../bibles/FILE.sqlite</text>
+          {downloading && <text>Baixando {downloading}... aguarde</text>}
         </box>
+      ) : showBookPicker ? (
+        <BookPicker books={books} onSelect={handleBookPickerSelect} onClose={() => setShowBookPicker(false)} />
       ) : versions.length === 0 ? (
         <box flexDirection="column" flexGrow={1} justifyContent="center" alignItems="center">
           <text>Nenhuma versão instalada.</text>
-          <text>Pressione d para abrir o picker e baixar (como na web)</text>
+          <text>Pressione D para baixar (picker) ou d para picker livros</text>
           <text dimColor>ou: open-bible-tui download ara</text>
           {error && <text color="red">{error}</text>}
         </box>
@@ -244,7 +384,7 @@ export function App() {
       )}
 
       <box height={1} backgroundColor="#1e293b" paddingLeft={1}>
-        <text dimColor>↑↓ navegar  Enter selecionar  Esc voltar  Tab painel  n/p próximo/anterior cap  d baixar versão  q sair</text>
+        <text dimColor>↑↓ navegar  Enter selecionar  Esc voltar  Tab painel  n/p próximo/anterior cap  d picker  : ref  h hist  ? ajuda  q sair</text>
       </box>
     </box>
   )
