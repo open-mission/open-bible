@@ -1,14 +1,11 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
-import {
-  Highlighter,
-  Search,
-  X,
-} from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { Highlighter, X } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
 import {
   Empty,
   EmptyDescription,
@@ -17,22 +14,41 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { cn } from "@/lib/utils"
-import { neonColors } from "../utils/highlight-colors"
-import { getBookName } from "@/lib/books"
-import { useAllHighlights } from "../hooks/use-all-highlights"
+import { useAllHighlights, type AllHighlightEntry } from "../hooks/use-all-highlights"
+import { useHighlightMutations } from "../hooks/use-highlight-mutations"
 import { HighlightCard } from "./highlight-card"
+import { HighlightEditDialog } from "./highlight-edit-dialog"
+import {
+  EMPTY_HIGHLIGHT_FILTERS,
+  filterHighlights,
+  HighlightsFilterBar,
+  type HighlightFilters,
+} from "./highlights-filter-bar"
+import { copyReference, formatHighlightReference } from "../lib/copy"
 
 interface AllHighlightsBrowserProps {
-  /** Gate data loading (e.g. panel open). Defaults true. */
   active?: boolean
-  /** Side panel / sheet embedding */
   embedded?: boolean
-  /** Show close control in header */
   showCloseButton?: boolean
   onClose: () => void
-  onEdit: (highlightId: string) => void | Promise<void>
-  onDelete: (id: string) => Promise<boolean>
+  onEdit?: (highlightId: string) => void | Promise<void>
+  onDelete?: (id: string) => Promise<boolean>
   initialQuery?: string
+}
+
+export function getHighlightEmptyState(hasFilters: boolean) {
+  return hasFilters
+    ? { title: "Nenhum destaque encontrado", description: "Tente ajustar os filtros.", showCta: false }
+    : { title: "Nenhum destaque ainda", description: "Crie seu primeiro destaque no leitor.", showCta: true }
+}
+
+export function buildHighlightNavigation(verse: AllHighlightEntry["verses"][number]) {
+  return {
+    book: verse.book,
+    chapter: verse.chapter,
+    version: verse.bible,
+    href: `/?book=${encodeURIComponent(verse.book)}&chapter=${verse.chapter}&verse=${verse.verse}`,
+  }
 }
 
 export function AllHighlightsBrowser({
@@ -44,39 +60,94 @@ export function AllHighlightsBrowser({
   onDelete,
   initialQuery = "",
 }: AllHighlightsBrowserProps) {
-  const [query, setQuery] = useState(initialQuery)
-  const { entries, loading } = useAllHighlights(active)
+  const router = useRouter()
+  const [filters, setFilters] = useState<HighlightFilters>({
+    ...EMPTY_HIGHLIGHT_FILTERS,
+    query: initialQuery,
+  })
+  const [editing, setEditing] = useState<AllHighlightEntry | null>(null)
+  const { entries, loading, error, reload, deleteHighlight, restoreHighlight } = useAllHighlights(active)
+  const { updateHighlight, listCategories, createCategory } = useHighlightMutations()
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (active) setQuery(initialQuery)
-      else setQuery("")
+      setFilters({
+        ...EMPTY_HIGHLIGHT_FILTERS,
+        query: active ? initialQuery : "",
+      })
     }, 0)
     return () => clearTimeout(timer)
   }, [active, initialQuery])
 
-  const filtered = useMemo(() => {
-    if (!query.trim()) return entries
-    const q = query.toLowerCase()
-    return entries.filter((e) => {
-      const colorMatch = neonColors.find(
-        (c) => c.name.toLowerCase() === q || c.hex.toLowerCase() === q,
-      )
-      if (colorMatch && e.highlight.color.toLowerCase() === colorMatch.hex.toLowerCase()) return true
-      if (e.category?.name.toLowerCase().includes(q)) return true
-      if (e.highlight.content?.toLowerCase().includes(q)) return true
-      if (e.verseItems.some((vi) => vi.text.toLowerCase().includes(q))) return true
-      if (
-        e.verses.some((v) => {
-          const ref = `${v.book} ${v.chapter}:${v.verse}`
-          const refFull = `${getBookName(v.book)} ${v.chapter}:${v.verse}`
-          return ref.includes(q) || refFull.toLowerCase().includes(q)
-        })
-      )
-        return true
-      return false
+  const filtered = useMemo(() => filterHighlights(entries, filters), [entries, filters])
+
+  async function removeEntry(id: string): Promise<boolean> {
+    if (onDelete) {
+      const deleted = await onDelete(id)
+      if (deleted) await reload()
+      return deleted
+    }
+    return deleteHighlight(id)
+  }
+
+  async function saveEdit(patch: { color: string; categoryId: string | null; content: string }) {
+    if (!editing) return
+    await updateHighlight(editing.highlight.id, patch)
+    setEditing(null)
+    await reload()
+    toast.success("Destaque atualizado")
+  }
+
+  function navigateToVerse(verse: AllHighlightEntry["verses"][number]) {
+    const navigation = buildHighlightNavigation(verse)
+    try {
+      localStorage.setItem("openbible:book", navigation.book)
+      localStorage.setItem("openbible:chapter", String(navigation.chapter))
+      localStorage.setItem("openbible:version", navigation.version)
+    } catch {
+      // Navigation still works when localStorage is unavailable.
+    }
+    onClose()
+    router.push(navigation.href)
+  }
+
+  async function copyEntry(entry: AllHighlightEntry) {
+    const text = formatHighlightReference({ verses: entry.verses, content: entry.highlight.content })
+    const copied = await copyReference(text)
+    if (copied) toast.success("Referência copiada")
+    else toast.error("Não foi possível copiar a referência")
+  }
+
+  function showDeleteToast(entry: AllHighlightEntry) {
+    toast("Destaque excluído", {
+      duration: 8000,
+      action: {
+        label: "Desfazer",
+        onClick: () => {
+          void restoreHighlight(entry).then((restored) => {
+            if (restored) toast.success("Destaque restaurado")
+            else toast.error("Não foi possível restaurar o destaque")
+          })
+        },
+      },
     })
-  }, [entries, query])
+  }
+
+  async function deleteEntry(entry: AllHighlightEntry) {
+    if (onDelete) {
+      const deleted = await onDelete(entry.highlight.id)
+      if (deleted) await reload()
+      return
+    }
+
+    const deleted = await deleteHighlight(entry.highlight.id)
+    if (!deleted) {
+      toast.error("Não foi possível excluir o destaque")
+      return
+    }
+
+    showDeleteToast(entry)
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
@@ -93,93 +164,87 @@ export function AllHighlightsBrowser({
             </div>
           )}
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-foreground sm:text-base">
-              Destaques
-            </h2>
+            <h2 className="text-sm font-semibold text-foreground sm:text-base">Destaques</h2>
             <p className="truncate text-xs text-muted-foreground">
-              {entries.length} {entries.length === 1 ? "trecho destacado" : "trechos destacados"}
+              {filtered.length === entries.length ? entries.length : `${filtered.length} de ${entries.length}`} {filtered.length === 1 ? "trecho destacado" : "trechos destacados"}
             </p>
           </div>
         </div>
         {showCloseButton && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClose}
-            aria-label="Fechar"
-            className="shrink-0 text-muted-foreground hover:text-foreground"
-          >
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onClose} aria-label="Fechar" className="shrink-0 text-muted-foreground hover:text-foreground">
             <X />
           </Button>
         )}
       </div>
 
-      <div className={cn("shrink-0 pb-3", embedded ? "px-4" : "px-5 sm:px-6")}>
-        <InputGroup className="h-9! rounded-lg! border-input/30 bg-input/30 shadow-none!">
-          <InputGroupAddon>
-            <Search className="size-4 shrink-0 opacity-50" />
-          </InputGroupAddon>
-          <input
-            className="w-full bg-transparent text-sm outline-hidden placeholder:text-muted-foreground/50 text-foreground"
-            placeholder="Buscar por cor, categoria ou referência..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          {query && (
-            <button
-              type="button"
-              className="shrink-0 cursor-pointer px-1 opacity-50 hover:opacity-100"
-              onClick={() => setQuery("")}
-              aria-label="Limpar busca"
-            >
-              <X className="size-4" />
-            </button>
-          )}
-        </InputGroup>
-      </div>
-
+      <HighlightsFilterBar value={filters} onChange={setFilters} entries={entries} />
       <Separator />
 
-      <div
-        className={cn(
-          "no-scrollbar min-h-0 flex-1 overflow-y-auto",
-          embedded ? "p-4" : "px-5 py-5 sm:px-6",
-        )}
-      >
+      <div className={cn("no-scrollbar min-h-0 flex-1 overflow-y-auto", embedded ? "p-4" : "px-5 py-5 sm:px-6")}>
         {loading ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">Carregando...</p>
+          <div className="flex flex-col gap-3" aria-label="Carregando destaques">
+            {Array.from({ length: 3 }, (_, index) => <div key={index} className="h-32 animate-pulse rounded-2xl bg-muted" />)}
+          </div>
+        ) : error ? (
+          <Empty className="border-0 py-10">
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><Highlighter /></EmptyMedia>
+              <EmptyTitle>Não foi possível carregar</EmptyTitle>
+              <EmptyDescription>{error}</EmptyDescription>
+            </EmptyHeader>
+            <Button type="button" variant="outline" onClick={() => reload()}>Tentar novamente</Button>
+          </Empty>
         ) : filtered.length === 0 ? (
           <Empty className="border-0 py-10">
             <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Highlighter />
-              </EmptyMedia>
-              <EmptyTitle>
-                {query ? "Nenhum destaque encontrado" : "Nenhum destaque ainda"}
-              </EmptyTitle>
-              <EmptyDescription>
-                {query ? "Tente outro termo de busca." : "Selecione um versículo e destaque-o."}
-              </EmptyDescription>
+              <EmptyMedia variant="icon"><Highlighter /></EmptyMedia>
+              <EmptyTitle>{getHighlightEmptyState(Object.values(filters).some(Boolean)).title}</EmptyTitle>
+              <EmptyDescription>{getHighlightEmptyState(Object.values(filters).some(Boolean)).description}</EmptyDescription>
             </EmptyHeader>
+            {getHighlightEmptyState(Object.values(filters).some(Boolean)).showCta && <Button type="button" onClick={onClose}>Criar no leitor</Button>}
           </Empty>
         ) : (
           <div className="flex flex-col gap-3">
-            {filtered.map((e) => (
+            {filtered.map((entry) => (
               <HighlightCard
-                key={e.highlight.id}
-                entry={e}
-                onEdit={onEdit}
-                onDelete={async (id) => {
-                  if (confirm("Excluir este destaque?")) {
-                    await onDelete(id)
+                key={entry.highlight.id}
+                entry={entry}
+                onEdit={async (id) => {
+                  if (onEdit) {
+                    await onEdit(id)
+                    return
                   }
+                  const selected = entries.find((item) => item.highlight.id === id)
+                  if (selected) setEditing(selected)
                 }}
+                onDelete={(id) => {
+                  const entryToDelete = entries.find((item) => item.highlight.id === id)
+                  if (entryToDelete) void deleteEntry(entryToDelete)
+                }}
+                onNavigate={navigateToVerse}
+                onCopy={() => copyEntry(entry)}
               />
             ))}
           </div>
         )}
       </div>
+
+      <HighlightEditDialog
+        open={editing !== null}
+        highlight={editing}
+        onClose={() => setEditing(null)}
+        onSave={saveEdit}
+        onDelete={async (id) => {
+          const entryToDelete = editing
+          const deleted = await removeEntry(id)
+          if (deleted) {
+            setEditing(null)
+            if (!onDelete && entryToDelete) showDeleteToast(entryToDelete)
+          }
+        }}
+        listCategories={listCategories}
+        createCategory={createCategory}
+      />
     </div>
   )
 }

@@ -1,8 +1,13 @@
 import { describe, it, expect } from "vitest"
-// SPECSFY: US-003 FR-005 NFR-002 AC-008
+import { getHighlightEmptyState } from "@/features/highlights/components/all-highlights-browser"
+
 describe("Highlights AC-008 vazio", () => {
-  it("mostra estado vazio com CTA", async () => {
-    const exists = await import("@/features/highlights/components/highlights-page").then(() => true).catch(() => false)
-    expect(exists).toBe(true)
+  it("mostra CTA para criar no leitor quando não há filtros", () => {
+    expect(getHighlightEmptyState(false)).toEqual({
+      title: "Nenhum destaque ainda",
+      description: "Crie seu primeiro destaque no leitor.",
+      showCta: true,
+    })
+    expect(getHighlightEmptyState(true).showCta).toBe(false)
   })
 })

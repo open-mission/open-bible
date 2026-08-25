@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { database } from "@/lib/database/database"
+import { isOpfsAvailable } from "@/lib/opfs-available"
 import { useHighlightsContext } from "../context/highlights-context"
 import { getBookName } from "@/lib/books"
 import type { Highlight, HighlightVerse, HighlightCategory } from "@/lib/database/user/schema"
@@ -18,14 +19,46 @@ export interface AllHighlightEntry {
   verseItems: AllHighlightsSheetVerseItem[]
 }
 
+export function sortHighlightEntries(entries: AllHighlightEntry[]): AllHighlightEntry[] {
+  return [...entries].sort(
+    (a, b) => b.highlight.updatedAt.getTime() - a.highlight.updatedAt.getTime(),
+  )
+}
+
+export function removeHighlightFromEntries(entries: AllHighlightEntry[], id: string): AllHighlightEntry[] {
+  return entries.filter((entry) => entry.highlight.id !== id)
+}
+
+export function buildHighlightRestoreInput(entry: AllHighlightEntry) {
+  return {
+    highlight: {
+      color: entry.highlight.color,
+      content: entry.highlight.content,
+      categoryId: entry.highlight.categoryId,
+      noteId: entry.highlight.noteId,
+    },
+    verses: entry.verses.map((verse) => ({
+      book: verse.book,
+      chapter: verse.chapter,
+      verse: verse.verse,
+      bible: verse.bible,
+    })),
+  }
+}
+
 export function useAllHighlights(open: boolean) {
   const [entries, setEntries] = useState<AllHighlightEntry[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const { refresh: refreshContext } = useHighlightsContext()
 
   const loadEntries = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
+      if (!isOpfsAvailable()) {
+        throw new Error("Este ambiente não suporta armazenamento offline (OPFS).")
+      }
       await database.initialize()
       const allHighlights = await database.highlights.findAll()
       const results: AllHighlightEntry[] = await Promise.all(
@@ -68,17 +101,9 @@ export function useAllHighlights(open: boolean) {
       )
 
       // Sort highlights by book, chapter, and verse range
-      results.sort((a, b) => {
-        const vA = a.verses[0]
-        const vB = b.verses[0]
-        if (!vA || !vB) return 0
-        if (vA.book !== vB.book) return vA.book.localeCompare(vB.book)
-        if (vA.chapter !== vB.chapter) return vA.chapter - vB.chapter
-        return vA.verse - vB.verse
-      })
-
-      setEntries(results)
+      setEntries(sortHighlightEntries(results))
     } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível carregar os destaques.")
       console.error("Failed to load all highlights:", e)
     } finally {
       setLoading(false)
@@ -99,7 +124,7 @@ export function useAllHighlights(open: boolean) {
       await database.initialize()
       await database.highlights.delete(id)
       await refreshContext()
-      setEntries((prev) => prev.filter((item) => item.highlight.id !== id))
+      setEntries((prev) => removeHighlightFromEntries(prev, id))
       return true
     } catch (e) {
       console.error("Failed to delete highlight:", e)
@@ -107,10 +132,32 @@ export function useAllHighlights(open: boolean) {
     }
   }, [refreshContext])
 
+  const restoreHighlight = useCallback(async (entry: AllHighlightEntry) => {
+    try {
+      await database.initialize()
+      const restoreInput = buildHighlightRestoreInput(entry)
+      const restored = await database.highlights.create(restoreInput.highlight)
+      for (const verse of restoreInput.verses) {
+        await database.highlightVerses.add({
+          highlightId: restored.id,
+          ...verse,
+        })
+      }
+      await refreshContext()
+      await loadEntries()
+      return true
+    } catch (e) {
+      console.error("Failed to restore highlight:", e)
+      return false
+    }
+  }, [loadEntries, refreshContext])
+
   return {
     entries,
     loading,
+    error,
     deleteHighlight,
+    restoreHighlight,
     reload: loadEntries,
   }
 }

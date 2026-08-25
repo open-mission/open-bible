@@ -5,8 +5,8 @@
 
 | Tipo | Quantidade |
 | --- | --- |
-| Código | 730 |
-| Testes | 60 |
+| Código | 5357 |
+| Testes | 290 |
 
 ## Diagramas
 

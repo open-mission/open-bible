@@ -245,18 +245,18 @@ Relação: relaciona cada arquivo observado à sua superfície.
 | Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/typography/heading.tsx | Heading, Subheading |
 | Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/typography/link.tsx | Link |
 | Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/typography/text.tsx | Text, TextLink, Strong, Code |
+| Outras fontes | .gemini/skills/impeccable/scripts/detector/detect-antipatterns-browser.js | SAFE_TAGS, BORDER_SAFE_TAGS, OVERUSED_FONTS, GOOGLE_DOMAINS, VERCEL_DOMAINS, GITHUB_DOMAINS, BRAND_FONT_DOMAINS, isBrandFontOnOwnDomain |
+| Outras fontes | .gemini/skills/impeccable/scripts/live-browser-dom.js | createLiveBrowserDomHelpers, own, pickable, desc, rectIsUsableAnchor, makeFrozenAnchor, id8, cssId |
+| Outras fontes | .gemini/skills/impeccable/scripts/live-browser-session.js | createLiveBrowserSessionState, safeRead, safeWrite, safeRemove, loadSession, saveSession, clearSession, nextCheckpointRevision |
+| Outras fontes | .gemini/skills/impeccable/scripts/live-browser.js | TOKEN, PORT, APP_ROOT, C, PICKER_SHADOW, FONT, MONO, Z |
+| Outras fontes | .gemini/skills/impeccable/scripts/modern-screenshot.umd.js | v, N, q, P, W, ae, Ve, ut |
 | Outras fontes | .github/skills/impeccable/scripts/detector/detect-antipatterns-browser.js | SAFE_TAGS, BORDER_SAFE_TAGS, OVERUSED_FONTS, GOOGLE_DOMAINS, VERCEL_DOMAINS, GITHUB_DOMAINS, BRAND_FONT_DOMAINS, isBrandFontOnOwnDomain |
 | Outras fontes | .github/skills/impeccable/scripts/live-browser-dom.js | createLiveBrowserDomHelpers, own, pickable, desc, rectIsUsableAnchor, makeFrozenAnchor, id8, cssId |
 | Outras fontes | .github/skills/impeccable/scripts/live-browser-session.js | createLiveBrowserSessionState, safeRead, safeWrite, safeRemove, loadSession, saveSession, clearSession, nextCheckpointRevision |
 | Outras fontes | .github/skills/impeccable/scripts/live-browser.js | TOKEN, PORT, APP_ROOT, C, PICKER_SHADOW, FONT, MONO, Z |
 | Outras fontes | .github/skills/impeccable/scripts/modern-screenshot.umd.js | v, N, q, P, W, ae, Ve, ut |
-| Outras fontes | apps/desktop-tauri/build.rs | — |
-| Outras fontes | apps/desktop-tauri/src/ipc-contract.ts | DesktopUpdaterState, DesktopRuntimeBridge, IPC_CHANNELS |
-| Outras fontes | apps/desktop-tauri/src/lib.rs | — |
-| Outras fontes | apps/desktop-tauri/src/main.rs | — |
-| Outras fontes | apps/desktop-tauri/src/main.ts | getRendererUrl, getRendererFile, registerRendererProtocol, createWindow, registerWindowIpc |
-| Outras fontes | apps/desktop-tauri/src/preload.ts | — |
-| Outras fontes | apps/desktop-tauri/src/updater.ts | isUpdateChannel, getErrorMessage, configureUpdater, getChangelog, checkForUpdate, downloadAndInstall, registerUpdaterIpc |
-| Outras fontes | apps/tui/src/db/bible-manager.ts | Book, Verse, SQLITE_HEADER, validateDbFile, BibleManager |
-| Outras fontes | apps/tui/src/db/installed-store.ts | InstalledBible, InstalledStore |
+| Páginas | .next/dev/server/app/_not-found/page.js | — |
+| Páginas | .next/dev/server/app/_not-found/page_client-reference-manifest.js | — |
+| Rotas e APIs | .next/dev/server/app/api/[[...route]]/route.js | — |
+| Rotas e APIs | .next/dev/server/app/api/[[...route]]/route_client-reference-manifest.js | — |
 <!-- specsfy:documentator:end -->

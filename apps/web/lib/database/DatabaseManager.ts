@@ -51,6 +51,7 @@ export class DatabaseManager {
     }
     this.pending.clear()
     // Allow re-initialization after a crash so the next RPC call boots a fresh worker.
+    this.worker?.terminate()
     this.worker = null
     this.initialized = false
     this.initPromise = null
@@ -69,7 +70,13 @@ export class DatabaseManager {
       await this.rpc({ type: "open", path: USER_DB })
       this.initialized = true
       requestPersistentStorage()
-    })()
+    })().catch((error) => {
+      this.worker?.terminate()
+      this.worker = null
+      this.initialized = false
+      this.initPromise = null
+      throw error
+    })
     return this.initPromise
   }
 

@@ -1,25 +1,11 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
 import { AllHighlightsBrowser } from "./all-highlights-browser"
-import { useHighlightMutations } from "../hooks/use-highlight-mutations"
 import { OpfsStatusGate } from "@/features/layout/components/opfs-status-gate"
 
 export function HighlightsPage() {
   const router = useRouter()
-  const { deleteHighlight } = useHighlightMutations()
-
-  const handleEdit = async (id: string) => {
-    toast.info("Edição de destaque — dialog em breve")
-  }
-
-  const handleDelete = async (id: string) => {
-    if (typeof window !== "undefined" && !confirm("Excluir este destaque?")) return false
-    await deleteHighlight(id)
-    toast.success("Destaque excluído")
-    return true
-  }
 
   return (
     <>
@@ -35,8 +21,6 @@ export function HighlightsPage() {
           <AllHighlightsBrowser
             active
             onClose={() => router.push("/")}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
             showCloseButton={false}
           />
         </div>

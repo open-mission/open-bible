@@ -160,5 +160,14 @@ class Database {
   }
 }
 
-// Client-only singleton.
-export const database = new Database()
+// Keep the worker owner stable across dev hot reloads. Re-evaluating this module
+// while the previous worker is still alive would create a second OPFS pool.
+const DATABASE_GLOBAL_KEY = "__openBibleDatabase"
+type DatabaseGlobal = typeof globalThis & {
+  __openBibleDatabase?: Database
+}
+
+const globalForDatabase = globalThis as DatabaseGlobal
+export const database =
+  globalForDatabase[DATABASE_GLOBAL_KEY] ??
+  (globalForDatabase[DATABASE_GLOBAL_KEY] = new Database())

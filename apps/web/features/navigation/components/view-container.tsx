@@ -7,20 +7,13 @@ import { AdvancedHome } from "@/features/workspace/components/advanced-home"
 import { NotesBrowser } from "@/features/notes/components/notes-browser"
 import { NotesProvider } from "@/features/notes/context/notes-context"
 import { AllHighlightsBrowser } from "@/features/highlights/components/all-highlights-browser"
-import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations"
 
 function HighlightsView({ active }: { active: boolean }) {
   const { navigate } = useAppNavigation()
-  const { deleteHighlight } = useHighlightMutations()
   return (
     <AllHighlightsBrowser
       active={active}
       onClose={() => navigate("reader")}
-      onEdit={() => {}}
-      onDelete={async (id) => {
-        await deleteHighlight(id)
-        return true
-      }}
     />
   )
 }

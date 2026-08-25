@@ -2,6 +2,7 @@
 
 import { useCallback } from "react"
 import {
+  Copy,
   Pencil,
   Trash2,
 } from "lucide-react"
@@ -14,12 +15,16 @@ interface HighlightCardProps {
   entry: AllHighlightEntry
   onEdit: (id: string) => void
   onDelete: (id: string) => void
+  onNavigate: (verse: AllHighlightEntry["verses"][number]) => void
+  onCopy: () => void
 }
 
 export function HighlightCard({
   entry,
   onEdit,
   onDelete,
+  onNavigate,
+  onCopy,
 }: HighlightCardProps) {
   const style = getNeonStyle(entry.highlight.color)
 
@@ -37,11 +42,9 @@ export function HighlightCard({
   }, [entry.verses])
 
   return (
-    <article className="group relative w-full shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xs shadow-xs transition-all duration-300 hover:border-border/80 hover:shadow-md">
-      <div className="flex flex-col gap-3.5 p-4.5">
-        {/* Header */}
-        <header className="flex items-center gap-2.5">
-          {/* Glowing color dot */}
+    <article className="group relative w-full shrink-0 overflow-hidden rounded-xl border border-border/70 bg-card transition-colors hover:border-border">
+      <div className="flex flex-col gap-3.5 p-4">
+        <header className="flex flex-wrap items-center gap-2.5">
           <div
             className="h-2.5 w-2.5 shrink-0 rounded-full"
             style={{
@@ -50,9 +53,8 @@ export function HighlightCard({
             }}
           />
 
-          {/* Color pill / category badge */}
           <span
-            className="rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide select-none capitalize border border-transparent font-sans"
+            className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide select-none capitalize border border-transparent font-sans"
             style={{
               backgroundColor: style.pillBg,
               color: style.pillText,
@@ -63,57 +65,69 @@ export function HighlightCard({
           </span>
 
           {/* Reference Range */}
-          <span className="text-xs font-semibold text-muted-foreground truncate max-w-[150px] font-sans">
+          <button
+            type="button"
+            className="max-w-[150px] truncate text-left text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline font-sans"
+            onClick={() => entry.verses[0] && onNavigate(entry.verses[0])}
+            disabled={entry.verses.length === 0}
+            aria-label={`Abrir ${getReferenceText()} no leitor`}
+          >
             {getReferenceText()}
-          </span>
+          </button>
 
-          {/* Edit / Delete Actions */}
-          <div className="ml-auto flex items-center gap-0.5">
+          <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:ml-auto sm:w-auto">
             <Button
               type="button"
               variant="ghost"
-              size="icon-xs"
+              size="sm"
               onClick={() => onEdit(entry.highlight.id)}
-              className="text-muted-foreground hover:text-foreground shrink-0"
-              title="Editar destaque"
+              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+              aria-label="Editar destaque"
             >
               <Pencil className="size-3.5" />
+              <span>Editar</span>
             </Button>
             <Button
               type="button"
               variant="ghost"
-              size="icon-xs"
-              className="text-destructive/80 hover:text-destructive hover:bg-destructive/10 shrink-0"
+              size="sm"
+              onClick={onCopy}
+              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+              aria-label="Copiar referência"
+            >
+              <Copy className="size-3.5" />
+              <span>Copiar</span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1.5 px-2 text-xs text-destructive/80 hover:bg-destructive/10 hover:text-destructive"
               onClick={() => onDelete(entry.highlight.id)}
-              title="Excluir destaque"
+              aria-label="Excluir destaque"
             >
               <Trash2 className="size-3.5" />
+              <span>Excluir</span>
             </Button>
           </div>
         </header>
 
-        {/* Verses body with decorative background */}
         {entry.verseItems.length > 0 && (
-          <div className="relative overflow-hidden rounded-xl bg-muted/40 p-4 border border-border/20">
-            {/* Big decorative quotation mark */}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-2 -top-6 select-none font-serif text-[7.5rem] leading-none z-0"
-              style={{ color: `${style.hex}1a` }}
-            >
-              &rdquo;
-            </span>
-
-            {/* Stacked verses list */}
-            <div className="relative z-10 flex flex-col gap-3">
+          <div className="rounded-lg border border-border/50 bg-muted/20 p-4">
+            <div className="flex flex-col gap-3">
               {entry.verseItems.map((v, idx) => (
                 <div key={idx} className="flex flex-col gap-1">
-                  <p className="font-serif text-sm italic leading-relaxed text-foreground/90 break-words text-pretty">
+                  <button
+                    type="button"
+                    className="text-left font-serif text-sm italic leading-relaxed text-foreground/90 break-words text-pretty hover:text-primary"
+                    onClick={() => entry.verses[idx] && onNavigate(entry.verses[idx])}
+                    aria-label={`Abrir ${v.reference} no leitor`}
+                  >
                     {v.text}
-                  </p>
+                  </button>
                   <span
                     className="text-[10px] font-bold uppercase tracking-wider mt-0.5 font-sans"
-                    style={{ color: `${style.hex}b3` }}
+                    style={{ color: style.hex }}
                   >
                     {v.reference}
                   </span>

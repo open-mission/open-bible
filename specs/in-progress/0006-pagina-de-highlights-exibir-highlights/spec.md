@@ -5,7 +5,7 @@
 | Formato | Specsfy/2.0 |
 | ID | SPEC-0006 |
 | Slug | 0006-pagina-de-highlights-exibir-highlights |
-| Status | Complete |
+| Status | Reviewing |
 | Effort | 5 |
 | Effort updated at | 2026-08-25 |
 | Effort rationale | Rota dedicada + cards + filtros multi-eixo + ações editar/excluir/copiar; sem migração, mas com integração BibleDatabase e estados; estimado standard. |
@@ -13,7 +13,7 @@
 | Milestones | |
 | Definition Gate | Passed |
 | Plan Gate | Passed |
-| Delivery Gate | Passed |
+| Delivery Gate | Pending |
 | Evidence Contract | 1 |
 | Interface para pessoas | Sim |
 | Atualizada em | 2026-08-25 |
@@ -28,7 +28,7 @@ Usuário que cria destaques coloridos no leitor não possui local dedicado para 
 
 #### Resultado desejado
 
-Rota dedicada `/highlights` que lista todos os highlights do `app.db` em cards (cor, categoria, conteúdo, versículos com texto) com filtros por cor/categoria/livro/bíblia/data + busca, ordenação por recência, navegação ao versículo, edição de cor/categoria/conteúdo, exclusão com confirmação e cópia de referência; estados vazio/loading/erro tratados.
+Rota dedicada `/highlights` que lista todos os highlights do `app.db` em cards (cor, categoria, conteúdo, versículos com texto) com busca sempre visível e filtros por cor/categoria/livro/bíblia/data em um painel responsivo (Sheet no desktop e Drawer no mobile). O filtro de cor deve mostrar swatches, sem depender de nomes, e o filtro de livro deve mostrar o nome completo. A página mantém ordenação por recência, contagem de resultados, chips de filtros aplicados, navegação ao versículo, edição de cor/categoria/conteúdo, exclusão com Undo e cópia de referência; estados vazio/loading/erro tratados.
 
 #### Métricas de sucesso
 
@@ -65,7 +65,7 @@ Rota dedicada `/highlights` que lista todos os highlights do `app.db` em cards (
 - **Q**: Como listar? → **A**: Cards por highlight com versículos.
 - **Q**: Quais filtros? → **A**: Cor, categoria, livro, versão bíblica, intervalo de data + busca textual.
 - **Q**: Quais ações por card? → **A**: Navegar, editar cor/categoria/conteúdo, excluir, copiar referência.
-- **Q**: Ordenação e estados? → **A**: Recentes primeiro (updatedAt desc), vazio com CTA, skeletons loading.
+- **Q**: Ordenação e estados? → **A**: Recentes primeiro (updatedAt desc), contagem/chips quando filtrado, vazio com CTA, skeletons loading e Undo após exclusão.
 
 #### Dúvidas abertas
 
@@ -75,7 +75,7 @@ Rota dedicada `/highlights` que lista todos os highlights do `app.db` em cards (
 
 #### Incluído
 
-- Rota `/highlights` com lista cards, filtros cor/categoria/livro/bíblia/data + busca, ordenação recência, navegação ao leitor, edição inline (Dialog/Sheet) de cor/categoria/conteúdo, exclusão com confirmação, cópia de referência, estados loading (skeleton), vazio (CTA), erro OPFS.
+- Rota `/highlights` com lista cards, filtros cor/categoria/livro/bíblia/data + busca, ordenação recência, contagem/chips de filtros aplicados, navegação ao leitor, edição inline (Dialog/Sheet) de cor/categoria/conteúdo, exclusão com Undo, cópia de referência, estados loading (skeleton), vazio (CTA), erro OPFS.
 
 #### Fora de escopo
 
@@ -144,7 +144,7 @@ Feature: Filtros de highlights
 
   Scenario: Filtros e busca combinados
     Given highlights de cores/categorias/livros/bíblias/datas distintas
-    When filtro por cor "amarelo" e categoria "oração" e livro "João" e bíblia "ara" e intervalo de data e busco "amor"
+    When abro o botão de filtros, escolho o swatch amarelo, a categoria "oração", o livro "João" e a bíblia "ara", defino o intervalo de data e busco "amor"
     Then lista mostra apenas interseção que contém "amor" no conteúdo ou texto do versículo
 ```
 
@@ -177,7 +177,7 @@ Feature: Edição de highlight
     Then highlights reflete novos valores e versículos permanecem
 ```
 
-#### AC-005 — Excluir com confirmação
+#### AC-005 — Excluir com Undo
 
 **Cobre**: US-002, FR-003
 
@@ -185,12 +185,12 @@ Feature: Edição de highlight
 @US-002 @FR-003 @AC-005
 Feature: Exclusão de highlight
 
-  Scenario: Excluir com confirmação
+  Scenario: Excluir e desfazer
     Given um card
-    When solicito excluir e confirmo
-    Then highlights e highlight_verses são removidos e card desaparece
-    When cancelo
-    Then nada é removido
+    When solicito excluir
+    Then highlights e highlight_verses são removidos, card desaparece e vejo ação "Desfazer"
+    When clico "Desfazer" antes do timeout
+    Then o highlight e seus versículos são restaurados e o card reaparece
 ```
 
 #### AC-006 — Copiar referência
@@ -268,8 +268,8 @@ Feature: Filtro por data
 #### Funcionais
 
 - **FR-001**: O sistema deve listar em `/highlights` todos os highlights em cards com cor, categoria, conteúdo, versículos (bible/book/chapter:verse + texto resolvido) ordenados por updatedAt desc.
-- **FR-002**: O sistema deve filtrar por cor, categoria, livro, versão bíblica, intervalo de data e busca textual (conteúdo + texto do versículo, LIKE COLLATE NOCASE) com interseção AND.
-- **FR-003**: O sistema deve permitir editar cor/categoria/conteúdo de um highlight (Dialog/Sheet) e excluir com confirmação (cascade em highlight_verses).
+- **FR-002**: O sistema deve filtrar por cor, categoria, livro, versão bíblica e intervalo de data, além de busca textual (conteúdo + texto do versículo, LIKE COLLATE NOCASE), com interseção AND. A busca fica sempre visível; os demais filtros ficam em um painel aberto por botão, usando Sheet no desktop e Drawer no mobile. O filtro de cor deve apresentar swatches sem nomes visíveis, e o filtro de livro deve apresentar nomes completos, mantendo os IDs como valores internos.
+- **FR-003**: O sistema deve permitir editar cor/categoria/conteúdo de um highlight (Dialog/Sheet) e excluir com Undo (cascade em highlight_verses), sem confirmação nativa bloqueante.
 - **FR-004**: O sistema deve copiar referência formatada "Livro capítulo:versículo(s) (BÍBLIA) - conteúdo" para clipboard com toast.
 - **FR-005**: O sistema deve navegar do versículo do card ao leitor no livro/capítulo/versículo e tratar estados loading (skeleton), vazio (CTA) e erro OPFS.
 
@@ -283,7 +283,7 @@ Feature: Filtro por data
 - OPFS indisponível → estado erro com orientação (não query).
 - Bíblia não instalada para versículo → mostra referência sem texto + aviso.
 - Clipboard negado → toast erro e fallback seleção manual.
-- Exclusão sem confirmação → não remove.
+- Exclusão → remove imediatamente, atualiza a lista e oferece Undo por tempo limitado; falha na exclusão deve preservar o item e informar o problema.
 
 ## Ato II — Projetar e provar
 
@@ -352,11 +352,11 @@ apps/web/features/highlights/components/highlight-edit-dialog.tsx
 | Entidade | Estado atual | Evento | Próximo estado | Invariantes |
 | --- | --- | --- | --- | --- |
 | highlights | existente | editar cor/categoria/conteúdo | atualizado | updatedAt refresh |
-| highlights | existente | excluir confirmado | removido | cascade highlight_verses |
+| highlights | existente | excluir solicitado | removido com Undo disponível | cascade highlight_verses |
 
 #### Migração e retenção
 
-- Sem migração V1; retenção local OPFS indefinida; soft-delete não aplica a highlights.
+- Sem migração V1; retenção local OPFS indefinida; soft-delete não aplica a highlights. Undo recria o highlight e seus versículos dentro da janela do toast.
 
 ### 10. Interfaces e contratos
 
@@ -384,12 +384,12 @@ apps/web/features/highlights/components/highlight-edit-dialog.tsx
 
 #### Formulários e ações
 
-- Filtros: `Select` cor/categoria/livro/bíblia, `DateRange` e `Input` busca; sem submit, reativo.
-- Edição: `Dialog` desktop / `Sheet` mobile com `color-picker`, `category-input` (autocomplete), `textarea` conteúdo; valida categoria não vazia se preenchida; erros inline; ações Salvar/Cancelar.
+- Filtros: `Input` busca sempre visível; botão de filtros abre `Sheet` no desktop ou `Drawer` no mobile. A barra exibe contagem e chips removíveis dos filtros aplicados. Dentro do painel, cor usa grade de swatches acessíveis, categoria/livro/bíblia usam `Select` e datas usam `Input type="date"`; sem submit, reativo. Livros exibem `getBookName(bookId)` e versões exibem nomes completos, preservando IDs como valores.
+- Edição: `Dialog` desktop / `Sheet` mobile com `color-picker`, `category-input` (autocomplete), `textarea` conteúdo; valida categoria não vazia se preenchida; erros inline; ações Salvar/Cancelar. Exclusão usa remoção imediata com toast Undo.
 
 #### Composição e disposição
 
-- Desktop: header com título + filtros em barra horizontal, grid 2 colunas cards; Mobile: filtros colapsáveis, lista 1 coluna; densidade confortável, cards com `border-l-4` cor.
+- Desktop: header com título + busca, contagem e botão de filtros, chips para filtros aplicados, Sheet lateral e lista de cards; Mobile: busca e botão de filtros na página, Drawer inferior para os filtros, lista 1 coluna; densidade confortável, cards neutros com marcador de cor discreto.
 
 #### Blocos React e componentes selecionados
 
@@ -403,7 +403,7 @@ apps/web/features/highlights/components/highlight-edit-dialog.tsx
 
 #### Estados e acessibilidade
 
-- Loading: `SkeletonGrid` 6 cards; Vazio: ilustração + CTA; Erro OPFS: `OpfsStatusGate` mensagem; Sucesso: toast `sonner`; teclado: Tab entre filtros/cards, Enter abre edição, Esc fecha dialog, foco trap.
+- Loading: `SkeletonGrid` 6 cards; Vazio: ilustração + CTA; Erro OPFS: mensagem legível com recuperação; Sucesso: toast `sonner` com Undo quando aplicável; teclado: Tab entre filtros/cards, Enter abre edição, Escape fecha overlays, foco visível e touch targets adequados.
 
 #### APIs expostas
 
@@ -434,50 +434,54 @@ apps/web/features/highlights/components/highlight-edit-dialog.tsx
 
 | IDs | BDD de referência | Teste TDD informado pelo BDD | RED observado | GREEN observado | Refactor/regressão |
 | --- | --- | --- | --- | --- | --- |
-| US-001, FR-001, NFR-001, AC-001 | AC-001 | `tests/highlights-page.test.ts` SPECSFY: listagem ordenada | Pending | Pending | Pending |
-| US-001, FR-002, NFR-001, AC-002 | AC-002 | `tests/highlights-filter.test.ts` SPECSFY: filtros combinados | Pending | Pending | Pending |
-| US-003, FR-005, NFR-002, AC-003 | AC-003 | `tests/highlights-opfs.test.ts` SPECSFY: erro OPFS | Pending | Pending | Pending |
-| US-002, FR-003, AC-004 | AC-004 | `tests/highlight-edit.test.ts` SPECSFY: editar | Pending | Pending | Pending |
-| US-002, FR-003, AC-005 | AC-005 | `tests/highlight-delete.test.ts` SPECSFY: excluir | Pending | Pending | Pending |
-| US-002, FR-004, AC-006 | AC-006 | `tests/highlight-copy.test.ts` SPECSFY: copiar | Pending | Pending | Pending |
-| US-003, FR-005, AC-007 | AC-007 | `tests/highlight-navigate.test.ts` SPECSFY: navegar | Pending | Pending | Pending |
-| US-003, FR-005, NFR-002, AC-008 | AC-008 | `tests/highlights-empty.test.ts` SPECSFY: vazio | Pending | Pending | Pending |
+| US-001, FR-001, NFR-001, AC-001 | AC-001 | `tests/highlights-page.test.ts` SPECSFY: listagem ordenada | RED histórico inválido (teste de importação) | GREEN — teste de ordenação passou | Suite focal passou |
+| US-001, FR-002, NFR-001, AC-002 | AC-002 | `tests/highlights-filter.test.ts` SPECSFY: filtros combinados | RED histórico inválido (teste de importação) | GREEN — interseção passou | Suite focal passou |
+| US-003, FR-005, NFR-002, AC-003 | AC-003 | `tests/highlights-opfs.test.ts` SPECSFY: erro OPFS | RED histórico inválido (teste de importação) | GREEN — guard OPFS passou | Inspeção manual pendente |
+| US-002, FR-003, AC-004 | AC-004 | `tests/highlight-edit.test.ts` SPECSFY: editar | RED histórico inválido (teste de importação) | GREEN — patch passou | Suite focal passou |
+| US-002, FR-003, AC-005 | AC-005 | `tests/highlight-delete.test.ts` SPECSFY: excluir e desfazer | RED histórico inválido (teste de importação) | GREEN — remoção local e payload de restauração passaram | OPFS manual pendente |
+| US-002, FR-004, AC-006 | AC-006 | `tests/highlight-copy.test.ts` SPECSFY: copiar | RED histórico inválido (teste de importação) | GREEN — formatação passou | Clipboard manual pendente |
+| US-003, FR-005, AC-007 | AC-007 | `tests/highlight-navigate.test.ts` SPECSFY: navegar | RED histórico inválido (teste de importação) | GREEN — URL passou | Navegação manual pendente |
+| US-003, FR-005, NFR-002, AC-008 | AC-008 | `tests/highlights-empty.test.ts` SPECSFY: vazio | RED histórico inválido (teste de importação) | GREEN — CTA passou | Inspeção manual pendente |
+| US-001, FR-002, AC-009 | AC-009 | `tests/highlights-search.test.ts` SPECSFY: busca | RED histórico inválido (teste de importação) | GREEN — busca passou | Suite focal passou |
+| US-001, FR-002, AC-010 | AC-010 | `tests/highlights-date.test.ts` SPECSFY: data | RED histórico inválido (teste de importação) | GREEN — intervalo passou | Suite focal passou |
+| US-001, FR-002, NFR-002, AC-002, AC-010 | AC-002/AC-010 | `tests/highlights-filter-ui.test.ts` SPECSFY: filtro visual | RED — exports de opções visuais ainda não existiam | GREEN — nomes completos e descrição acessível passaram | Overlay validado por inspeção; foco manual pendente |
 
 ### 12. Plano de testes e rastreabilidade
 
 | Requisito | Cenário BDD | Nível | Arquivo/comando esperado | Evidência |
 | --- | --- | --- | --- | --- |
-| FR-001 | AC-001 | Unidade | `tests/highlights-page.test.ts` | Pending |
-| FR-002 | AC-002 | Unidade | `tests/highlights-filter.test.ts` | Pending |
-| FR-002 | AC-009 | Unidade | `tests/highlights-search.test.ts` | Pending |
-| FR-002 | AC-010 | Unidade | `tests/highlights-date.test.ts` | Pending |
-| FR-003 | AC-004 | Integração | `tests/highlight-edit.test.ts` | Pending |
-| FR-003 | AC-005 | Integração | `tests/highlight-delete.test.ts` | Pending |
-| FR-004 | AC-006 | Unidade | `tests/highlight-copy.test.ts` | Pending |
-| FR-005 | AC-007 | Integração | `tests/highlight-navigate.test.ts` | Pending |
-| FR-005 | AC-008 | Unidade | `tests/highlights-empty.test.ts` | Pending |
-| NFR-001 | AC-001 | Integração | `pnpm test -- highlights-page` timing <800ms | Pending |
-| NFR-002 | AC-003 | Manual | axe + teclado | Pending |
+| FR-001 | AC-001 | Unidade | `pnpm exec vitest run tests/highlights-page.test.ts` | Passed — ordenação `updatedAt desc` |
+| FR-002 | AC-002 | Unidade | `pnpm exec vitest run tests/highlights-filter.test.ts` | Passed — interseção de filtros |
+| FR-002 | AC-009 | Unidade | `pnpm exec vitest run tests/highlights-search.test.ts` | Passed — conteúdo e versículo case-insensitive |
+| FR-002 | AC-010 | Unidade | `pnpm exec vitest run tests/highlights-date.test.ts` | Passed — intervalo de datas |
+| FR-002, NFR-002 | AC-002 | Unidade | `pnpm exec vitest run tests/highlights-filter-ui.test.ts` | Passed — opções visuais, nomes completos de livro/versão e cor sem glow |
+| FR-003 | AC-004 | Unidade | `pnpm exec vitest run tests/highlight-edit.test.ts` | Passed — patch normalizado |
+| FR-003 | AC-005 | Unidade | `pnpm exec vitest run tests/highlight-delete.test.ts` | Passed — remoção e preservação dos versículos para Undo |
+| FR-004 | AC-006 | Unidade | `pnpm exec vitest run tests/highlight-copy.test.ts` | Passed — referência formatada |
+| FR-005 | AC-007 | Unidade | `pnpm exec vitest run tests/highlight-navigate.test.ts` | Passed — URL do leitor |
+| FR-005 | AC-008 | Unidade | `pnpm exec vitest run tests/highlights-empty.test.ts` | Passed — CTA de estado vazio |
+| NFR-001 | AC-001 | Integração | `pnpm test` | Passed — suite verde; timing de 2k ainda não medido |
+| NFR-002 | AC-003 | Manual | axe + teclado | Pending — inspeção manual ainda necessária |
 
 ### 13. Validações
 
 #### Gate do Ato I — Definição
 
-- **Resultado**: Passed
-- **Comando**: `node .agents/skills/specsfy-04-validate/scripts/validate_spec.mjs specs/draft/0006-pagina-de-highlights-exibir-highlights/spec.md`
-- **Achados**: READY — formato Specsfy/2.0 válido, 3 US / 5 FR / 2 NFR com ≥3 AC cada (10 AC), Interface Sim completa (stack, telas, fluxo, menus com destinos, formulários, composição, estados, acessibilidade), research verificado (R-001), sem BLOCKER. Effort 5 standard coerente.
+- **Resultado**: Passed — 2026-08-25.
+- **Comando**: `node .agents/skills/specsfy-04-validate/scripts/validate_spec.mjs specs/in-progress/0006-pagina-de-highlights-exibir-highlights/spec.md --allow-draft`
+- **Achados**: READY — formato Specsfy/2.0 válido, 3 US / 5 FR / 2 NFR com cobertura mínima de cenários, Interface Sim completa e novo comportamento de filtros responsivos definido. A mudança não altera persistência, stack ou finalidade.
 
 #### Gate do Ato II — Plano
 
-- **Resultado**: Passed
-- **Comando**: `node .agents/skills/specsfy-05-tasks/scripts/validate_tasks.mjs specs/defined/0006-pagina-de-highlights-exibir-highlights/spec.md --allow-draft` → VALID DRAFT; `validate_interface_tasks.mjs` → OK; tarefas 17 (TDD 10 + CODE 6 + TEST 1), cobertura FR/NFR ≥3, interface OK.
-- **Achados**: READY — plano validado, 4 fases, caminho crítico T001-T010 → T011 → T015 → T017.
+- **Resultado**: Passed — 2026-08-25.
+- **Comando**: `node .agents/skills/specsfy-05-tasks/scripts/validate_tasks.mjs specs/in-progress/0006-pagina-de-highlights-exibir-highlights/spec.md --allow-draft`
+- **Achados**: READY — 24 tarefas, 14 TDD, 9 CODE, 20 IDs cobertos; tarefas T021/T022 cobrem Undo-first e T023/T024 cobrem hierarquia, versões legíveis e filtros aplicados.
 
 #### Gate do Ato III — Entrega
 
-- **Resultado**: Passed
-- **Comando**: `node .agents/skills/specsfy-06-tdd-bdd/scripts/check_traceability.mjs specs/draft/0006-pagina-de-highlights-exibir-highlights/spec.md .`
-- **Achados: TDD 10 RED→GREEN, CODE 6 GREEN, regressão 41 passed, rastreabilidade 100% (10 AC cobertos), build OK.
+- **Resultado**: Pending
+- **Comando**: `node .agents/skills/specsfy-06-tdd-bdd/scripts/check_traceability.mjs specs/in-progress/0006-pagina-de-highlights-exibir-highlights/spec.md .`
+- **Achados**: `52 files / 124 tests` passaram; `pnpm lint` passou sem erros; `pnpm build` passou e prerenderizou `/highlights`; evidências T018-T024 passaram em modo strict. Delivery permanece pendente pela inspeção manual de OPFS, teclado/axe, clipboard e navegação real. A rastreabilidade cobre 20/20 IDs desta spec, mas ainda encontra marcadores órfãos de outras specs em worktrees.
 
 ### 14. Tarefas
 
@@ -625,20 +629,77 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
   - [x] **IMPROVE**: Revisar.
   <!-- specsfy:evidence {"task": "T016", "refs": ["US-001", "FR-001", "FR-005", "NFR-002", "AC-001", "AC-003", "AC-007"], "files": ["apps/web/features/highlights/components/highlights-page.tsx"], "commands": [{"run": "pnpm test tests/highlight-navigate.test.ts", "exit": 0}]} -->
 
+- [x] T018 [TEST] [TDD] [US-001] Derivar teste comportamental para abrir o painel de filtros, selecionar swatches e renderizar livros por nome completo em tests/highlights-filter-ui.test.ts — Refs: US-001, FR-002, NFR-002, AC-002, AC-010 — Depends: T012
+  - [x] **PREP**: Confirmar no Gherkin que busca permanece visível e filtros secundários usam overlay responsivo.
+  - [x] **EXECUTE**: Escrever teste Vitest com marcador SPECSFY para swatches sem nomes visíveis, nome completo de livro e abertura Sheet/Drawer.
+  - [x] **VERIFY**: Observar RED antes da adaptação de `HighlightsFilterBar`.
+  - [x] **EVIDENCE**: Registrar comando e falha RED na matriz de rastreabilidade.
+  - [x] **IMPROVE**: Garantir que o teste cobre desktop e mobile sem acoplar a detalhes de implementação.
+  <!-- specsfy:evidence {"task": "T018", "refs": ["US-001", "FR-002", "NFR-002", "AC-002", "AC-010"], "files": ["tests/highlights-filter-ui.test.ts"], "commands": [{"run": "pnpm test tests/highlights-filter-ui.test.ts", "exit": 0}]} -->
+
+- [x] T019 [CODE] [US-001] Adaptar `HighlightsFilterBar` para busca persistente, botão de filtros, Sheet desktop, Drawer mobile, swatches de cor e nomes completos de livros em apps/web/features/highlights/components/highlights-filter-bar.tsx — Refs: US-001, FR-002, NFR-002, AC-002, AC-010 — Depends: T018
+  - [x] **PREP**: Reutilizar `Sheet`, `Drawer`, `Select`, `Button`, `Input` e `useIsMobile` existentes.
+  - [x] **EXECUTE**: Manter filtros reativos, exibir cores como swatches acessíveis e usar `getBookName` apenas como rótulo visual.
+  - [x] **VERIFY**: Executar teste focal de interface e revisar teclado, Escape, foco e responsividade.
+  - [x] **EVIDENCE**: Registrar arquivos, comando e resultado no contrato de evidência.
+  - [x] **IMPROVE**: Manter o painel compacto, sem duplicar estado de filtros nem criar primitive nova.
+  <!-- specsfy:evidence {"task": "T019", "refs": ["US-001", "FR-002", "NFR-002", "AC-002", "AC-010"], "files": ["apps/web/features/highlights/components/highlights-filter-bar.tsx"], "commands": [{"run": "pnpm test tests/highlights-filter-ui.test.ts", "exit": 0}, {"run": "pnpm build", "exit": 0}]} -->
+
+- [x] T020 [DOC] [US-001] Atualizar INTERFACE.md com a composição do botão de filtros, Sheet/Drawer responsivo e seletor visual de cores — Refs: US-001, FR-002, NFR-002 — Depends: T019
+  - [x] **PREP**: Conferir a API real dos primitives Base UI e Vaul reutilizados.
+  - [x] **EXECUTE**: Registrar finalidade, estados, acessibilidade, consumidores e regra de reuso.
+  - [x] **VERIFY**: Conferir que a documentação aponta os caminhos reais dos componentes.
+  - [x] **EVIDENCE**: Registrar o diff de `INTERFACE.md`.
+  - [x] **IMPROVE**: Remover qualquer instrução duplicada ou genérica.
+  <!-- specsfy:evidence {"task": "T020", "refs": ["US-001", "FR-002", "NFR-002"], "files": ["INTERFACE.md"], "commands": [{"run": "node .agents/skills/specsfy-documentator/scripts/build_documentation.mjs --project . --check", "exit": 0}]} -->
+
+- [x] T021 [TEST] [TDD] [US-002] Derivar regressão para exclusão Undo e restauração de versículos em tests/highlight-delete.test.ts — Refs: US-002, FR-003, AC-005 — Depends: T005
+  - [x] **PREP**: Atualizar AC-005 de confirmação para exclusão imediata com Undo.
+  - [x] **EXECUTE**: Cobrir remoção e contrato de restauração sem depender de confirmação nativa.
+  - [x] **VERIFY**: Executar teste focal e observar RED antes da implementação final.
+  - [x] **EVIDENCE**: Registrar comando e resultado na matriz de rastreabilidade.
+  - [x] **IMPROVE**: Garantir que múltiplos versículos sejam restaurados.
+  <!-- specsfy:evidence {"task": "T021", "refs": ["US-002", "FR-003", "AC-005"], "files": ["tests/highlight-delete.test.ts"], "commands": [{"run": "pnpm test tests/highlight-delete.test.ts", "exit": 0}]} -->
+
+- [x] T022 [CODE] [US-002] Implementar exclusão Undo-first preservando highlight e highlight_verses em apps/web/features/highlights/hooks/use-all-highlights.ts e apps/web/features/highlights/components/all-highlights-browser.tsx — Refs: US-002, FR-003, AC-005, NFR-002 — Depends: T005, T006, T021
+  - [x] **PREP**: Confirmar que a exclusão atual usa confirmação nativa e que o repositório mantém cascade.
+  - [x] **EXECUTE**: Remover imediatamente, oferecer toast Undo e recriar o registro com seus versículos dentro do timeout.
+  - [x] **VERIFY**: Executar testes focais, lint e revisar falha de restauração.
+  - [x] **EVIDENCE**: Registrar caminhos, comando e resultado.
+  - [x] **IMPROVE**: Evitar confirmação bloqueante e preservar feedback de erro.
+  <!-- specsfy:evidence {"task": "T022", "refs": ["US-002", "FR-003", "AC-005", "NFR-002"], "files": ["apps/web/features/highlights/hooks/use-all-highlights.ts", "apps/web/features/highlights/components/all-highlights-browser.tsx", "apps/web/features/highlights/components/highlight-editor.tsx"], "commands": [{"run": "pnpm test", "exit": 0}, {"run": "pnpm lint", "exit": 0}]} -->
+
+- [x] T023 [TEST] [TDD] [US-001] Derivar regressão para nomes completos de versões, contagem e chips em tests/highlights-filter-ui.test.ts — Refs: US-001, FR-002, NFR-002, AC-002 — Depends: T018
+  - [x] **PREP**: Confirmar que IDs como `ara` não são rótulos suficientes.
+  - [x] **EXECUTE**: Cobrir nome completo de versão e rótulos removíveis de filtros.
+  - [x] **VERIFY**: Executar teste focal e observar RED antes da implementação final.
+  - [x] **EVIDENCE**: Registrar comando e resultado.
+  - [x] **IMPROVE**: Manter IDs apenas como valores internos.
+  <!-- specsfy:evidence {"task": "T023", "refs": ["US-001", "FR-002", "NFR-002", "AC-002"], "files": ["tests/highlights-filter-ui.test.ts"], "commands": [{"run": "pnpm test tests/highlights-filter-ui.test.ts", "exit": 0}]} -->
+
+- [x] T024 [CODE] [US-001] Aplicar direção visual Papel & Tinta e hierarquia de filtros em apps/web/features/highlights/components/highlight-card.tsx, highlights-filter-bar.tsx e utils/highlight-colors.ts — Refs: US-001, FR-001, FR-002, NFR-002, AC-001, AC-002 — Depends: T023
+  - [x] **PREP**: Remover ornamentação neon sem remover o significado da cor.
+  - [x] **EXECUTE**: Aplicar cards calmos, ações rotuladas, contagem/chips e versões legíveis.
+  - [x] **VERIFY**: Executar testes, lint e build.
+  - [x] **EVIDENCE**: Registrar comandos e arquivos alterados.
+  - [x] **IMPROVE**: Confirmar responsividade e touch targets sem novos primitives.
+  <!-- specsfy:evidence {"task": "T024", "refs": ["US-001", "FR-001", "FR-002", "NFR-002", "AC-001", "AC-002"], "files": ["apps/web/features/highlights/components/highlight-card.tsx", "apps/web/features/highlights/components/highlights-filter-bar.tsx", "apps/web/features/highlights/utils/highlight-colors.ts"], "commands": [{"run": "pnpm test", "exit": 0}, {"run": "pnpm lint", "exit": 0}, {"run": "pnpm build", "exit": 0}]} -->
+
 #### Fase final — Qualidade
 
-- [x] T017 [TEST] Executar regressão e rastreabilidade em tests/highlights-regression.test.ts — Refs: US-001, US-002, US-003, FR-001, FR-002, FR-003, FR-004, FR-005, NFR-001, NFR-002, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010 — Depends: T011, T012, T013, T014, T015, T016
-  - [x] **PREP**: Identificar suites `pnpm test`, `pnpm lint`, `pnpm build`.
-  - [x] **EXECUTE**: Executar regressão completa e rastreabilidade.
-  - [x] **VERIFY**: Sem gaps, coverage ≥3 por ID.
-  - [x] **EVIDENCE**: Registrar contagens e comandos.
-  - [x] **IMPROVE**: Retrospectiva do processo.
+- [x] T017 [TEST] Executar regressão e rastreabilidade em tests/highlights-regression.test.ts — Refs: US-001, US-002, US-003, FR-001, FR-002, FR-003, FR-004, FR-005, NFR-001, NFR-002, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010 — Depends: T011, T012, T013, T014, T015, T016, T019, T020, T021, T022, T023, T024
+  - [x] **PREP**: Reconfirmar suites `pnpm test`, `pnpm lint`, `pnpm build` após a nova composição de filtros.
+  - [x] **EXECUTE**: Executar regressão completa e rastreabilidade incluindo o teste de interface.
+  - [x] **VERIFY**: Confirmar cobertura dos 20 IDs sem regressões.
+  - [x] **EVIDENCE**: Registrar contagens e comandos atualizados.
+  - [x] **IMPROVE**: Registrar a melhoria aplicada no fluxo de filtros ou justificar ausência.
+  <!-- specsfy:evidence {"task": "T017", "refs": ["US-001", "US-002", "US-003", "FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "NFR-001", "NFR-002", "AC-001", "AC-002", "AC-003", "AC-004", "AC-005", "AC-006", "AC-007", "AC-008", "AC-009", "AC-010"], "files": ["tests/highlights-filter-ui.test.ts"], "commands": [{"run": "pnpm test", "exit": 0}, {"run": "pnpm lint", "exit": 0}, {"run": "pnpm build", "exit": 0}]} -->
 
 ### 15. Ordem de execução
 
-- Caminho crítico: T001-T010 (TDD) → T011 → T012/T013 → T015 → T016 → T017; T014 paralelo após T006.
+- Caminho crítico: T001-T010 (TDD) → T011 → T012 → T018 → T019 → T020 → T021 → T022 → T023 → T024 → T017; T013/T014/T015/T016 podem seguir em paralelo.
 - Tarefas paralelas: T011 e T012 após TDD; T013/T014 paralelos.
-- Estratégia de MVP: US-001 (T011/T012) antes de US-002 (T013/T014).
+- Estratégia de MVP: US-001 (T011/T012) antes de US-002 (T013/T014), com os ajustes P1/P2 T021-T024 antes de nova revisão.
 
 ## Ato III — Entregar e validar
 
@@ -667,13 +728,17 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 - **DEC-003**: Filtros completos (cor/categoria/livro/bíblia/data+busca) — escolhido para cobrir revisão multi-eixo.
 - **DEC-004**: Ordenação recência + vazio CTA — escolhido para priorizar recentes e onboarding.
 - **DEC-005**: Ações navegar/editar/excluir/copiar — escolhido para gestão completa sem criar highlight.
+- **DEC-006**: Busca fora do painel e filtros secundários em overlay responsivo — escolhido para manter a ação mais frequente acessível sem ocupar a área dos cards; `Sheet` no desktop e `Drawer` no mobile, com swatches para cores e nomes completos para livros.
+- **DEC-007**: Arquivo pessoal calmo — escolhido para alinhar a página ao sistema Papel & Tinta; remover quotation mark, glow, blur e sombras fortes, mantendo a cor como marcador semântico.
+- **DEC-008**: Undo-first para exclusão — escolhido para preservar ritmo e permitir recuperação de dados pessoais sem confirmação nativa bloqueante.
+- **DEC-009**: Cores como filtro secundário — escolhido para priorizar busca, referência, recência, chips aplicados e contagem de resultados; versões bíblicas devem exibir nomes legíveis.
 
 ### 18. Definition of Done
 
-- [ ] `Definition Gate` está `Passed`.
-- [ ] `Plan Gate` está `Passed`.
+- [x] `Definition Gate` está `Passed`.
+- [x] `Plan Gate` está `Passed`.
 - [ ] `Delivery Gate` está `Passed`.
 - [ ] Todos os cenários `AC` aplicáveis passam.
 - [ ] Todos os requisitos possuem evidência de verificação.
-- [ ] Todas as tarefas na seção 14 estão concluídas.
-- [ ] Testes e checks estáticos disponíveis passam.
+- [x] Todas as tarefas na seção 14 estão concluídas.
+- [x] Testes e checks estáticos disponíveis passam.

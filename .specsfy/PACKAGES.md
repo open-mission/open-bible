@@ -86,6 +86,13 @@
 | npm | produção | @open-bible/domain-bible | workspace:* | Finalidade não descrita nos metadados locais. |  |
 | npm | produção | @tiptap/core | 3.28.0 | headless rich text editor | https://github.com/ueberdosis/tiptap |
 | npm | produção | @open-bible/contracts | workspace:* | Finalidade não descrita nos metadados locais. |  |
+| npm | produção | @tiptap/extension-bubble-menu | ^3.28.0 | bubble-menu extension for tiptap | https://github.com/ueberdosis/tiptap |
+| npm | produção | next | 16.3.2 | The React Framework | vercel/next.js |
+| npm | produção | react | 19.2.8 | React is a JavaScript library for building user interfaces. | https://github.com/facebook/react |
+| npm | produção | react-dom | 19.2.8 | React package for working with the DOM. | https://github.com/facebook/react |
+| npm | desenvolvimento | @types/react | 19.2.18 | TypeScript definitions for react | https://github.com/DefinitelyTyped/DefinitelyTyped |
+| npm | desenvolvimento | @types/react-dom | 19.2.5 | TypeScript definitions for react-dom | https://github.com/DefinitelyTyped/DefinitelyTyped |
+| npm | desenvolvimento | eslint-config-next | 16.3.2 | ESLint configuration used by Next.js. | vercel/next.js |
 <!-- specsfy:documentator:end -->
 
 ## Observações de entrega

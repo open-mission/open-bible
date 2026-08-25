@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest"
-// SPECSFY: US-002 FR-003 NFR-002 AC-004
+import { createHighlightPatch } from "@/features/highlights/components/highlight-edit-dialog"
+
 describe("Highlights AC-004 editar", () => {
-  it("edita cor/categoria/conteúdo e persiste", async () => {
-    const exists = await import("@/features/highlights/components/highlight-edit-dialog").then(() => true).catch(() => false)
-    expect(exists).toBe(true)
+  it("normaliza o patch de cor, categoria e conteúdo", () => {
+    expect(createHighlightPatch({ color: "#60a5fa", categoryId: "cat-1", content: "  estudo  " })).toEqual({
+      color: "#60a5fa",
+      categoryId: "cat-1",
+      content: "estudo",
+    })
   })
 })

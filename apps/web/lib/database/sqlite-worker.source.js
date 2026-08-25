@@ -11,43 +11,54 @@ const POOL_DIR = "/open-bible"
 
 let sqlite3 = null
 let pool = null
+let initPromise = null
 /** @type {Map<string, any>} open DB connections keyed by path */
 const conns = new Map()
 
 async function ensureInit() {
   if (pool) return
-  console.log("[worker] ensureInit: loading sqlite3 WASM...")
-  sqlite3 = await sqlite3InitModule()
-  console.log("[worker] ensureInit: sqlite3 loaded, installing SAHPool VFS...")
+  if (initPromise) return initPromise
 
-  // Retry installOpfsSAHPoolVfs with backoff — OPFS access handles from a
-  // previous (crashed/terminated) worker may still be held by the browser,
-  // causing NoModificationAllowedError. Waiting lets the OS release them.
-  const MAX_RETRIES = 5
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      pool = await sqlite3.installOpfsSAHPoolVfs({
-        name: "open-bible-pool",
-        directory: POOL_DIR,
-        initialCapacity: 32,
-      })
-      console.log("[worker] ensureInit: pool ready, files:", pool.getFileNames())
-      return
-    } catch (err) {
-      const isOpfsLockError =
-        err?.name === "NoModificationAllowedError" ||
-        String(err?.message ?? "").includes("createSyncAccessHandle")
-      if (isOpfsLockError && attempt < MAX_RETRIES) {
-        const delay = attempt * 500 // 500ms, 1000ms, 1500ms, 2000ms
-        console.warn(
-          `[worker] ensureInit: OPFS lock held by previous worker, retry ${attempt}/${MAX_RETRIES} in ${delay}ms...`
-        )
-        await new Promise((r) => setTimeout(r, delay))
-        continue
+  initPromise = (async () => {
+    console.log("[worker] ensureInit: loading sqlite3 WASM...")
+    sqlite3 = await sqlite3InitModule()
+    console.log("[worker] ensureInit: sqlite3 loaded, installing SAHPool VFS...")
+
+    // Retry installOpfsSAHPoolVfs with backoff — OPFS access handles from a
+    // previous (crashed/terminated) worker may still be held by the browser,
+    // causing NoModificationAllowedError. Waiting lets the OS release them.
+    const MAX_RETRIES = 5
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        pool = await sqlite3.installOpfsSAHPoolVfs({
+          name: "open-bible-pool",
+          directory: POOL_DIR,
+          initialCapacity: 32,
+        })
+        console.log("[worker] ensureInit: pool ready, files:", pool.getFileNames())
+        return
+      } catch (err) {
+        const isOpfsLockError =
+          err?.name === "NoModificationAllowedError" ||
+          String(err?.message ?? "").includes("createSyncAccessHandle")
+        if (isOpfsLockError && attempt < MAX_RETRIES) {
+          const delay = attempt * 500 // 500ms, 1000ms, 1500ms, 2000ms
+          console.warn(
+            `[worker] ensureInit: OPFS lock held by previous worker, retry ${attempt}/${MAX_RETRIES} in ${delay}ms...`
+          )
+          await new Promise((r) => setTimeout(r, delay))
+          continue
+        }
+        throw err
       }
-      throw err
     }
-  }
+  })().catch((err) => {
+    initPromise = null
+    pool = null
+    throw err
+  })
+
+  return initPromise
 }
 
 function fullPath(path) {
