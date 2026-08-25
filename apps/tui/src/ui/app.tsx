@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useKeyboard } from "@opentui/react"
 import { BibleManager } from "../db/bible-manager.js"
 import { InstalledStore } from "../db/installed-store.js"
+import { listRemoteVersions, downloadBible } from "../services/download.js"
 
 type Panel = "versions" | "books" | "chapters" | "verses"
 
@@ -16,19 +17,32 @@ export function App() {
   const [verses, setVerses] = useState<{ verse: number; text: string }[]>([])
   const [panel, setPanel] = useState<Panel>("versions")
   const [error, setError] = useState<string | null>(null)
-  const [search, setSearch] = useState("")
+
+  // picker (like web version picker)
+  const [showPicker, setShowPicker] = useState(false)
+  const [remoteVersions, setRemoteVersions] = useState<{ id: string; name: string }[]>([])
+  const [pickerIdx, setPickerIdx] = useState(0)
+  const [downloading, setDownloading] = useState<string | null>(null)
+  const [pickerError, setPickerError] = useState<string | null>(null)
+  const [loadingRemote, setLoadingRemote] = useState(false)
 
   const manager = new BibleManager()
 
-  useEffect(() => {
+  const refreshInstalled = () => {
     const store = new InstalledStore()
     const installed = store.list()
     store.close()
     setVersions(installed.map(v => ({ id: v.id, name: v.name })))
-    if (installed.length > 0) {
+    if (installed.length > 0 && !selectedVersion) {
       setSelectedVersion(installed[0].id)
       setPanel("books")
+    } else if (installed.length === 0) {
+      setSelectedVersion(null)
     }
+  }
+
+  useEffect(() => {
+    refreshInstalled()
   }, [])
 
   useEffect(() => {
@@ -46,9 +60,62 @@ export function App() {
     setVerses(vs)
   }, [selectedVersion, books, bookIdx, chapter])
 
+  const openPicker = async () => {
+    setShowPicker(true)
+    setPickerError(null)
+    setLoadingRemote(true)
+    try {
+      const remotes = await listRemoteVersions()
+      // filter out already installed? keep all but mark installed
+      setRemoteVersions(remotes)
+      setPickerIdx(0)
+    } catch (e) {
+      setPickerError((e as Error).message)
+    } finally {
+      setLoadingRemote(false)
+    }
+  }
+
+  const handleDownload = async (versionId: string) => {
+    setDownloading(versionId)
+    setPickerError(null)
+    try {
+      await downloadBible(versionId)
+      refreshInstalled()
+      setSelectedVersion(versionId)
+      setPanel("books")
+      setShowPicker(false)
+      setError(null)
+    } catch (e) {
+      setPickerError((e as Error).message)
+    } finally {
+      setDownloading(null)
+    }
+  }
+
   useKeyboard((key) => {
+    // picker has priority
+    if (showPicker) {
+      if (key.name === "escape" || key.name === "q") {
+        setShowPicker(false)
+        return
+      }
+      if (key.name === "up") setPickerIdx(i => Math.max(0, i - 1))
+      if (key.name === "down") setPickerIdx(i => Math.min(remoteVersions.length - 1, i + 1))
+      if ((key.name === "return" || key.name === "enter") && !downloading) {
+        const v = remoteVersions[pickerIdx]
+        if (v) handleDownload(v.id)
+      }
+      return
+    }
+
     if (key.name === "q" || (key.ctrl && key.name === "c")) {
       process.exit(0)
+    }
+    // open picker like web version picker
+    if (key.name === "d") {
+      openPicker()
+      return
     }
     if (key.name === "tab") {
       setPanel(p => (p === "versions" ? "books" : p === "books" ? "chapters" : p === "chapters" ? "verses" : "versions"))
@@ -88,18 +155,45 @@ export function App() {
   })
 
   const currentBook = books[bookIdx]
+  const installedIds = new Set(versions.map(v => v.id))
 
   return (
     <box flexDirection="column" width="100%" height="100%" backgroundColor="#0f172a">
       <box height={1} backgroundColor="#1e293b" paddingLeft={1} paddingRight={1}>
         <text>
-          <strong>Open Bible TUI</strong>  {selectedVersion ? `| ${selectedVersion}` : ""} {currentBook ? `| ${currentBook.name} ${chapter}` : ""}  | Tab: painel  q: sair  n/p: cap
+          <strong>Open Bible TUI</strong>  {selectedVersion ? `| ${selectedVersion}` : ""} {currentBook ? `| ${currentBook.name} ${chapter}` : ""}  | Tab: painel  q: sair  n/p: cap  d: baixar
         </text>
       </box>
 
-      {versions.length === 0 ? (
-        <box flexGrow={1} justifyContent="center" alignItems="center">
-          <text>Nenhuma versão instalada. Use: node dist/index.js download &lt;versão&gt;</text>
+      {showPicker ? (
+        <box flexDirection="column" flexGrow={1} padding={1} borderStyle="single" borderColor="cyan">
+          <text><strong>Baixar versão (picker como na web) — ↑↓ navegar  Enter baixar  Esc fechar</strong></text>
+          {loadingRemote ? (
+            <text>Carregando versões remotas...</text>
+          ) : (
+            <box flexDirection="column" flexGrow={1}>
+              {remoteVersions.map((v, idx) => {
+                const selected = idx === pickerIdx
+                const installed = installedIds.has(v.id)
+                const isDownloading = downloading === v.id
+                return (
+                  <text key={v.id} backgroundColor={selected ? "blue" : undefined}>
+                    {selected ? "› " : "  "}{v.id} — {v.name} {installed ? "(instalada)" : ""} {isDownloading ? "⏳ baixando..." : ""}
+                  </text>
+                )
+              })}
+            </box>
+          )}
+          {pickerError && <text color="red">{pickerError}</text>}
+          {downloading && <text>Baixando {downloading}... aguarde (R2 direto se API offline)</text>}
+          <text dimColor>Picker usa API /api/bibles se disponível, senão lista estática R2 (16 versões). Fallback direto https://pub-2e657f.../bibles/FILE.sqlite</text>
+        </box>
+      ) : versions.length === 0 ? (
+        <box flexDirection="column" flexGrow={1} justifyContent="center" alignItems="center">
+          <text>Nenhuma versão instalada.</text>
+          <text>Pressione d para abrir o picker e baixar (como na web)</text>
+          <text dimColor>ou: open-bible-tui download ara</text>
+          {error && <text color="red">{error}</text>}
         </box>
       ) : (
         <box flexDirection="row" flexGrow={1}>
@@ -150,7 +244,7 @@ export function App() {
       )}
 
       <box height={1} backgroundColor="#1e293b" paddingLeft={1}>
-        <text dimColor>↑↓ navegar  Enter selecionar  Esc voltar  Tab painel  n/p próximo/anterior cap  / busca  d download</text>
+        <text dimColor>↑↓ navegar  Enter selecionar  Esc voltar  Tab painel  n/p próximo/anterior cap  d baixar versão  q sair</text>
       </box>
     </box>
   )
