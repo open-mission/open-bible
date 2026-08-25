@@ -66,7 +66,7 @@ export function AllHighlightsBrowser({
     query: initialQuery,
   })
   const [editing, setEditing] = useState<AllHighlightEntry | null>(null)
-  const { entries, loading, error, reload, deleteHighlight } = useAllHighlights(active)
+  const { entries, loading, error, reload, deleteHighlight, restoreHighlight } = useAllHighlights(active)
   const { updateHighlight, listCategories, createCategory } = useHighlightMutations()
 
   useEffect(() => {
@@ -118,6 +118,37 @@ export function AllHighlightsBrowser({
     else toast.error("Não foi possível copiar a referência")
   }
 
+  function showDeleteToast(entry: AllHighlightEntry) {
+    toast("Destaque excluído", {
+      duration: 8000,
+      action: {
+        label: "Desfazer",
+        onClick: () => {
+          void restoreHighlight(entry).then((restored) => {
+            if (restored) toast.success("Destaque restaurado")
+            else toast.error("Não foi possível restaurar o destaque")
+          })
+        },
+      },
+    })
+  }
+
+  async function deleteEntry(entry: AllHighlightEntry) {
+    if (onDelete) {
+      const deleted = await onDelete(entry.highlight.id)
+      if (deleted) await reload()
+      return
+    }
+
+    const deleted = await deleteHighlight(entry.highlight.id)
+    if (!deleted) {
+      toast.error("Não foi possível excluir o destaque")
+      return
+    }
+
+    showDeleteToast(entry)
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
       <div
@@ -135,7 +166,7 @@ export function AllHighlightsBrowser({
           <div className="min-w-0">
             <h2 className="text-sm font-semibold text-foreground sm:text-base">Destaques</h2>
             <p className="truncate text-xs text-muted-foreground">
-              {entries.length} {entries.length === 1 ? "trecho destacado" : "trechos destacados"}
+              {filtered.length === entries.length ? entries.length : `${filtered.length} de ${entries.length}`} {filtered.length === 1 ? "trecho destacado" : "trechos destacados"}
             </p>
           </div>
         </div>
@@ -186,11 +217,9 @@ export function AllHighlightsBrowser({
                   const selected = entries.find((item) => item.highlight.id === id)
                   if (selected) setEditing(selected)
                 }}
-                onDelete={async (id) => {
-                  if (window.confirm("Excluir este destaque?")) {
-                    const deleted = await removeEntry(id)
-                    if (deleted) toast.success("Destaque excluído")
-                  }
+                onDelete={(id) => {
+                  const entryToDelete = entries.find((item) => item.highlight.id === id)
+                  if (entryToDelete) void deleteEntry(entryToDelete)
                 }}
                 onNavigate={navigateToVerse}
                 onCopy={() => copyEntry(entry)}
@@ -206,10 +235,11 @@ export function AllHighlightsBrowser({
         onClose={() => setEditing(null)}
         onSave={saveEdit}
         onDelete={async (id) => {
+          const entryToDelete = editing
           const deleted = await removeEntry(id)
           if (deleted) {
             setEditing(null)
-            toast.success("Destaque excluído")
+            if (!onDelete && entryToDelete) showDeleteToast(entryToDelete)
           }
         }}
         listCategories={listCategories}

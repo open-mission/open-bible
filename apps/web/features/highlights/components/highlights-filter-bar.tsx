@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/lib/use-media-query"
 import { getBookName } from "@/lib/books"
+import { AVAILABLE_VERSIONS_LIST } from "@/features/bible-reader/context/bible-version-context"
 import type { AllHighlightEntry } from "../hooks/use-all-highlights"
 import { getContrastColor, neonColors, type NeonColor } from "../utils/highlight-colors"
 
@@ -113,6 +114,10 @@ export function getColorFilterAriaLabel(hex: string): string {
     Yellow: "amarela",
   }
   return name ? `Cor ${labels[name] ?? name.toLocaleLowerCase()}` : `Cor ${hex}`
+}
+
+export function getBibleVersionName(id: string): string {
+  return AVAILABLE_VERSIONS_LIST.find((version) => version.id === id)?.name ?? id.toUpperCase()
 }
 
 interface HighlightsFilterBarProps {
@@ -209,13 +214,11 @@ function FilterFields({ value, categories, books, bibles, colors, onChange }: Fi
         Bíblia
         <Select value={selectValue(value.bible)} onValueChange={(nextValue) => setSelect("bible", nextValue)}>
           <SelectTrigger className="w-full">
-            <SelectValue>
-              {value.bible ? value.bible.toUpperCase() : "Todas as Bíblias"}
-            </SelectValue>
+            <SelectValue>{value.bible ? getBibleVersionName(value.bible) : "Todas as Bíblias"}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">Todas as Bíblias</SelectItem>
-            {bibles.map((bible) => <SelectItem key={bible} value={bible}>{bible.toUpperCase()}</SelectItem>)}
+            {bibles.map((bible) => <SelectItem key={bible} value={bible}>{getBibleVersionName(bible)}</SelectItem>)}
           </SelectContent>
         </Select>
       </label>
@@ -271,36 +274,49 @@ export function HighlightsFilterBar({ value, entries, onChange }: HighlightsFilt
   )
 
   return (
-    <div className="flex shrink-0 items-center gap-2 px-4 pb-3 sm:px-5 sm:pb-4">
-      <Input
-        aria-label="Buscar destaques"
-        placeholder="Buscar conteúdo ou versículo..."
-        value={value.query}
-        onChange={(event) => set({ query: event.target.value })}
-        className="h-9 min-w-0 flex-1"
-      />
-      <Button
-        type="button"
-        variant="outline"
-        className="shrink-0 gap-2"
-        aria-label={activeFilterCount ? `Filtros, ${activeFilterCount} ativos` : "Abrir filtros"}
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
-      >
-        <Filter className="size-4" />
-        <span className="hidden sm:inline">Filtros</span>
-        {activeFilterCount > 0 && <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">{activeFilterCount}</span>}
-      </Button>
-      {hasFilters && (
+    <div className="flex shrink-0 flex-col gap-2 px-4 pb-3 sm:px-5 sm:pb-4">
+      <div className="flex items-center gap-2">
+        <Input
+          aria-label="Buscar destaques"
+          placeholder="Buscar conteúdo ou versículo..."
+          value={value.query}
+          onChange={(event) => set({ query: event.target.value })}
+          className="h-9 min-w-0 flex-1"
+        />
         <Button
           type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Limpar filtros"
-          onClick={() => onChange(EMPTY_HIGHLIGHT_FILTERS)}
+          variant="outline"
+          className="shrink-0 gap-2"
+          aria-label={activeFilterCount ? `Filtros, ${activeFilterCount} ativos` : "Abrir filtros"}
+          aria-expanded={open}
+          onClick={() => setOpen(true)}
         >
-          <X />
+          <Filter className="size-4" />
+          <span className="hidden sm:inline">Filtros</span>
+          {activeFilterCount > 0 && <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">{activeFilterCount}</span>}
         </Button>
+        {hasFilters && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Limpar filtros"
+            onClick={() => onChange(EMPTY_HIGHLIGHT_FILTERS)}
+          >
+            <X />
+          </Button>
+        )}
+      </div>
+      {hasFilters && (
+        <div className="flex flex-wrap items-center gap-1.5" aria-label="Filtros aplicados">
+          {value.query && <FilterChip label={`Busca: ${value.query}`} onRemove={() => set({ query: "" })} />}
+          {value.color && <FilterChip label={`Cor: ${getColorFilterAriaLabel(value.color).replace("Cor ", "")}`} onRemove={() => set({ color: "" })} />}
+          {value.category && <FilterChip label={`Categoria: ${categories.find(([id]) => id === value.category)?.[1] ?? value.category}`} onRemove={() => set({ category: "" })} />}
+          {value.book && <FilterChip label={`Livro: ${books.find((book) => book.value === value.book)?.label ?? value.book}`} onRemove={() => set({ book: "" })} />}
+          {value.bible && <FilterChip label={`Bíblia: ${getBibleVersionName(value.bible)}`} onRemove={() => set({ bible: "" })} />}
+          {value.dateFrom && <FilterChip label={`De: ${value.dateFrom}`} onRemove={() => set({ dateFrom: "" })} />}
+          {value.dateTo && <FilterChip label={`Até: ${value.dateTo}`} onRemove={() => set({ dateTo: "" })} />}
+        </div>
       )}
 
       {isMobile ? (
@@ -331,6 +347,20 @@ export function HighlightsFilterBar({ value, entries, onChange }: HighlightsFilt
         </Sheet>
       )}
     </div>
+  )
+}
+
+function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <button
+      type="button"
+      className="inline-flex min-h-7 items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={onRemove}
+      aria-label={`Remover filtro ${label}`}
+    >
+      {label}
+      <X className="size-3 text-muted-foreground" />
+    </button>
   )
 }
 

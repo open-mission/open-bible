@@ -111,8 +111,6 @@ function HighlightEditorContent({
 
   async function handleDelete() {
     if (!highlight) return;
-    if (!window.confirm("Tem certeza que deseja excluir este destaque?"))
-      return;
     try {
       await onDelete(highlight.highlight.id);
       onClose();

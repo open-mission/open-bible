@@ -29,6 +29,23 @@ export function removeHighlightFromEntries(entries: AllHighlightEntry[], id: str
   return entries.filter((entry) => entry.highlight.id !== id)
 }
 
+export function buildHighlightRestoreInput(entry: AllHighlightEntry) {
+  return {
+    highlight: {
+      color: entry.highlight.color,
+      content: entry.highlight.content,
+      categoryId: entry.highlight.categoryId,
+      noteId: entry.highlight.noteId,
+    },
+    verses: entry.verses.map((verse) => ({
+      book: verse.book,
+      chapter: verse.chapter,
+      verse: verse.verse,
+      bible: verse.bible,
+    })),
+  }
+}
+
 export function useAllHighlights(open: boolean) {
   const [entries, setEntries] = useState<AllHighlightEntry[]>([])
   const [loading, setLoading] = useState(false)
@@ -115,11 +132,32 @@ export function useAllHighlights(open: boolean) {
     }
   }, [refreshContext])
 
+  const restoreHighlight = useCallback(async (entry: AllHighlightEntry) => {
+    try {
+      await database.initialize()
+      const restoreInput = buildHighlightRestoreInput(entry)
+      const restored = await database.highlights.create(restoreInput.highlight)
+      for (const verse of restoreInput.verses) {
+        await database.highlightVerses.add({
+          highlightId: restored.id,
+          ...verse,
+        })
+      }
+      await refreshContext()
+      await loadEntries()
+      return true
+    } catch (e) {
+      console.error("Failed to restore highlight:", e)
+      return false
+    }
+  }, [loadEntries, refreshContext])
+
   return {
     entries,
     loading,
     error,
     deleteHighlight,
+    restoreHighlight,
     reload: loadEntries,
   }
 }

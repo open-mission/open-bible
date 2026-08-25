@@ -2199,8 +2199,8 @@
 | apps/web/.next/dev/static/chunks/[next]_internal_font_google_lora_b806e6b1_module_css_0w3-wzy._.single.css |
 | apps/web/.next/dev/static/chunks/[root-of-the-server]__1080.xd._.css |
 | apps/web/.next/dev/static/chunks/apps_web_app_globals_css_0w3-wzy._.single.css |
+| apps/web/.next/static/css/5c43db16a444f527.css |
 | apps/web/.next/static/css/81129e909b7a5eca.css |
-| apps/web/.next/static/css/b5fa4359b03e89cf.css |
 | apps/web/app/config/page.tsx |
 | apps/web/app/database-test/page.tsx |
 | apps/web/app/error.tsx |

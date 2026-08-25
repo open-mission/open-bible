@@ -75,16 +75,13 @@ export function getNeonStyle(hex: string): NeonStyle {
     else cleanHex = "#34d399" // fallback to emerald
   }
 
-  // Fio de luz (DESIGN.md): cor é tinta, não luz. Sem halos —
-  // anéis-fio nítidos marcam seleção/atividade.
-  // pillBg   = 1a (10% alpha)
-  // anel     = 80 (50% alpha) no dot ativo; 33 (20%) no contorno da pílula
+  // Color is a quiet semantic marker in the personal archive, not decoration.
   return {
     hex: cleanHex,
-    glow: `0 0 0 1.5px ${cleanHex}80`,
+    glow: "none",
     pillBg: `${cleanHex}1a`,
-    pillText: cleanHex,
-    pillRing: `inset 0 0 0 1px ${cleanHex}33`,
+    pillText: "var(--foreground)",
+    pillRing: `inset 0 0 0 1px ${cleanHex}55`,
   }
 }
 
