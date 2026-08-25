@@ -86,7 +86,7 @@ export function NoteEditor({
         className,
       )}
     >
-      <div className="flex items-center gap-0.5 p-1 border-b border-border/60">
+      <div className="flex items-center gap-0.5 p-1">
         <ToolbarButton
           label="Negrito"
           active={editor.isActive("bold")}
