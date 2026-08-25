@@ -11,6 +11,7 @@
 | 04 | 0004-tui-opentui-leitor-e-download-de-versoes-com-sqlite-nativo | Draft | — |
 | 05 | 0003-migrar-desktop-de-tauri-para-electron | Implementing | — |
 | 06 | 0005-melhorar-navegacao-entre-livros-capitulos-e-versiculos-no-tui | Planned | — |
+| 07 | 0006-pagina-de-highlights-exibir-highlights | Reviewing | — |
 
 ## Marcos
 
