@@ -1,7 +1,7 @@
-import Database from "better-sqlite3"
 import * as fs from "node:fs"
 import { BOOK_META, BOOK_ID_TO_INT, testamentForBookInt } from "../lib/book-meta.js"
 import { biblePath } from "./paths.js"
+import { openReadOnly, type SqliteDb } from "./sqlite.js"
 
 export interface Book {
   id: string
@@ -34,16 +34,20 @@ export function validateDbFile(filePath: string): boolean {
 }
 
 export class BibleManager {
-  private cache = new Map<string, Database.Database>()
+  private cache = new Map<string, SqliteDb>()
 
-  private openDb(versionId: string): Database.Database | null {
+  private openDb(versionId: string): SqliteDb | null {
     const p = biblePath(versionId)
     if (!fs.existsSync(p)) return null
     if (this.cache.has(versionId)) return this.cache.get(versionId)!
     if (!validateDbFile(p)) return null
-    const db = new Database(p, { readonly: true })
-    this.cache.set(versionId, db)
-    return db
+    try {
+      const db = openReadOnly(p)
+      this.cache.set(versionId, db)
+      return db
+    } catch {
+      return null
+    }
   }
 
   close(): void {

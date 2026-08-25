@@ -1,7 +1,6 @@
-import Database from "better-sqlite3"
 import * as fs from "node:fs"
-import * as path from "node:path"
 import { appDbPath, ensureDataDirs } from "./paths.js"
+import { openReadWrite, type SqliteDb } from "./sqlite.js"
 
 export interface InstalledBible {
   id: string
@@ -11,18 +10,15 @@ export interface InstalledBible {
 }
 
 export class InstalledStore {
-  private db: Database.Database
+  private db: SqliteDb
 
   constructor(dbPath?: string) {
     ensureDataDirs()
     const target = dbPath ?? appDbPath()
-    const existed = fs.existsSync(target)
-    this.db = new Database(target)
-    this.db.pragma("journal_mode = WAL")
+    this.db = openReadWrite(target)
+    // WAL mode for concurrency (works for both drivers via pragma/exec)
+    try { this.db.pragma?.("journal_mode = WAL") } catch {}
     this.initSchema()
-    if (!existed) {
-      // ensure file exists
-    }
   }
 
   private initSchema() {
@@ -37,7 +33,7 @@ export class InstalledStore {
   }
 
   list(): InstalledBible[] {
-    const rows = this.db.prepare("SELECT id, name, installed_at, version_code FROM installed_bibles ORDER BY id").all() as any[]
+    const rows = this.db.prepare("SELECT id, name, installed_at, version_code FROM installed_bibles ORDER BY id").all() as { id: string; name: string; installed_at: number; version_code: number }[]
     return rows.map(r => ({
       id: r.id,
       name: r.name,
@@ -47,7 +43,7 @@ export class InstalledStore {
   }
 
   get(id: string): InstalledBible | null {
-    const row = this.db.prepare("SELECT id, name, installed_at, version_code FROM installed_bibles WHERE id = ?").get(id) as any
+    const row = this.db.prepare("SELECT id, name, installed_at, version_code FROM installed_bibles WHERE id = ?").get(id) as { id: string; name: string; installed_at: number; version_code: number } | undefined
     if (!row) return null
     return { id: row.id, name: row.name, installedAt: row.installed_at, versionCode: row.version_code }
   }
@@ -70,8 +66,6 @@ export class InstalledStore {
   }
 
   getDbPath(): string {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore internal
-    return (this.db as any).name ?? appDbPath()
+    return this.db.name ?? appDbPath()
   }
 }

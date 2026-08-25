@@ -34,8 +34,9 @@ describe("paths", () => {
   it("SPECSFY: NFR-003 driver nativo sem wasm no paths", () => {
     const src = fs.readFileSync("src/db/paths.ts", "utf-8")
     expect(src).not.toContain("sqlite-wasm")
-    const mgrSrc = fs.readFileSync("src/db/bible-manager.ts", "utf-8")
-    expect(mgrSrc).toContain("better-sqlite3")
+    const adapter = fs.readFileSync("src/db/sqlite.ts", "utf-8")
+    expect(adapter).toContain("better-sqlite3")
+    expect(adapter).toContain("bun:sqlite")
   })
 
   it("SPECSFY: AC-001 biblePath aponta para DATA_DIR/bibles/{id}.db", () => {

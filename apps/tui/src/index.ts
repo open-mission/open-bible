@@ -59,16 +59,41 @@ async function cmdRead(version: string, book: string, chapterStr: string) {
 }
 
 async function cmdTui() {
-  const { createCliRenderer } = await import("@opentui/core")
-  const { createRoot } = await import("@opentui/react")
-  const { App } = await import("./ui/app.js")
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const React = await import("react")
-  const renderer = await createCliRenderer({ exitOnCtrlC: true })
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  createRoot(renderer).render(React.createElement(App))
+  try {
+    const { createCliRenderer } = await import("@opentui/core")
+    const { createRoot } = await import("@opentui/react")
+    const { App } = await import("./ui/app.js")
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const React = await import("react")
+    const renderer = await createCliRenderer({ exitOnCtrlC: true })
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    createRoot(renderer).render(React.createElement(App))
+  } catch (e: unknown) {
+    const msg = (e as Error).message ?? String(e)
+    if (msg.includes("OpenTUI native FFI") || msg.includes("Failed to initialize OpenTUI")) {
+      console.error(`
+❌ OpenTUI não inicializou neste runtime (${process.versions.bun ? "Bun" : "Node"} ${process.version})
+
+Para o TUI use Bun (recomendado pelo OpenTUI):
+
+  mise use -g bun@1.4.0   # ou: curl -fsSL https://bun.sh/install | bash
+  bun --bun src/index.ts                 # dentro de apps/tui
+  # ou
+  pnpm --filter @open-bible/tui dev:bun
+
+Para comandos sem TUI (list/download/read) o Node funciona normalmente.
+Detalhe: ${msg}
+`)
+      process.exit(1)
+    }
+    if (msg.includes("better-sqlite3") && (process as unknown as { versions?: { bun?: string } }).versions?.bun) {
+      console.error(`❌ better-sqlite3 não suportado no Bun. O adaptador tentou fallback para bun:sqlite. Erro: ${msg}`)
+      process.exit(1)
+    }
+    throw e
+  }
 }
 
 function printHelp() {
@@ -76,7 +101,7 @@ function printHelp() {
 Open Bible TUI — leitor terminal com sqlite nativo
 
 Uso:
-  open-bible-tui                    inicia TUI interativo (OpenTUI)
+  open-bible-tui                    inicia TUI interativo (OpenTUI) — requer Bun
   open-bible-tui list               lista versões instaladas
   open-bible-tui list-remote        lista versões remotas
   open-bible-tui download <id>      baixa e instala versão (ex: ara, nvi)
@@ -84,9 +109,15 @@ Uso:
   open-bible-tui read <id> <livro> <cap>  imprime capítulo (ex: read ara gen 1)
   open-bible-tui --help             esta ajuda
 
-Env:
+Runtime:
+  TUI requer Bun >=1.1 (OpenTUI FFI + bun:sqlite). Comandos list/read/download funcionam em Node 22 via better-sqlite3.
   OPEN_BIBLE_DATA_DIR  override do diretório de dados (padrão: ~/.local/share/open-bible)
   OPEN_BIBLE_API_URL   base da API (padrão: http://localhost:3000)
+
+Exemplos:
+  pnpm --filter @open-bible/tui dev:bun
+  bun --bun src/index.ts
+  OPEN_BIBLE_DATA_DIR=/tmp/tui-test bun --bun src/index.ts --help
 `)
 }
 
