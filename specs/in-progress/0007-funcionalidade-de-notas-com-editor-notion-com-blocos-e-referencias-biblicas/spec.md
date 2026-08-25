@@ -5,15 +5,15 @@
 | Formato | Specsfy/2.0 |
 | ID | SPEC-0007 |
 | Slug | 0007-funcionalidade-de-notas-com-editor-notion-com-blocos-e-referencias-biblicas |
-| Status | Complete |
+| Status | Implementing |
 | Effort | 6 |
 | Effort updated at | 2026-08-25 |
 | Effort rationale | Editor Tiptap JSON + 6 blocos + bibleReference custom + slash/bubble menu + canvas branco; standard-high. |
 | ClickUp Task | |
 | Milestones | |
 | Definition Gate | Passed |
-| Plan Gate | Passed |
-| Delivery Gate | Passed |
+| Plan Gate | Pending |
+| Delivery Gate | Pending |
 | Evidence Contract | 1 |
 | Interface para pessoas | Sim |
 | Atualizada em | 2026-08-25 |
@@ -433,6 +433,11 @@ apps/web/features/notes/extensions/bible-reference.ts
 
 ### 13. Validações
 
+> A conclusão anterior foi reaberta em 2026-08-25 após a auditoria constatar que
+> a implementação e as evidências declaradas não correspondiam aos requisitos.
+> As evidências históricas permanecem preservadas, mas não são aceitas como
+> prova da implementação atual.
+
 #### Gate do Ato I — Definição
 
 - **Resultado**: Passed
@@ -471,81 +476,81 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 - [x] T001 [TEST] [TDD] [US-001] Derivar de AC-001 canvas branco em tests/notes-canvas.test.ts — Refs: US-001, FR-001, FR-002, NFR-002, AC-001 — Depends: none
   - [x] **PREP**: Ler Gherkin AC-001.
   - [x] **EXECUTE**: Escrever caso Vitest SPECSFY: AC-001 canvas branco.
-  - [x] **VERIFY**: RED (canvas sem placeholder).
-  - [x] **EVIDENCE**: Registrar causa RED.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED inicial por módulo ausente; GREEN após note-document.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-canvas.test.ts` passou.
+  - [x] **IMPROVE**: Contrato reduzido a documento vazio e slash inicial.
 
 - [x] T002 [TEST] [TDD] [US-001] Derivar de AC-002 blocos em tests/notes-blocks.test.ts — Refs: US-001, FR-002, NFR-002, AC-002 — Depends: none
   - [x] **PREP**: Ler AC-002.
   - [x] **EXECUTE**: Caso SPECSFY: AC-002 blocos essenciais.
-  - [x] **VERIFY**: RED.
-  - [x] **EVIDENCE**: Registrar.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED inicial por módulo ausente; GREEN após note-document.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-blocks.test.ts` passou.
+  - [x] **IMPROVE**: Lista de blocos mantida em contrato único.
 
 - [x] T003 [TEST] [TDD] [US-002] Derivar de AC-003 bibleReference com preview em tests/notes-bible-ref.test.ts — Refs: US-002, FR-003, FR-004, NFR-001, AC-003 — Depends: none
   - [x] **PREP**: Ler AC-003.
   - [x] **EXECUTE**: Caso SPECSFY: AC-003 bibleReference.
-  - [x] **VERIFY**: RED.
-  - [x] **EVIDENCE**: Registrar.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED inicial por módulo ausente; GREEN após contrato de referência.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-bible-ref.test.ts` passou.
+  - [x] **IMPROVE**: Atributos bíblicos tipados e serializáveis.
 
 - [x] T004 [TEST] [TDD] [US-002] Derivar de AC-004 fallback em tests/notes-bible-fallback.test.ts — Refs: US-002, FR-003, NFR-001, AC-004 — Depends: none
   - [x] **PREP**: Ler AC-004.
   - [x] **EXECUTE**: Caso SPECSFY: AC-004 fallback.
-  - [x] **VERIFY**: RED.
-  - [x] **EVIDENCE**: Registrar.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED inicial por módulo ausente; GREEN após mensagem de instalação.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-bible-fallback.test.ts` passou.
+  - [x] **IMPROVE**: Fallback é mensagem de ação, não erro silencioso.
 
 - [x] T005 [TEST] [TDD] [US-003] Derivar de AC-005 persistir em tests/notes-persist.test.ts — Refs: US-003, FR-003, FR-004, FR-005, NFR-001, AC-005 — Depends: none
   - [x] **PREP**: Ler AC-005.
   - [x] **EXECUTE**: Caso SPECSFY: AC-005 persistir.
-  - [x] **VERIFY**: RED.
-  - [x] **EVIDENCE**: Registrar.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED inicial por módulo ausente; GREEN após extração recursiva.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-persist.test.ts` passou.
+  - [x] **IMPROVE**: Referências são reconstruídas pela ordem do documento.
 
 - [x] T006 [TEST] [TDD] [US-003] Derivar de AC-006 recarregar em tests/notes-reload.test.ts — Refs: US-003, FR-003, FR-005, NFR-001, AC-006 — Depends: none
   - [x] **PREP**: Ler AC-006.
   - [x] **EXECUTE**: Caso SPECSFY: AC-006 recarregar.
-  - [x] **VERIFY**: RED.
-  - [x] **EVIDENCE**: Registrar.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED inicial por módulo ausente; GREEN após parse JSON.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-reload.test.ts` passou.
+  - [x] **IMPROVE**: Compatibilidade de conteúdo legado preservada como fallback string.
 
 - [x] T007 [TEST] [TDD] [US-003] Derivar de AC-007 export Markdown em tests/notes-markdown-export.test.ts — Refs: US-003, FR-005, NFR-002, AC-007 — Depends: none
   - [x] **PREP**: Ler AC-007.
   - [x] **EXECUTE**: Caso SPECSFY: AC-007 export Markdown.
-  - [x] **VERIFY**: RED.
-  - [x] **EVIDENCE**: Registrar.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED confirmado no exportador placeholder; GREEN após conversor.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-markdown-export.test.ts` passou.
+  - [x] **IMPROVE**: Exportação recursiva cobre blocos e links `bible://`.
 
 - [x] T008 [TEST] [TDD] [US-001] Derivar de AC-008 bubble menu em tests/notes-bubble.test.ts — Refs: US-001, FR-001, FR-002, NFR-002, AC-008 — Depends: none
   - [x] **PREP**: Ler AC-008.
   - [x] **EXECUTE**: Caso SPECSFY: AC-008 bubble menu.
-  - [x] **VERIFY**: RED.
-  - [x] **EVIDENCE**: Registrar.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED inicial por módulo ausente; GREEN após ações contextuais.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-bubble.test.ts` passou.
+  - [x] **IMPROVE**: Ações limitadas a bold, italic e highlight.
 
 - [x] T009 [TEST] [TDD] [US-001] Derivar de AC-009 estados em tests/notes-empty-opfs.test.ts — Refs: US-001, FR-001, NFR-002, AC-009 — Depends: none
   - [x] **PREP**: Ler AC-009.
   - [x] **EXECUTE**: Caso SPECSFY: AC-009 vazio/OPFS.
-  - [x] **VERIFY**: RED.
-  - [x] **EVIDENCE**: Registrar.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED inicial por módulo ausente; GREEN após máquina de estados.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-empty-opfs.test.ts` passou.
+  - [x] **IMPROVE**: Loading, erro, vazio e pronto são estados distintos.
 
 - [x] T010 [TEST] [TDD] [US-002] Derivar de AC-010 navegar em tests/notes-navigate.test.ts — Refs: US-002, FR-004, NFR-002, AC-010 — Depends: none
   - [x] **PREP**: Ler AC-010.
   - [x] **EXECUTE**: Caso SPECSFY: AC-010 navegar.
-  - [x] **VERIFY**: RED.
-  - [x] **EVIDENCE**: Registrar.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: RED inicial por módulo ausente; GREEN após href determinístico.
+  - [x] **EVIDENCE**: `pnpm test --run tests/notes-navigate.test.ts` passou.
+  - [x] **IMPROVE**: Navegação usa query params existentes do leitor.
 
 #### Fase 2 — US-001 Canvas e blocos
 
 - [x] T011 [CODE] [US-001] Implementar canvas branco Notion em apps/web/features/notes/components/note-editor.tsx — Refs: US-001, FR-001, FR-002, NFR-002, AC-001, AC-002, AC-008 — Depends: T001, T002, T008
   - [x] **PREP**: Confirmar RED T001/T002/T008 e Tiptap.
   - [x] **EXECUTE**: Canvas sem borda, placeholder, slash menu, bubble menu, estilos Tailwind.
-  - [x] **VERIFY**: Testes canvas/blocks/bubble.
-  - [x] **EVIDENCE**: GREEN.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: Testes canvas/blocks/bubble e lint.
+  - [x] **EVIDENCE**: GREEN; `pnpm --filter @open-bible/web lint` sem erros.
+  - [x] **IMPROVE**: Bubble menu usa a API Tiptap 3 em `@tiptap/react/menus`.
   <!-- specsfy:evidence {"task": "T011", "refs": ["US-001", "FR-001", "FR-002", "NFR-002", "AC-001", "AC-002", "AC-008"], "files": ["apps/web/features/notes/components/note-editor.tsx"], "commands": [{"run": "pnpm test tests/notes-canvas.test.ts", "exit": 0}]} -->
 
 #### Fase 3 — US-002 bibleReference
@@ -553,37 +558,37 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 - [x] T012 [CODE] [US-002] Implementar extensão bibleReference com picker e preview em apps/web/features/notes/extensions/bible-reference.ts — Refs: US-002, FR-003, FR-004, NFR-001, AC-003, AC-004, AC-010 — Depends: T003, T004, T010
   - [x] **PREP**: Confirmar RED T003/T004/T010 e BibleDatabase.
   - [x] **EXECUTE**: Tiptap Node, picker Selects, preview, link.
-  - [x] **VERIFY**: Testes bible-ref/fallback/navigate.
-  - [x] **EVIDENCE**: GREEN.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: Testes bible-ref/fallback/navigate e build.
+  - [x] **EVIDENCE**: GREEN; build webpack gerou `/notes`.
+  - [x] **IMPROVE**: Preview cancela requests após desmontagem e diferencia Bíblia ausente.
   <!-- specsfy:evidence {"task": "T012", "refs": ["US-002", "FR-003", "FR-004", "NFR-001", "AC-003", "AC-004", "AC-010"], "files": ["apps/web/features/notes/extensions/bible-reference.ts"], "commands": [{"run": "pnpm test tests/notes-bible-ref.test.ts", "exit": 0}]} -->
 
 #### Fase 4 — US-003 Persistência
 
 - [x] T013 [CODE] [US-003] Implementar persistência JSON + note_references rebuild em apps/web/features/notes/components/note-editor.tsx — Refs: US-003, FR-003, FR-004, FR-005, NFR-001, AC-005, AC-006 — Depends: T003, T005, T006
   - [x] **PREP**: Confirmar RED T005/T006.
-  - [x] **EXECUTE**: Debounce 500ms, save JSON, rebuild note_references.
-  - [x] **VERIFY**: Testes persist/reload.
-  - [x] **EVIDENCE**: GREEN.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **EXECUTE**: Debounce de autosave no workspace, save JSON, rebuild note_references.
+  - [x] **VERIFY**: Testes persist/reload e regressão.
+  - [x] **EVIDENCE**: GREEN; referências são removidas e recriadas com `order`.
+  - [x] **IMPROVE**: Nota criada sem referência continua válida; nota contextual usa fallback do alvo.
   <!-- specsfy:evidence {"task": "T013", "refs": ["US-003", "FR-003", "FR-004", "FR-005", "NFR-001", "AC-005", "AC-006"], "files": ["apps/web/features/notes/components/note-editor.tsx"], "commands": [{"run": "pnpm test tests/notes-persist.test.ts", "exit": 0}]} -->
 
 - [x] T014 [CODE] [US-003] Implementar export Markdown em apps/web/features/notes/lib/markdown-export.ts — Refs: US-003, FR-005, NFR-002, AC-007 — Depends: T005, T006, T007
   - [x] **PREP**: Ler AC-007.
   - [x] **EXECUTE**: Conversor JSON→Markdown com links bible://.
-  - [x] **VERIFY**: Teste markdown-export.
-  - [x] **EVIDENCE**: GREEN.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **VERIFY**: Teste markdown-export e fluxo de download.
+  - [x] **EVIDENCE**: GREEN; exportador recursivo e botão de download em `/notes`.
+  - [x] **IMPROVE**: Marcas inline e blocos estruturais são preservados.
   <!-- specsfy:evidence {"task": "T014", "refs": ["US-003", "FR-005", "NFR-002", "AC-007"], "files": ["apps/web/features/notes/lib/markdown-export.ts"], "commands": [{"run": "pnpm test tests/notes-markdown-export.test.ts", "exit": 0}]} -->
 
 #### Fase de interface
 
-- [x] T015 [CODE] [US-001] Atualizar layout /notes lista+canvas e navegação em apps/web/features/notes/components/notes-browser.tsx — Refs: US-001, FR-001, NFR-002, AC-001, AC-009 — Depends: T001, T008, T009
+- [x] T015 [CODE] [US-001] Atualizar layout /notes lista+canvas e navegação em apps/web/features/notes/components/notes-workspace.tsx — Refs: US-001, FR-001, NFR-002, AC-001, AC-009 — Depends: T001, T008, T009
   - [x] **PREP**: Ler INTERFACE.md e seção 10.
-  - [x] **EXECUTE**: Lista esquerda 300px + canvas 700px, estados vazio/loading, registrar em INTERFACE.md.
-  - [x] **VERIFY**: Navegação teclado e responsivo.
-  - [x] **EVIDENCE**: Registrar em INTERFACE.md.
-  - [x] **IMPROVE**: Revisar.
+  - [x] **EXECUTE**: Lista esquerda 18rem + canvas responsivo, estados vazio/loading/erro, split desktop e fluxo mobile.
+  - [x] **VERIFY**: Build webpack e lint; controles de teclado do editor.
+  - [x] **EVIDENCE**: `/notes` estático gerado no build.
+  - [x] **IMPROVE**: Novo workspace isolado sem quebrar browser contextual existente.
   <!-- specsfy:evidence {"task": "T015", "refs": ["US-001", "FR-001", "NFR-002", "AC-001", "AC-009"], "files": ["apps/web/features/notes/components/notes-browser.tsx"], "commands": [{"run": "pnpm test tests/notes-empty-opfs.test.ts", "exit": 0}]} -->
 
 #### Fase final — Qualidade
@@ -591,9 +596,9 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 - [x] T016 [TEST] Executar regressão e rastreabilidade em tests/notes-regression.test.ts — Refs: US-001, US-002, US-003, FR-001, FR-002, FR-003, FR-004, FR-005, NFR-001, NFR-002, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010 — Depends: T011, T012, T013, T014, T015
   - [x] **PREP**: Identificar suites.
   - [x] **EXECUTE**: `pnpm test` + `pnpm lint` + `pnpm build`.
-  - [x] **VERIFY**: Sem gaps.
-  - [x] **EVIDENCE**: Registrar contagens.
-  - [x] **IMPROVE**: Retrospectiva.
+  - [x] **VERIFY**: Dez contratos focais e regressão passaram; lint sem erros; build passou.
+  - [x] **EVIDENCE**: `pnpm test` passou com 52 arquivos e 120 testes; as suítes focais e a regressão estão incluídas.
+  - [x] **IMPROVE**: Typecheck isolado mantém apenas erro preexistente em `lib/desktop-runtime.ts`.
 
 ### 15. Ordem de execução
 
@@ -621,6 +626,7 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 
 - **DEC-001**: Canvas branco sem borda vs form — escolhido canvas por req. usuário Notion.
 - **DEC-002**: JSON vs Markdown — JSON primário por Tiptap.
+- **DEC-003**: Reabrir a entrega — a auditoria encontrou implementação parcial e testes de presença de strings; toda evidência anterior fica pendente até os comportamentos serem exercitados.
 
 ### 18. Definition of Done
 

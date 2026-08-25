@@ -1,6 +1,7 @@
 import { Node } from "@tiptap/core"
+import { ReactNodeViewRenderer } from "@tiptap/react"
+import { BibleReferenceView } from "../components/bible-reference-view"
 
-// bibleReference custom node with preview via BibleDatabase and link to leitor
 export const BibleReference = Node.create({
   name: "bibleReference",
   group: "block",
@@ -14,9 +15,23 @@ export const BibleReference = Node.create({
       verseEnd: { default: null },
     }
   },
-  parseHTML() { return [{ tag: "bible-reference" }] },
+  parseHTML() {
+    return [{ tag: "bible-reference" }]
+  },
   renderHTML({ node }) {
-    return ["bible-reference", { "data-bible": node.attrs.bible, "data-book": node.attrs.book }, `${node.attrs.book} ${node.attrs.chapter}:${node.attrs.verseStart}`]
+    return [
+      "bible-reference",
+      {
+        "data-bible": node.attrs.bible,
+        "data-book": node.attrs.book,
+        "data-chapter": node.attrs.chapter,
+        "data-verse-start": node.attrs.verseStart,
+        "data-verse-end": node.attrs.verseEnd ?? "",
+      },
+    ]
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(BibleReferenceView)
   },
 })
 

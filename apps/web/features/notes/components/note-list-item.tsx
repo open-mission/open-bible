@@ -37,7 +37,7 @@ export function NoteListItem({ entry, onOpen, className }: NoteListItemProps) {
         <p className="mt-2 text-sm italic text-muted-foreground/70">Nota sem texto</p>
       ) : (
         <div className="mt-2 line-clamp-4 max-h-24 overflow-hidden pointer-events-none">
-          <NoteRenderer key={entry.note.id} html={entry.note.content} />
+          <NoteRenderer key={entry.note.id} content={entry.note.content} />
         </div>
       )}
       {entry.references.length > 1 && (
