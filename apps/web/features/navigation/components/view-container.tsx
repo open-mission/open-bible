@@ -4,61 +4,28 @@ import { useAppNavigation } from "../context/app-navigation-context"
 import { useWorkspaceMode } from "@/features/workspace/hooks/use-workspace-mode"
 import { SimpleHome } from "@/features/workspace/components/simple-home"
 import { AdvancedHome } from "@/features/workspace/components/advanced-home"
-import {
-  ArrowLeft,
-  Highlighter,
-  Notebook,
-} from "lucide-react"
+import { NotesBrowser } from "@/features/notes/components/notes-browser"
+import { AllHighlightsBrowser } from "@/features/highlights/components/all-highlights-browser"
+import { useHighlightMutations } from "@/features/highlights/hooks/use-highlight-mutations"
 
-interface StubViewShellProps {
-  title: string
-  description: string
-  icon: React.ComponentType<{ className?: string }>
-}
-
-function StubViewShell({ title, description, icon: Icon }: StubViewShellProps) {
+function HighlightsView({ active }: { active: boolean }) {
   const { navigate } = useAppNavigation()
-
+  const { deleteHighlight } = useHighlightMutations()
   return (
-    <div className="flex flex-col h-full">
-      <header className="flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4 py-3 shrink-0">
-        <button
-          onClick={() => navigate("reader")}
-          aria-label="Voltar"
-          className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-        >
-          <ArrowLeft className="size-4" />
-        </button>
-        <h1 className="font-sans text-base font-medium">{title}</h1>
-      </header>
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 text-muted-foreground p-4">
-        <Icon className="size-12 text-muted-foreground/30" />
-        <div className="text-center">
-          <p className="text-sm max-w-[280px]">{description}</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function NotesStubView() {
-  return (
-    <StubViewShell
-      title="Notas"
-      description="Em breve você poderá acessar todas as suas notas aqui."
-      icon={Notebook}
+    <AllHighlightsBrowser
+      active={active}
+      onClose={() => navigate("reader")}
+      onEdit={() => {}}
+      onDelete={async (id) => {
+        await deleteHighlight(id)
+        return true
+      }}
     />
   )
 }
 
-function HighlightsStubView() {
-  return (
-    <StubViewShell
-      title="Destaques"
-      description="Em breve você poderá visualizar todos os seus destaques aqui."
-      icon={Highlighter}
-    />
-  )
+function NotesView({ active }: { active: boolean }) {
+  return <NotesBrowser mode="all" active={active} />
 }
 
 export function ViewContainer({ openBookChapterSignal }: {
@@ -76,9 +43,9 @@ export function ViewContainer({ openBookChapterSignal }: {
       case "reader":
         return <AdvancedHome />
       case "notes":
-        return <NotesStubView />
+        return <NotesView active={activeView === "notes"} />
       case "highlights":
-        return <HighlightsStubView />
+        return <HighlightsView active={activeView === "highlights"} />
       default:
         return <AdvancedHome />
     }
@@ -88,9 +55,9 @@ export function ViewContainer({ openBookChapterSignal }: {
     case "reader":
       return <SimpleHome openBookChapterSignal={openBookChapterSignal} />
     case "notes":
-      return <NotesStubView />
+      return <NotesView active={activeView === "notes"} />
     case "highlights":
-      return <HighlightsStubView />
+      return <HighlightsView active={activeView === "highlights"} />
     default:
       return <SimpleHome openBookChapterSignal={openBookChapterSignal} />
   }
