@@ -98,3 +98,6 @@ next-env.d.ts.env.local
 .context/runtime/
 .context/logs/
 .context/**/archive/
+
+# tui binary build (bun compile 137M, generated)
+/apps/tui/dist/

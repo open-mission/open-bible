@@ -14,7 +14,9 @@
     "start:bun": "bun --bun dist/index.js",
     "test": "vitest run",
     "test:tdd": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:binary": "bun build --compile src/index.ts --outfile dist/open-bible-tui",
+    "install:local": "pnpm build && bun build --compile src/index.ts --outfile dist/open-bible-tui && install -Dm755 dist/open-bible-tui ~/.local/bin/open-bible-tui && echo \"installed to ~/.local/bin/open-bible-tui\""
   },
   "dependencies": {
     "@opentui/core": "0.5.8",
