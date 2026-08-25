@@ -5,8 +5,8 @@
 
 | Tipo | Quantidade |
 | --- | --- |
-| Código | 1816 |
-| Testes | 40 |
+| Código | 3635 |
+| Testes | 133 |
 
 ## Diagramas
 

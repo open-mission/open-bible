@@ -101,16 +101,19 @@ export function HighlightsProvider({
 
   // Load from localStorage
   useEffect(() => {
-    try {
-      const pos = localStorage.getItem("openbible:highlight-gutter-position")
-      if (pos === "left" || pos === "right") setGutterPositionState(pos)
+    const frame = requestAnimationFrame(() => {
+      try {
+        const pos = localStorage.getItem("openbible:highlight-gutter-position")
+        if (pos === "left" || pos === "right") setGutterPositionState(pos)
 
-      const mob = localStorage.getItem("openbible:highlight-mobile-interaction")
-      if (mob === "popover" || mob === "drawer") setMobileInteractionState(mob)
+        const mob = localStorage.getItem("openbible:highlight-mobile-interaction")
+        if (mob === "popover" || mob === "drawer") setMobileInteractionState(mob)
 
-      const desk = localStorage.getItem("openbible:highlight-desktop-interaction")
-      if (desk === "popover" || desk === "drawer") setDesktopInteractionState(desk)
-    } catch { /* ignore */ }
+        const desk = localStorage.getItem("openbible:highlight-desktop-interaction")
+        if (desk === "popover" || desk === "drawer") setDesktopInteractionState(desk)
+      } catch { /* ignore */ }
+    })
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   const setGutterPosition = (pos: "left" | "right") => {

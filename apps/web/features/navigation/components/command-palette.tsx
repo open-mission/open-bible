@@ -53,7 +53,9 @@ export function CommandPalette({
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    if (!open) setSearch("")
+    if (open) return
+    const frame = requestAnimationFrame(() => setSearch(""))
+    return () => cancelAnimationFrame(frame)
   }, [open])
 
   const handleSelect = (action: () => void) => {

@@ -50,10 +50,12 @@ export function SimpleHome({ openBookChapterSignal }: { openBookChapterSignal?: 
   const [dialogInitialView, setDialogInitialView] = useState<"books" | "chapters">("books")
 
   useEffect(() => {
-    if (openBookChapterSignal && openBookChapterSignal > 0) {
+    if (!openBookChapterSignal || openBookChapterSignal <= 0) return
+    const frame = requestAnimationFrame(() => {
       setDialogInitialView("books")
       setBookChapterDialogOpen(true)
-    }
+    })
+    return () => cancelAnimationFrame(frame)
   }, [openBookChapterSignal])
 
   const handleSelectBook = useCallback(

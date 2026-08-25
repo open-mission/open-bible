@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   BookOpen,
   Moon,
@@ -60,15 +61,19 @@ export function AppSidebar({
           className={`flex items-center px-2 py-2 ${sidebarCollapsed ? "justify-center" : "justify-between"}`}
         >
           {!sidebarCollapsed ? (
-            <img
+            <Image
               src="/logo.svg"
               alt="Open Bible Logo"
+              width={710}
+              height={190}
               className="h-7 w-auto dark:invert-0 invert select-none pointer-events-none"
             />
           ) : (
-            <img
+            <Image
               src="/logo-minimal-transparent.png"
               alt="Open Bible"
+              width={59}
+              height={60}
               className="h-6 w-auto select-none pointer-events-none dark:invert-0 invert"
             />
           )}

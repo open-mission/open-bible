@@ -620,7 +620,7 @@ interface WorkspacePaneSidebarProps {
 }
 
 export function WorkspacePaneSidebar({ sidebarWidth, onSidebarResize, onOverviewOpen }: WorkspacePaneSidebarProps) {
-  const { panes, activePaneId, activatePane, closePane, closeAllPanes, layoutMode, setLayoutMode, tabsOrientation, setTabsOrientation } = useWorkspace()
+  const { panes, activePaneId, activatePane, closePane, closeAllPanes, layoutMode, setLayoutMode } = useWorkspace()
   const paneIds = panes.map((p) => p.id)
   const { isDark, setTheme } = useAppTheme()
   const [isCollapsed, setIsCollapsed] = useState(false)

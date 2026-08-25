@@ -517,7 +517,24 @@ app.get("/api/debug/bibles-data", async (c) => {
 });
 
 // Simple in-memory cache for Tauri updater manifest to avoid GitHub rate limits
-const manifestCache: Record<string, { timestamp: number; data: any }> = {};
+interface GitHubRelease {
+  draft: boolean;
+  tag_name: string;
+  body?: string | null;
+  html_url?: string | null;
+}
+
+interface ReleaseInfo {
+  tag: string;
+  changelog: string;
+  htmlUrl: string;
+}
+
+type UpdateManifest = Record<string, unknown>;
+type CacheEntry<T> = { timestamp: number; data: T };
+
+const releaseCache: Record<string, CacheEntry<ReleaseInfo>> = {};
+const updateManifestCache: Record<string, CacheEntry<UpdateManifest>> = {};
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 app.get("/api/updates/tauri", async (c) => {
@@ -543,7 +560,7 @@ app.get("/api/updates/tauri", async (c) => {
   try {
     const cacheKey = `${channel}`;
     const now = Date.now();
-    const cached = manifestCache[cacheKey];
+     const cached = releaseCache[cacheKey];
 
     let resolvedTag = "";
     let changelogText = "";
@@ -564,15 +581,15 @@ app.get("/api/updates/tauri", async (c) => {
         if (!response.ok) {
           throw new Error(`Failed to fetch releases list from GitHub. Status: ${response.status}`);
         }
-        const releases = await response.json() as any[];
+         const releases = await response.json() as GitHubRelease[];
         const validReleases = (releases || [])
           .filter((r) => !r.draft)
           .sort((a, b) => compareSemver(b.tag_name, a.tag_name));
 
         if (validReleases.length > 0) {
           resolvedTag = validReleases[0].tag_name;
-          changelogText = validReleases[0].body || "";
-          htmlUrl = validReleases[0].html_url || "";
+           changelogText = validReleases[0].body ?? "";
+           htmlUrl = validReleases[0].html_url ?? "";
         }
       } else {
         // Fetch latest stable release
@@ -583,14 +600,14 @@ app.get("/api/updates/tauri", async (c) => {
         if (!response.ok) {
           throw new Error(`Failed to fetch latest release from GitHub. Status: ${response.status}`);
         }
-        const data = await response.json() as any;
+         const data = await response.json() as GitHubRelease;
         resolvedTag = data.tag_name;
-        changelogText = data.body || "";
-        htmlUrl = data.html_url || "";
+         changelogText = data.body ?? "";
+         htmlUrl = data.html_url ?? "";
       }
 
       if (resolvedTag) {
-        manifestCache[cacheKey] = {
+         releaseCache[cacheKey] = {
           timestamp: now,
           data: { tag: resolvedTag, changelog: changelogText, htmlUrl },
         };
@@ -618,8 +635,8 @@ app.get("/api/updates/tauri", async (c) => {
 
     // Fetch the latest.json from the resolved release tag
     const manifestCacheKey = `manifest_${resolvedTag}`;
-    const cachedManifest = manifestCache[manifestCacheKey];
-    let manifestData: any = null;
+     const cachedManifest = updateManifestCache[manifestCacheKey];
+     let manifestData: UpdateManifest | null = null;
 
     if (cachedManifest && now - cachedManifest.timestamp < CACHE_TTL) {
       manifestData = cachedManifest.data;
@@ -629,8 +646,8 @@ app.get("/api/updates/tauri", async (c) => {
         headers: { "User-Agent": "Open-Bible-Tauri-Updater" },
       });
       if (response.ok) {
-        manifestData = await response.json();
-        manifestCache[manifestCacheKey] = {
+         manifestData = await response.json() as UpdateManifest;
+         updateManifestCache[manifestCacheKey] = {
           timestamp: now,
           data: manifestData,
         };
@@ -654,7 +671,7 @@ app.get("/api/updates/tauri", async (c) => {
     );
     return c.json(manifestData);
 
-  } catch (error: any) {
+   } catch (error) {
     console.error("Error in Tauri update proxy:", error);
     Sentry.captureException(error, {
       tags: { version, target, arch, context: "tauri_update_proxy" },

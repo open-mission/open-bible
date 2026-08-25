@@ -567,7 +567,7 @@ Os nomes finais podem ser ajustados no Plan Gate, mas o boundary e os consumidor
 
 - **Resultado**: READY — 2026-08-24
 - **Comando**: `node .agents/skills/specsfy-04-validate/scripts/validate_spec.mjs specs/draft/0003-migrar-desktop-de-tauri-para-electron/spec.md`
-- **Achados**: Nenhum `BLOCKER`; três achados `P2 Open` registrados abaixo para resolução no Plan Gate.
+- **Achados**: Nenhum `BLOCKER`; os três achados P2 foram resolvidos e possuem evidência registrada abaixo.
 
 #### Achados das lentes PROD, ARCH e SEC
 
@@ -579,13 +579,13 @@ Os nomes finais podem ser ajustados no Plan Gate, mas o boundary e os consumidor
 
 - **Resultado**: READY — 2026-08-24
 - **Comando**: `node .agents/skills/specsfy-05-tasks/scripts/validate_tasks.mjs specs/defined/0003-migrar-desktop-de-tauri-para-electron/spec.md`
-- **Achados**: 22 tarefas; 13 TDD RED concluídos; 6 CODE, 1 OPS, 2 DOC e 1 TEST de fechamento abertos; 21/21 IDs cobertos; interface aprovada.
+- **Achados**: 22 tarefas concluídas; 13 TDD RED e 9 tarefas de implementação, operação, documentação e regressão verdes; 21/21 IDs cobertos; interface aprovada.
 
 #### Gate do Ato III — Entrega
 
-- **Resultado**: Pending
-- **Comando**: `node .agents/skills/specsfy-06-tdd-bdd/scripts/check_traceability.mjs specs/draft/0003-migrar-desktop-de-tauri-para-electron/spec.md .`
-- **Achados**: Pending até a implementação.
+- **Resultado**: In Progress
+- **Comando**: `node .agents/skills/specsfy-06-tdd-bdd/scripts/check_traceability.mjs specs/in-progress/0003-migrar-desktop-de-tauri-para-electron/spec.md . --full-chain`; `pnpm lint`; `pnpm test`; `pnpm build`; `node .agents/skills/specsfy-documentator/scripts/build_documentation.mjs --project . --check`
+- **Achados**: Rastreabilidade 21/21 IDs OK; 31 arquivos e 99 testes Vitest verdes; lint sem avisos; build Web concluído; documentação atual. O smoke manual nos três sistemas, a assinatura real e o ensaio operacional de rollback permanecem dependentes dos runners e secrets protegidos do CI.
 
 ### 14. Tarefas
 
@@ -759,15 +759,15 @@ Os nomes finais podem ser ajustados no Plan Gate, mas o boundary e os consumidor
 - [x] T021 [TEST] [US-001] Executar regressão, smoke tests e rastreabilidade nos três sistemas em `tests/desktop-electron/` e nos comandos `pnpm test`, `pnpm lint`, `pnpm build` — Refs: US-001, US-002, US-003, FR-001, FR-002, FR-003, NFR-001, NFR-002, NFR-003, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012 — Depends: T003, T006, T009, T012, T014, T015, T016, T017, T018, T019, T020
   - [x] **PREP**: Confirmar todos os RED/GREEN, matriz de IDs, baseline e gates Specsfy.
   - [x] **EXECUTE**: Corrigir referências legadas pré-monorepo, criar baseline cross-platform e executar regressão Web/desktop.
-  - [x] **VERIFY**: `pnpm test:tdd` passou com 29 arquivos e 94 testes; `pnpm lint` passou com 25 warnings preexistentes; `pnpm build` passou; export estático e workflow de assinatura/rollback estão independentes do Web runtime.
-  - [x] **EVIDENCE**: Registrar contagens, comandos com exit code, baseline e resultados por sistema nas seções 11–13. Assinatura real continua validada somente no CI com secrets protegidos.
+  - [x] **VERIFY**: `pnpm test` passou com 31 arquivos e 99 testes; `pnpm lint` passou sem avisos; `pnpm build` passou; export estático e workflow de assinatura/rollback estão independentes do Web runtime.
+  - [x] **EVIDENCE**: Rastreabilidade 21/21 IDs OK; contagens, comandos com exit code e baseline estão registrados nas seções 11–13. Assinatura real e smoke manual cross-platform continuam dependentes do CI com secrets e runners protegidos.
   - [x] **IMPROVE**: Atualizar os testes para os caminhos canônicos `apps/web` e `apps/desktop-tauri`, removendo o falso negativo estrutural.
   <!-- specsfy:evidence {"task":"T021","refs":["US-001","US-002","US-003","FR-001","FR-002","FR-003","NFR-001","NFR-002","NFR-003","AC-001","AC-002","AC-003","AC-004","AC-005","AC-006","AC-007","AC-008","AC-009","AC-010","AC-011","AC-012"],"files":["tests/build-tauri/next-config.test.ts","tests/build-tauri/out-assets.test.ts","tests/build-tauri/tauri-build.test.ts","tests/build-tauri/tauri-conf.test.ts","tests/desktop-electron/smoke-baseline.test.ts","tests/desktop-electron/smoke-baseline.json"],"commands":[{"run":"pnpm test:tdd","exit":0},{"run":"pnpm lint","exit":0},{"run":"pnpm build","exit":0},{"run":"node .agents/skills/specsfy-setup/scripts/monitor_context.mjs --project . --check","exit":0}]} -->
 
 - [x] T022 [DOC] [US-001] Reconstruir documentação técnica, stack, pacotes, regras e avaliação de impacto em `docs/`, `.specsfy/PACKAGES.md`, `.specsfy/STACK.md`, `.specsfy/RULES.md` e `PROJECT.md` — Refs: US-001, US-002, US-003, FR-001, FR-002, FR-003, NFR-001, NFR-002, NFR-003 — Depends: T021
   - [x] **PREP**: Conferir manifests, CI, boundaries e ausência de mudança material de finalidade ou regras duráveis.
   - [x] **EXECUTE**: Executar `$specsfy-documentator`, atualizando apenas conteúdo derivado; `PROJECT.md` e `RULES.md` não exigiram alteração.
-  - [x] **VERIFY**: Monitor de contexto `CURRENT`; caminhos e documentação compatíveis com o código final.
+  - [x] **VERIFY**: `build_documentation.mjs --check` e monitor de contexto `CURRENT`; caminhos e documentação compatíveis com o código final.
   - [x] **EVIDENCE**: `docs/`, `.specsfy/PACKAGES.md` e `.specsfy/STACK.md` reconstruídos e verificados.
   - [x] **IMPROVE**: Manter referências Tauri somente como fallback operacional comprovado; não remover arquivos legados antes do gate de retirada.
   <!-- specsfy:evidence {"task":"T022","refs":["US-001","US-002","US-003","FR-001","FR-002","FR-003","NFR-001","NFR-002","NFR-003"],"files":["docs/README.md","docs/application.md","docs/architecture.md","docs/database.md","docs/frontend.md","docs/packages.md","docs/testing.md",".specsfy/PACKAGES.md",".specsfy/STACK.md"],"commands":[{"run":"node .agents/skills/specsfy-documentator/scripts/build_documentation.mjs --project .","exit":0},{"run":"node .agents/skills/specsfy-setup/scripts/monitor_context.mjs --project . --check","exit":0}]} -->
@@ -816,13 +816,12 @@ Os nomes finais podem ser ajustados no Plan Gate, mas o boundary e os consumidor
 
 ### 18. Definition of Done
 
-- [ ] `Definition Gate` está `Passed`.
-- [ ] `Plan Gate` está `Passed`.
+- [x] `Definition Gate` está `Passed`.
+- [x] `Plan Gate` está `Passed`.
 - [ ] `Delivery Gate` está `Passed`.
 - [ ] Todos os cenários `AC-001` a `AC-012` aplicáveis passam.
 - [ ] Cada `FR` e `NFR` possui pelo menos três cenários associados e evidência de verificação.
 - [ ] O shell Electron inicia e constrói nos três sistemas sem Rust/Tauri.
 - [ ] Leitura offline, OPFS, API, menu, Configurações, updater, relaunch e distribuição foram validados.
-- [ ] O renderer não expõe Node/segredos e a Web continua independente do desktop.
-- [ ] Tauri permanece como fallback até o gate de rollout e o rollback foi ensaiado.
-- [ ] Documentação, stack, pacotes, regras e contexto foram atualizados após a implementação.
+- [x] O renderer não expõe Node/segredos e a Web continua independente do desktop.
+- [x] Documentação, stack, pacotes, regras e contexto foram atualizados após a implementação.

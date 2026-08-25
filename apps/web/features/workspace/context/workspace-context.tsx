@@ -166,17 +166,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   // Load persisted workspace on mount (in useEffect to avoid SSR mismatch).
   useEffect(() => {
-    const ws = loadWorkspace()
-    setPanes(ws.panes)
-    setActivePaneId(ws.activePaneId)
-    setLayoutModeState(ws.layoutMode)
-    setLayout(ws.layout ?? null)
-    const orientation = loadTabsOrientation()
-    setTabsOrientationState(orientation)
-    if (typeof window !== "undefined") {
+    const frame = requestAnimationFrame(() => {
+      const ws = loadWorkspace()
+      setPanes(ws.panes)
+      setActivePaneId(ws.activePaneId)
+      setLayoutModeState(ws.layoutMode)
+      setLayout(ws.layout ?? null)
+      const orientation = loadTabsOrientation()
+      setTabsOrientationState(orientation)
       window.dispatchEvent(new Event("openbible:tabs-orientation-changed"))
-    }
-    setLoaded(true)
+      setLoaded(true)
+    })
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   const setTabsOrientation = useCallback((o: TabsOrientation) => {
@@ -201,15 +202,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // back to the last pane (or null if empty).
   useEffect(() => {
     if (!loaded) return
-    let next = activePaneId
-    if (panes.length === 0) {
-      next = null
-    } else if (!panes.some((p) => p.id === activePaneId)) {
-      next = panes[panes.length - 1].id
-    }
-    if (next !== activePaneId) {
-      setActivePaneId(next)
-    }
+    const frame = requestAnimationFrame(() => {
+      let next = activePaneId
+      if (panes.length === 0) {
+        next = null
+      } else if (!panes.some((p) => p.id === activePaneId)) {
+        next = panes[panes.length - 1].id
+      }
+      if (next !== activePaneId) {
+        setActivePaneId(next)
+      }
+    })
+    return () => cancelAnimationFrame(frame)
   }, [panes, activePaneId, loaded])
 
   // Sync the active Bible pane's position back to the legacy localStorage keys

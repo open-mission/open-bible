@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { Monitor, Moon, Sun, Check, BookOpen, Palette, LayoutGrid, Keyboard, RefreshCw, Sparkles, ChevronRight, ChevronLeft, Info } from "lucide-react"
 import { triggerReloadToast } from "@/lib/settings-toast"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
@@ -51,16 +52,19 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
 
   // Load highlights settings
   useEffect(() => {
-    try {
-      const pos = localStorage.getItem("openbible:highlight-gutter-position")
-      if (pos === "left" || pos === "right") setGutterPosition(pos)
+    const frame = requestAnimationFrame(() => {
+      try {
+        const pos = localStorage.getItem("openbible:highlight-gutter-position")
+        if (pos === "left" || pos === "right") setGutterPosition(pos)
 
-      const mob = localStorage.getItem("openbible:highlight-mobile-interaction")
-      if (mob === "popover" || mob === "drawer") setMobileInteraction(mob)
+        const mob = localStorage.getItem("openbible:highlight-mobile-interaction")
+        if (mob === "popover" || mob === "drawer") setMobileInteraction(mob)
 
-      const desk = localStorage.getItem("openbible:highlight-desktop-interaction")
-      if (desk === "popover" || desk === "drawer") setDesktopInteraction(desk)
-    } catch { /* ignore */ }
+        const desk = localStorage.getItem("openbible:highlight-desktop-interaction")
+        if (desk === "popover" || desk === "drawer") setDesktopInteraction(desk)
+      } catch { /* ignore */ }
+    })
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   const updateGutterPosition = (pos: "left" | "right") => {
@@ -945,9 +949,11 @@ export function ConfigContent({ defaultTab = "version" }: { defaultTab?: string 
         <TabsContent value="about" className="space-y-6 animate-in fade-in-50 duration-200">
           <section id="about-section" className="space-y-6">
             <div className="flex flex-col items-center text-center space-y-4 py-4">
-              <img
+              <Image
                 src="/logo.png"
                 alt="Open Bible Logo"
+                width={4500}
+                height={1500}
                 className="h-16 w-auto dark:invert-0 invert select-none pointer-events-none"
               />
               <div className="space-y-1.5">

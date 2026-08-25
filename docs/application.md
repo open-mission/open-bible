@@ -33,7 +33,7 @@ Relação: relaciona cada arquivo observado à sua superfície.
 | Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/data-display/avatar.tsx | Avatar, AvatarButton |
 | Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/data-display/badge.tsx | Badge, BadgeButton |
 | Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/data-display/description-list.tsx | DescriptionList, DescriptionTerm, DescriptionDetails |
-| Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/data-display/table.tsx | TableContext, Table, TableHead, TableBody, TableRowContext, TableRow, TableRowAction, TableHeader |
+| Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/data-display/table.tsx | TableContext, Table, TableHead, TableBody, TableRowContext, TableRow, TableHeader, TableCell |
 | Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/forms/checkbox.tsx | CheckboxGroup, CheckboxField, Checkbox |
 | Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/forms/combobox.tsx | Combobox, ComboboxOption, ComboboxLabel, ComboboxDescription |
 | Componentes | .agents/skills/specsfy-specialist-react-ui-components/assets/components/forms/fieldset.tsx | Fieldset, Legend, FieldGroup, Field, Label, Description, ErrorMessage |

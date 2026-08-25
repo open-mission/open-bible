@@ -23,11 +23,14 @@ export function AppNavigationProvider({ children }: { children: React.ReactNode 
   const [canGoBack, setCanGoBack] = useState(false)
 
   useEffect(() => {
-    const initial = getInitialView()
-    setHistory([{ view: initial, timestamp: Date.now() }])
-    if (initial !== "reader") {
-      setActiveView(initial)
-    }
+    const frame = requestAnimationFrame(() => {
+      const initial = getInitialView()
+      setHistory([{ view: initial, timestamp: Date.now() }])
+      if (initial !== "reader") {
+        setActiveView(initial)
+      }
+    })
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   const navigate = useCallback((view: AppView) => {

@@ -250,7 +250,6 @@ export function WorkspaceView() {
   const openFirstPane = () =>
     openPane({ type: "bible", bookId: "gen", chapter: 1, versionId: "ara" } as BiblePaneState)
 
-  const paneIds = panes.map((p) => p.id)
   const activeDragPane = panes.find((p) => p.id === activeDragId)
 
   // Memoize the drag overlay content to avoid re-renders

@@ -1,19 +1,18 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import {
   BookOpen,
   Highlighter,
   Moon,
   Notebook,
-  Search,
   Settings,
   Sun,
 } from "lucide-react"
 import { useAppTheme } from "@/features/theme/components/theme-provider"
 import { useAppNavigation } from "../context/app-navigation-context"
 import { ConfigDialog } from "@/features/config/components/config-dialog"
-import { Kbd } from "@/components/ui/kbd"
 import { APP_VERSION, APP_ENV, ENV_LABEL, isPreRelease } from "@/lib/app-env"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -45,11 +44,10 @@ const NAV_ITEMS: NavItem[] = [
 ]
 
 interface AppSidebarProps {
-  onOpenCommandPalette: () => void
   workspaceContent?: React.ReactNode
 }
 
-export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSidebarProps) {
+export function AppSidebar({ workspaceContent }: AppSidebarProps) {
   const { isDark, setTheme } = useAppTheme()
   const { activeView, navigate } = useAppNavigation()
   const { state } = useSidebar()
@@ -64,15 +62,19 @@ export function AppSidebar({ onOpenCommandPalette, workspaceContent }: AppSideba
           isCollapsed ? "justify-center px-1" : "justify-start"
         )}>
           {isCollapsed ? (
-            <img
+            <Image
               src="/logo-minimal.png"
               alt="Open Bible"
+              width={837}
+              height={765}
               className="size-8 object-contain select-none pointer-events-none invert dark:invert-0"
             />
           ) : (
-            <img
+            <Image
               src="/logo.png"
               alt="Open Bible Logo"
+              width={4500}
+              height={1500}
               className="h-8 w-auto select-none pointer-events-none invert dark:invert-0"
             />
           )}
