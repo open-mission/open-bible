@@ -1,5 +1,7 @@
-import HighlightsPage from "@/features/highlights/components/highlights-page"
+"use client"
 
-export default function Page() {
-  return <HighlightsPage />
+import { AppShell } from "@/features/navigation/components/app-shell"
+
+export default function HighlightsPage() {
+  return <AppShell />
 }

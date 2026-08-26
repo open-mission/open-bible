@@ -23,6 +23,7 @@ export function NotesWorkspace() {
   const [mobileList, setMobileList] = useState(true)
   const [query, setQuery] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [saveState, setSaveState] = useState<"idle" | "draft" | "saving" | "saved">("idle")
 
   const selected = entries.find((entry) => entry.note.id === selectedId) ?? null
   const filtered = useMemo(() => {
@@ -37,9 +38,23 @@ export function NotesWorkspace() {
   const viewState = getNotesViewState({ loading, error, count: entries.length })
 
   useEffect(() => {
-    if (!editing || !selectedId || isEmptyHtml(draft)) return
+    if (!editing) return
+    if (!selectedId) {
+      setSaveState("draft")
+      return
+    }
+    if (isEmptyHtml(draft)) return
+    setSaveState("saving")
     const timer = setTimeout(() => {
-      updateNote(selectedId, { content: draft }).catch(() => setError("Não foi possível salvar a nota."))
+      updateNote(selectedId, { content: draft })
+        .then(() => {
+          setSaveState("saved")
+          setError(null)
+        })
+        .catch(() => {
+          setError("Não foi possível salvar a nota.")
+          setSaveState("draft")
+        })
     }, 800)
     return () => clearTimeout(timer)
   }, [draft, editing, selectedId, updateNote])
@@ -51,6 +66,7 @@ export function NotesWorkspace() {
     setDraft(entry.note.content)
     setEditing(false)
     setMobileList(false)
+    setSaveState("idle")
   }
 
   const compose = () => {
@@ -58,6 +74,7 @@ export function NotesWorkspace() {
     setDraft(JSON.stringify(createEmptyNoteDocument()))
     setEditing(true)
     setMobileList(false)
+    setSaveState("draft")
   }
 
   const save = async () => {
@@ -74,6 +91,7 @@ export function NotesWorkspace() {
       }
       await reload()
       setEditing(false)
+      setSaveState("saved")
       setError(null)
     } catch {
       setError("Não foi possível salvar a nota.")
@@ -86,6 +104,7 @@ export function NotesWorkspace() {
     setSelectedId(null)
     setDraft("")
     setEditing(false)
+    setSaveState("idle")
     setMobileList(true)
     await reload()
   }
@@ -139,7 +158,15 @@ export function NotesWorkspace() {
           <Button type="button" variant="ghost" size="icon-sm" className="md:hidden" onClick={() => setMobileList(true)} aria-label="Voltar para notas"><ArrowLeft /></Button>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-foreground">{selected ? referenceLabel(selected.references) : editing ? "Nova nota" : "Selecione uma nota"}</p>
-            <p className="text-xs text-muted-foreground">{editing ? "Salvamento automático" : "Canvas de leitura"}</p>
+            <p className="text-xs text-muted-foreground">
+              {editing
+                ? saveState === "saving"
+                  ? "Salvando…"
+                  : saveState === "saved"
+                    ? "Salva neste dispositivo"
+                    : "Rascunho não salvo"
+                : "Canvas de leitura"}
+            </p>
           </div>
           {selected && !editing ? <Button type="button" variant="ghost" size="icon-sm" onClick={() => setEditing(true)} aria-label="Editar nota"><Pencil /></Button> : null}
           {selected ? <Button type="button" variant="ghost" size="icon-sm" onClick={download} aria-label="Exportar Markdown"><Download /></Button> : null}

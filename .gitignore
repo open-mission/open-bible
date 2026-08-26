@@ -87,6 +87,8 @@ next-env.d.ts.env.local
 
 # impeccable local state (generated)
 /.impeccable/
+**/.impeccable/
+**/.impeccable/
 
 # opencode config (local)
 /opencode.json
