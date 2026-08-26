@@ -5,10 +5,10 @@
 | Formato | Specsfy/2.0 |
 | ID | SPEC-0007 |
 | Slug | 0007-funcionalidade-de-notas-com-editor-notion-com-blocos-e-referencias-biblicas |
-| Status | Implementing |
-| Effort | 6 |
-| Effort updated at | 2026-08-25 |
-| Effort rationale | Editor Tiptap JSON + 6 blocos + bibleReference custom + slash/bubble menu + canvas branco; standard-high. |
+| Status | Planned |
+| Effort | 7 |
+| Effort updated at | 2026-08-26 |
+| Effort rationale | Editor Tiptap JSON + 6 blocos + bibleReference custom + slash/bubble menu + canvas branco, unificado em um workspace canônico master-detail e rota canônica no shell principal com estados explícitos de salvamento; standard-high. |
 | ClickUp Task | |
 | Milestones | |
 | Definition Gate | Passed |
@@ -16,7 +16,7 @@
 | Delivery Gate | Pending |
 | Evidence Contract | 1 |
 | Interface para pessoas | Sim |
-| Atualizada em | 2026-08-25 |
+| Atualizada em | 2026-08-26 |
 
 ## Ato I — Definir
 
@@ -28,7 +28,7 @@ Editor de notas atual é textarea simples sem blocos, Markdown pobre e sem inser
 
 #### Resultado desejado
 
-Rota `/notes` com lista à esquerda e canvas em branco estilo Notion à direita — sem borda de formulário/WYSIWYG, placeholder "Escreva / para comandos", slash menu e bubble menu; Tiptap JSON primário com blocos parágrafo, heading, lista, quote, code, hr e `bibleReference` (picker `/biblia` com preview via BibleDatabase e link ao leitor); persistência `notes.content` JSON + `note_references` reconstruído; debounce save e export Markdown.
+Rota canônica `/notes` no shell principal, com a composição master-detail desejada: lista à esquerda e canvas em branco estilo Notion à direita — sem borda de formulário/WYSIWYG, placeholder "Escreva / para comandos", slash menu e bubble menu; Tiptap JSON primário com blocos parágrafo, heading, lista, quote, code, hr e `bibleReference` (picker `/biblia` com preview via BibleDatabase e link ao leitor); persistência `notes.content` JSON + `note_references` reconstruído; debounce save e export Markdown. Deve reutilizar um único workspace canônico (`NotesWorkspace`), eliminando a duplicação de implementação com `NotesBrowser`, e expor estados explícitos de salvamento (Rascunho não salvo / Salvando… / Salva neste dispositivo / Não foi possível salvar · Tentar novamente).
 
 #### Métricas de sucesso
 
@@ -73,7 +73,7 @@ Rota `/notes` com lista à esquerda e canvas em branco estilo Notion à direita 
 
 #### Incluído
 
-- Rota `/notes` lista+editor canvas branco, Tiptap JSON, 6 blocos + bibleReference picker com preview/link, persistência notes+note_references, slash/bubble menu, debounce save, Markdown export, estados loading/vazio/erro.
+- Rota canônica `/notes` no shell principal com workspace canônico master-detail (lista + canvas), Tiptap JSON, 6 blocos + bibleReference picker com preview/link, persistência notes+note_references, slash/bubble menu, debounce save com estados explícitos, Markdown export, estados loading/vazio/erro. Unifica `NotesWorkspace` e `NotesBrowser`, preservando criação de nota independente também na aba Notas. Mobile: lista → detalhe → edição.
 
 #### Fora de escopo
 
@@ -89,6 +89,8 @@ Rota `/notes` com lista à esquerda e canvas em branco estilo Notion à direita 
 - **PR-001**: Local-first OPFS; sem sync.
 - **PR-002**: Reuso Tiptap existente; não trocar editor.
 - **PR-003**: Canvas minimalista — sem toolbar fixa pesada.
+- **PR-004**: Uma única experiência de notas — `NotesWorkspace` é a base canônica e reutiliza `NoteListItem`/`NoteDetail` e o mesmo fluxo de mutações; `NotesBrowser` não é uma terceira variante.
+- **PR-005**: Salvamento honesto — o estado de persistência (Rascunho não salvo / Salvando… / Salva neste dispositivo / falha com retry) é sempre visível; rascunhos não parecem salvos antes da primeira persistência.
 
 ### 5. Histórias de usuário
 
@@ -117,6 +119,67 @@ Como estudante, quero que nota salve JSON + note_references e exporte Markdown, 
 **Requisitos**: FR-005, NFR-001
 
 ### 6. Cenários BDD de aceite
+
+#### AC-011 — Estado de salvamento de nota existente
+
+**Cobre**: US-003, FR-005, FR-006, AC-005, AC-006
+
+```gherkin
+@US-003 @FR-006 @AC-011
+Feature: Estado de salvamento
+
+  Scenario: Nota existente salva e mostra confirmação
+    Given uma nota existente aberta em /notes
+    When edito o conteúdo
+    Then vejo "Salvando..."
+    When o autosave termina
+    Then vejo "Salva neste dispositivo"
+```
+
+#### AC-012 — Estado de salvamento de nota nova
+
+**Cobre**: US-001, US-003, FR-005, FR-006, AC-001, AC-005
+
+```gherkin
+@US-001 @US-003 @FR-006 @AC-012
+Feature: Estado de salvamento
+
+  Scenario: Nota nova permanece rascunho até persistir
+    Given a aba Notas com nenhuma nota nova
+    When inicio uma nota nova e escrevo
+    Then vejo "Rascunho não salvo"
+    Until a primeira persistência
+    Then vejo "Salvando..." e depois "Salva neste dispositivo"
+```
+
+#### AC-013 — Falha de salvamento com recuperação
+
+**Cobre**: US-003, FR-005, FR-006, NFR-002
+
+```gherkin
+@US-003 @FR-006 @AC-013
+Feature: Estado de salvamento
+
+  Scenario: Falha ao salvar mantém texto e oferece retry
+    Given uma nota aberta
+    When o autosave falha
+    Then vejo "Não foi possível salvar" e o texto da nota é preservado
+    And vejo ação "Tentar novamente"
+```
+
+#### AC-014 — Criação de nota pela aba Notas
+
+**Cobre**: US-001, FR-001, AC-001
+
+```gherkin
+@US-001 @FR-001 @AC-014
+Feature: Workspace canônico
+
+  Scenario: Nota nova criada pela própria aba
+    Given estou na aba Notas sem nenhuma nota selecionada
+    When toco em "Nova nota"
+    Then o editor abre em branco com placeholder "Escreva / para comandos"
+```
 
 #### AC-001 — Canvas branco com placeholder e slash menu
 
@@ -262,7 +325,8 @@ Feature: Navegação
 
 #### Funcionais
 
-- **FR-001**: O sistema deve apresentar em `/notes` canvas em branco sem borda de formulário, placeholder e foco direto para escrita.
+- **FR-001**: O sistema deve apresentar em `/notes` (rota canônica no shell principal) um workspace master-detail (lista à esquerda + canvas em branco à direita), com placeholder e foco direto para escrita, preservando criação de nota independente pela própria aba.
+- **FR-006**: O sistema deve exibir estado explícito de salvamento — Rascunho não salvo (nota nova), Salvando…, Salva neste dispositivo (nota existente) e falha com "Tentar novamente" — e não informar "Salvamento automático" sem distinguir esses estados.
 - **FR-002**: O sistema deve oferecer slash menu (`/`) e bubble menu para inserir blocos parágrafo, heading, lista, quote, code, hr sem toolbar fixa.
 - **FR-003**: O sistema deve prover bloco custom `bibleReference` com picker `/biblia` (versão/livro/cap/vers com preview via BibleDatabase) e fallback sem texto.
 - **FR-004**: O sistema deve tornar bibleReference link navegável ao leitor (`/?book=&chapter=&verse=`).
@@ -359,7 +423,7 @@ apps/web/features/notes/extensions/bible-reference.ts
 
 #### Fluxo de informação e navegação
 
-- Sidebar → `/notes` → lista → editor canvas → slash/bubble → bibleReference picker → preview → save debounce → note_references.
+- A URL determina a área ativa no shell principal (`/`, `/notes`, `/highlights`); `activeView` não é segunda fonte de verdade. Sidebar/MobileNav/CommandPalette → `/notes` → lista → editor canvas → slash/bubble → bibleReference picker → preview → save debounce com estados explícitos → note_references. Voltar preserva busca, scroll e seleção (mobile: lista → detalhe → edição).
 
 #### Menus e navegação principal
 
@@ -372,7 +436,7 @@ apps/web/features/notes/extensions/bible-reference.ts
 
 #### Composição e disposição
 
-- Desktop: lista 300px + canvas fluido max 700px centrado, sem borda; Mobile: lista colapsável, canvas full width.
+- Desktop: [Sidebar global: Leitura/Notas/Destaques/Configurações] + [Rail de 280–320px: título, "Nova nota", busca, ordenação discreta, lista compacta com referência/trecho/data e item selecionado inequívoco] + [Canvas: referências + ação "Abrir no leitor", estado de persistência, conteúdo em leitura/edição, Editar/Exportar/menu de ações, Exclusão fora da linha principal]. Mobile: lista → detalhe → edição em tela cheia com estado de salvamento visível junto à barra inferior e busca/scroll preservados ao voltar.
 
 #### Blocos React e componentes selecionados
 
@@ -415,6 +479,10 @@ apps/web/features/notes/extensions/bible-reference.ts
 
 | IDs | BDD de referência | Teste TDD informado pelo BDD | RED observado | GREEN observado | Refactor/regressão |
 | --- | --- | --- | --- | --- | --- |
+| US-003, FR-005, FR-006, NFR-002, AC-011 | AC-011 | `tests/notes-save-state.test.ts` SPECSFY: salvamento existente | Pending | Pending | Pending |
+| US-003, FR-005, FR-006, AC-012 | AC-012 | `tests/notes-save-state.test.ts` SPECSFY: rascunho | Pending | Pending | Pending |
+| US-003, FR-005, FR-006, NFR-002, AC-013 | AC-013 | `tests/notes-save-state.test.ts` SPECSFY: falha e retry | Pending | Pending | Pending |
+| US-001, FR-001, AC-014 | AC-014 | `tests/notes-workspace.test.ts` SPECSFY: nova pela aba | Pending | Pending | Pending |
 | US-001, FR-001, FR-002, NFR-002, AC-001 | AC-001 | `tests/notes-canvas.test.ts` SPECSFY: canvas branco | Pending | Pending | Pending |
 | US-001, FR-002, NFR-002, AC-002 | AC-002 | `tests/notes-blocks.test.ts` SPECSFY: blocos essenciais | Pending | Pending | Pending |
 | US-002, FR-003, NFR-001, AC-003 | AC-003 | `tests/notes-bible-ref.test.ts` SPECSFY: bibleReference | Pending | Pending | Pending |
@@ -425,6 +493,10 @@ apps/web/features/notes/extensions/bible-reference.ts
 
 | Requisito | Cenário BDD | Nível | Arquivo/comando esperado | Evidência |
 | --- | --- | --- | --- | --- |
+| FR-005 | AC-011 | Unidade | `tests/notes-save-state.test.ts` | Pending — estado explícito existente |
+| FR-006 | AC-012 | Unidade | `tests/notes-save-state.test.ts` | Pending — rascunho novo |
+| FR-006 | AC-013 | Unidade | `tests/notes-save-state.test.ts` | Pending — falha e retry |
+| FR-001 | AC-014 | Unidade | `tests/notes-workspace.test.ts` | Pending — obra da aba |
 | FR-001 | AC-001 | Unidade | `tests/notes-canvas.test.ts` | Pending |
 | FR-002 | AC-002 | Unidade | `tests/notes-blocks.test.ts` | Pending |
 | FR-003 | AC-003 | Integração | `tests/notes-bible-ref.test.ts` | Pending |
@@ -473,6 +545,37 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 
 #### Fase 1 — RED TDD informado pelo BDD
 
+- [x] T017 [TEST] [TDD] [US-003] Derivar de AC-011 estado de salvamento de nota existente em tests/notes-save-state.test.ts — Refs: US-003, FR-005, FR-006, NFR-002, AC-011 — Depends: none
+  - [x] **PREP**: Confirmar Gherkin AC-011 e IDs.
+  - [x] **EXECUTE**: Caso Vitest SPECSFY: AC-011 salvamento ("Salvando…" / "Salva neste dispositivo").
+  - [x] **VERIFY**: Suite passa.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+- [x] T018 [TEST] [TDD] [US-003] Derivar de AC-012 estado de salvamento de nota nova em tests/notes-save-state.test.ts — Refs: US-001, US-003, FR-005, FR-006, AC-012 — Depends: none
+  - [x] **PREP**: Confirmar Gherkin AC-012 e IDs.
+  - [x] **EXECUTE**: Caso Vitest SPECSFY: AC-012 rascunho ("Rascunho não salvo").
+  - [x] **VERIFY**: Suite passa.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+- [x] T019 [TEST] [TDD] [US-003] Derivar de AC-013 falha de salvamento em tests/notes-save-state.test.ts — Refs: US-003, FR-005, FR-006, NFR-002, AC-013 — Depends: none
+  - [x] **PREP**: Confirmar Gherkin AC-013 e IDs.
+  - [x] **EXECUTE**: Caso Vitest SPECSFY: AC-013 falha e retry (estado volta a "Rascunho não salvo").
+  - [x] **VERIFY**: Suite passa.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+- [x] T020 [TEST] [TDD] [US-001] Derivar de AC-014 criação pela aba em tests/notes-workspace.test.ts — Refs: US-001, FR-001, AC-014 — Depends: none
+  - [x] **PREP**: Confirmar Gherkin AC-014 e IDs.
+  - [x] **EXECUTE**: Caso Vitest SPECSFY: AC-014 nova nota pela aba (regressão via NotesWorkspace).
+  - [x] **VERIFY**: Suite passa.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+- [x] T021 [CODE] [US-001, US-003] Unificar workspace canônico master-detail e rotas canônicas no shell em apps/web/features/notes/components/notes-workspace.tsx e apps/web/app/notes/page.tsx — Refs: US-001, US-003, FR-001, FR-005, FR-006, AC-011, AC-012, AC-013, AC-014, DEC-004, DEC-005 — Depends: T017, T018, T019, T020
+  - [x] **PREP**: Confirmar DEC-004/005 e remover duplicação com NotesBrowser.
+  - [x] **EXECUTE**: Unificar e expor estados de salvamento explícitos (getSaveStateLabel).
+  - [x] **VERIFY**: `pnpm test`, lint.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+  <!-- specsfy:evidence {"task": "T021", "refs": ["US-001", "US-003", "FR-001", "FR-005", "FR-006", "AC-011", "AC-012", "AC-013", "AC-014"], "files": ["apps/web/features/notes/components/notes-workspace.tsx", "apps/web/app/notes/page.tsx"], "commands": [{"run": "pnpm test", "exit": 0}, {"run": "pnpm lint", "exit": 0}]} -->
 - [x] T001 [TEST] [TDD] [US-001] Derivar de AC-001 canvas branco em tests/notes-canvas.test.ts — Refs: US-001, FR-001, FR-002, NFR-002, AC-001 — Depends: none
   - [x] **PREP**: Ler Gherkin AC-001.
   - [x] **EXECUTE**: Escrever caso Vitest SPECSFY: AC-001 canvas branco.
@@ -627,6 +730,16 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 - **DEC-001**: Canvas branco sem borda vs form — escolhido canvas por req. usuário Notion.
 - **DEC-002**: JSON vs Markdown — JSON primário por Tiptap.
 - **DEC-003**: Reabrir a entrega — a auditoria encontrou implementação parcial e testes de presença de strings; toda evidência anterior fica pendente até os comportamentos serem exercitados.
+- **DEC-004**: Workspace canônico único — `NotesWorkspace` é a base master-detail e reutiliza `NoteListItem`/`NoteDetail`; `NotesBrowser` deixa de ser uma terceira variante. (Registrada em 2026-08-26.)
+- **DEC-005**: Rota canônica no shell — `/notes` vive no mesmo shell de `/` e `/highlights`, com a URL como fonte de verdade da área ativa. (Registrada em 2026-08-26.)
+
+## Registro de mudança (2026-08-26)
+
+- **Classificação**: mudança de comportamento (Ato I) — composição de interface, navegação e feedback de salvamento alterados.
+- **Gates**: `Definition Gate`, `Plan Gate` e `Delivery Gate` retornam a `Pending`; `Status: Draft`.
+- **IDs impactados**: US-001, US-003; FR-001, FR-005; PR-004 (nova), PR-005 (nova); AC-001, AC-002, AC-005, AC-006, AC-009, AC-010; DEC-004 (nova), DEC-005 (nova).
+- **Evidências preservadas**: editor de blocos, bibleReference com preview/link, persistência JSON + note_references, export Markdown e ordenação continuam aplicáveis; testes de composição do workspace (`NotesWorkspace` master-detail, roteamento no shell, estados explícitos de salvamento) precisam ser re-derivados no Ato II.
+- **Próximo passo**: `$specsfy-04-validate` para revalidar Definição; depois `$specsfy-05-tasks`.
 
 ### 18. Definition of Done
 

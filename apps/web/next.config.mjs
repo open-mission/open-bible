@@ -60,6 +60,14 @@ const nextConfig = {
     "@open-bible/domain-bible",
   ],
   turbopack: {},
+  // Next.js 16.3 Instant Navigations: prefetch a reusable App Shell per route
+  // so client navigations render immediately (SPA-like) and prefetch shells
+  // from the server instead of a network roundtrip per link.
+  //
+  // Live only in the web (SSR) build. Cache Components enables Partial
+  // Prerender (PPR), which is incompatible with `output: "export"` — so the
+  // desktop (Tauri) static export must NOT enable it.
+  ...(!isTauri ? { cacheComponents: true, partialPrefetching: true } : {}),
   // Desktop (Tauri): static export, sem PWA/Service Worker e sem headers().
   // Web (Vercel): SSR + next-pwa + headers do SW/manifest.
   ...(isTauri
