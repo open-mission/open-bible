@@ -23,7 +23,7 @@ interface MasterDetailProps {
   onNavigate?: (verse: AllHighlightEntry["verses"][number]) => void
 }
 
-function buildNavigation(verse: AllHighlightEntry["verses"][number]) {
+export function buildNavigation(verse: AllHighlightEntry["verses"][number]) {
   return {
     book: verse.book,
     chapter: verse.chapter,
@@ -33,13 +33,15 @@ function buildNavigation(verse: AllHighlightEntry["verses"][number]) {
   }
 }
 
-function referenceLine(entry: AllHighlightEntry): string {
+export function referenceLine(entry: AllHighlightEntry): string {
   const verses = entry.verses
   if (verses.length === 0) return ""
   const first = verses[0]
   const book = getBookName(first.book)
   const sameChapter = verses.every((v) => v.book === first.book && v.chapter === first.chapter)
-  const sorted = [...verses].sort((a, b) => a.verse - b.verse)
+  const sorted = [...verses].sort(
+    (a, b) => (a.chapter - b.chapter) || (a.verse - b.verse),
+  )
   if (sameChapter) {
     const start = sorted[0].verse
     const end = sorted.at(-1)!.verse
