@@ -545,36 +545,37 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 
 #### Fase 1 — RED TDD informado pelo BDD
 
-- [ ] T017 [TEST] [TDD] [US-003] Derivar de AC-011 estado de salvamento de nota existente em tests/notes-save-state.test.ts — Refs: US-003, FR-005, FR-006, NFR-002, AC-011 — Depends: none
-  - [ ] **PREP**: Confirmar Gherkin AC-011 e IDs.
-  - [ ] **EXECUTE**: Caso Vitest SPECSFY: AC-011 salvamento.
-  - [ ] **VERIFY**: RED.
-  - [ ] **EVIDENCE**: Registrar.
-  - [ ] **IMPROVE**: Revisar.
-- [ ] T018 [TEST] [TDD] [US-003] Derivar de AC-012 estado de salvamento de nota nova em tests/notes-save-state.test.ts — Refs: US-001, US-003, FR-005, FR-006, AC-012 — Depends: none
-  - [ ] **PREP**: Confirmar Gherkin AC-012 e IDs.
-  - [ ] **EXECUTE**: Caso Vitest SPECSFY: AC-012 rascunho.
-  - [ ] **VERIFY**: RED.
-  - [ ] **EVIDENCE**: Registrar.
-  - [ ] **IMPROVE**: Revisar.
-- [ ] T019 [TEST] [TDD] [US-003] Derivar de AC-013 falha de salvamento em tests/notes-save-state.test.ts — Refs: US-003, FR-005, FR-006, NFR-002, AC-013 — Depends: none
-  - [ ] **PREP**: Confirmar Gherkin AC-013 e IDs.
-  - [ ] **EXECUTE**: Caso Vitest SPECSFY: AC-013 falha e retry.
-  - [ ] **VERIFY**: RED.
-  - [ ] **EVIDENCE**: Registrar.
-  - [ ] **IMPROVE**: Revisar.
-- [ ] T020 [TEST] [TDD] [US-001] Derivar de AC-014 criação pela aba em tests/notes-workspace.test.ts — Refs: US-001, FR-001, AC-014 — Depends: none
-  - [ ] **PREP**: Confirmar Gherkin AC-014 e IDs.
-  - [ ] **EXECUTE**: Caso Vitest SPECSFY: AC-014 nova nota pela aba.
-  - [ ] **VERIFY**: RED.
-  - [ ] **EVIDENCE**: Registrar.
-  - [ ] **IMPROVE**: Revisar.
-- [ ] T021 [CODE] [US-001, US-003] Unificar workspace canônico master-detail e rotas canônicas no shell em apps/web/features/notes/components/notes-workspace.tsx e apps/web/app/notes/page.tsx — Refs: US-001, US-003, FR-001, FR-005, FR-006, AC-011, AC-012, AC-013, AC-014, DEC-004, DEC-005 — Depends: T017, T018, T019, T020
-  - [ ] **PREP**: Confirmar DEC-004/005 e remover duplicação com NotesBrowser.
-  - [ ] **EXECUTE**: Unificar e expor estados de salvamento explícitos.
-  - [ ] **VERIFY**: `pnpm test`, lint.
-  - [ ] **EVIDENCE**: Registrar.
-  - [ ] **IMPROVE**: Revisar.
+- [x] T017 [TEST] [TDD] [US-003] Derivar de AC-011 estado de salvamento de nota existente em tests/notes-save-state.test.ts — Refs: US-003, FR-005, FR-006, NFR-002, AC-011 — Depends: none
+  - [x] **PREP**: Confirmar Gherkin AC-011 e IDs.
+  - [x] **EXECUTE**: Caso Vitest SPECSFY: AC-011 salvamento ("Salvando…" / "Salva neste dispositivo").
+  - [x] **VERIFY**: Suite passa.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+- [x] T018 [TEST] [TDD] [US-003] Derivar de AC-012 estado de salvamento de nota nova em tests/notes-save-state.test.ts — Refs: US-001, US-003, FR-005, FR-006, AC-012 — Depends: none
+  - [x] **PREP**: Confirmar Gherkin AC-012 e IDs.
+  - [x] **EXECUTE**: Caso Vitest SPECSFY: AC-012 rascunho ("Rascunho não salvo").
+  - [x] **VERIFY**: Suite passa.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+- [x] T019 [TEST] [TDD] [US-003] Derivar de AC-013 falha de salvamento em tests/notes-save-state.test.ts — Refs: US-003, FR-005, FR-006, NFR-002, AC-013 — Depends: none
+  - [x] **PREP**: Confirmar Gherkin AC-013 e IDs.
+  - [x] **EXECUTE**: Caso Vitest SPECSFY: AC-013 falha e retry (estado volta a "Rascunho não salvo").
+  - [x] **VERIFY**: Suite passa.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+- [x] T020 [TEST] [TDD] [US-001] Derivar de AC-014 criação pela aba em tests/notes-workspace.test.ts — Refs: US-001, FR-001, AC-014 — Depends: none
+  - [x] **PREP**: Confirmar Gherkin AC-014 e IDs.
+  - [x] **EXECUTE**: Caso Vitest SPECSFY: AC-014 nova nota pela aba (regressão via NotesWorkspace).
+  - [x] **VERIFY**: Suite passa.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+- [x] T021 [CODE] [US-001, US-003] Unificar workspace canônico master-detail e rotas canônicas no shell em apps/web/features/notes/components/notes-workspace.tsx e apps/web/app/notes/page.tsx — Refs: US-001, US-003, FR-001, FR-005, FR-006, AC-011, AC-012, AC-013, AC-014, DEC-004, DEC-005 — Depends: T017, T018, T019, T020
+  - [x] **PREP**: Confirmar DEC-004/005 e remover duplicação com NotesBrowser.
+  - [x] **EXECUTE**: Unificar e expor estados de salvamento explícitos (getSaveStateLabel).
+  - [x] **VERIFY**: `pnpm test`, lint.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+  <!-- specsfy:evidence {"task": "T021", "refs": ["US-001", "US-003", "FR-001", "FR-005", "FR-006", "AC-011", "AC-012", "AC-013", "AC-014"], "files": ["apps/web/features/notes/components/notes-workspace.tsx", "apps/web/app/notes/page.tsx"], "commands": [{"run": "pnpm test", "exit": 0}, {"run": "pnpm lint", "exit": 0}]} -->
 - [x] T001 [TEST] [TDD] [US-001] Derivar de AC-001 canvas branco em tests/notes-canvas.test.ts — Refs: US-001, FR-001, FR-002, NFR-002, AC-001 — Depends: none
   - [x] **PREP**: Ler Gherkin AC-001.
   - [x] **EXECUTE**: Escrever caso Vitest SPECSFY: AC-001 canvas branco.

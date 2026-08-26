@@ -687,18 +687,20 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 
 #### Fase final — Qualidade
 
-- [ ] T025 [CODE] [US-001] Adaptar Highlights para master-detail (rail resumido + canvas com trecho completo) e rotas canônicas no shell em apps/web/features/highlights/components/highlights-page.tsx e apps/web/features/highlights/components/all-highlights-browser.tsx — Refs: US-001, FR-001, FR-002, NFR-002, AC-001, AC-002, AC-007, AC-008, DEC-002, DEC-010 — Depends: T016
-  - [ ] **PREP**: Confirmar DEC-002/010 e navegação do shell.
-  - [ ] **EXECUTE**: Rail resumido + canvas com trecho Lora, "Abrir no leitor" primário; mobile lista → detalhe.
-  - [ ] **VERIFY**: `pnpm test`, lint, build; navegação teclado.
-  - [ ] **EVIDENCE**: Registrar.
-  - [ ] **IMPROVE**: Revisar.
-- [ ] T026 [TEST] [TDD] [US-001] Derivar regressão para seleção de item no rail e renderização do canvas em tests/highlights-master-detail.test.ts — Refs: US-001, FR-001, NFR-002, AC-001 — Depends: T025
-  - [ ] **PREP**: Confirmar Gherkin AC-001/AC-007.
-  - [ ] **EXECUTE**: Caso SPECSFY: master-detail.
-  - [ ] **VERIFY**: RED antes da implementação.
-  - [ ] **EVIDENCE**: Registrar.
-  - [ ] **IMPROVE**: Revisar.
+- [x] T025 [CODE] [US-001] Adaptar Highlights para master-detail (rail resumido + canvas com trecho completo) e rotas canônicas no shell em apps/web/features/highlights/components/highlights-master-detail.tsx e apps/web/features/navigation/components/view-container.tsx — Refs: US-001, FR-001, FR-002, NFR-002, AC-001, AC-002, AC-007, AC-008, DEC-002, DEC-010 — Depends: T016
+  - [x] **PREP**: Confirmar DEC-002/010 e navegação do shell.
+  - [x] **EXECUTE**: Rail resumido com filtros (HighlightsFilterBar) + canvas com trecho Lora, "Abrir no leitor" primário; mobile lista → detalhe.
+  - [x] **VERIFY**: `pnpm test`, lint, build; navegação teclado.
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+  <!-- specsfy:evidence {"task": "T025", "refs": ["US-001", "FR-001", "FR-002", "NFR-002", "AC-001", "AC-002", "AC-007", "AC-008"], "files": ["apps/web/features/highlights/components/highlights-master-detail.tsx", "apps/web/features/navigation/components/view-container.tsx"], "commands": [{"run": "pnpm test", "exit": 0}, {"run": "pnpm build", "exit": 0}]} -->
+- [x] T026 [TEST] [TDD] [US-001] Derivar regressão para seleção de item no rail e renderização do canvas em tests/highlights-master-detail.test.ts — Refs: US-001, FR-001, NFR-002, AC-001 — Depends: T025
+  - [x] **PREP**: Confirmar Gherkin AC-001/AC-007.
+  - [x] **EXECUTE**: Caso SPECSFY: master-detail (buildNavigation, referenceLine).
+  - [x] **VERIFY**: Suite passa (6 cenários).
+  - [x] **EVIDENCE**: Registrar.
+  - [x] **IMPROVE**: Revisar.
+  <!-- specsfy:evidence {"task": "T026", "refs": ["US-001", "FR-001", "NFR-002", "AC-001"], "files": ["tests/highlights-master-detail.test.ts"], "commands": [{"run": "pnpm test tests/highlights-master-detail.test.ts", "exit": 0}]} -->
 - [x] T017 [TEST] Executar regressão e rastreabilidade em tests/highlights-regression.test.ts — Refs: US-001, US-002, US-003, FR-001, FR-002, FR-003, FR-004, FR-005, NFR-001, NFR-002, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010 — Depends: T011, T012, T013, T014, T015, T016, T019, T020, T021, T022, T023, T024
   - [x] **PREP**: Reconfirmar suites `pnpm test`, `pnpm lint`, `pnpm build` após a nova composição de filtros.
   - [x] **EXECUTE**: Executar regressão completa e rastreabilidade incluindo o teste de interface.
