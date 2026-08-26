@@ -5,18 +5,18 @@
 | Formato | Specsfy/2.0 |
 | ID | SPEC-0006 |
 | Slug | 0006-pagina-de-highlights-exibir-highlights |
-| Status | Reviewing |
-| Effort | 5 |
-| Effort updated at | 2026-08-25 |
-| Effort rationale | Rota dedicada + cards + filtros multi-eixo + ações editar/excluir/copiar; sem migração, mas com integração BibleDatabase e estados; estimado standard. |
+| Status | Planned |
+| Effort | 7 |
+| Effort updated at | 2026-08-26 |
+| Effort rationale | Master-detail (rail + canvas) em rota canônica no shell principal, filtros multi-eixo, ações, estados e integração BibleDatabase; mais complexo que cards por unificar navegação e composição; estimado high. |
 | ClickUp Task | |
 | Milestones | |
 | Definition Gate | Passed |
-| Plan Gate | Passed |
+| Plan Gate | Pending |
 | Delivery Gate | Pending |
 | Evidence Contract | 1 |
 | Interface para pessoas | Sim |
-| Atualizada em | 2026-08-25 |
+| Atualizada em | 2026-08-26 |
 
 ## Ato I — Definir
 
@@ -24,11 +24,11 @@
 
 #### Problema
 
-Usuário que cria destaques coloridos no leitor não possui local dedicado para visualizar, filtrar e gerenciar todos os highlights; hoje só vê gutter/sidebar contextual por capítulo. Isso impede revisão, edição e navegação cruzada.
+Usuário que cria destaques coloridos no leitor não possui local dedicado para visualizar, filtrar e gerenciar todos os highlights; hoje só vê gutter/sidebar contextual por capítulo. A página atual exibe cards completos e saturados, sem um modelo de item selecionado, o que torna a revisão lenta e a experiência administrativa.
 
 #### Resultado desejado
 
-Rota dedicada `/highlights` que lista todos os highlights do `app.db` em cards (cor, categoria, conteúdo, versículos com texto) com busca sempre visível e filtros por cor/categoria/livro/bíblia/data em um painel responsivo (Sheet no desktop e Drawer no mobile). O filtro de cor deve mostrar swatches, sem depender de nomes, e o filtro de livro deve mostrar o nome completo. A página mantém ordenação por recência, contagem de resultados, chips de filtros aplicados, navegação ao versículo, edição de cor/categoria/conteúdo, exclusão com Undo e cópia de referência; estados vazio/loading/erro tratados.
+Rota canônica `/highlights`, no mesmo shell da aplicação (ao lado de `/` e `/notes`), com composição master-detail no desktop: rail contextual de ~320–360px com busca sempre visível, filtros compactos e resultados resumidos (cor, referência, 1–2 linhas do trecho); e canvas com o trecho bíblico completo em Lora, referência e versão, cor e categoria como metadados, comentário pessoal e ação primária "Abrir no leitor". No mobile, navegação hierárquica lista → detalhe, com ações na zona inferior. Filtros avançados (cor/categoria/livro/bíblia/data) abrem em um painel responsivo (Sheet no desktop e Drawer no mobile); o filtro de cor mostra swatches e o de livro mostra nomes completos. Mantém ordenação por recência, contagem de resultados, chips de filtros aplicados, edição de cor/categoria/conteúdo, exclusão com Undo e cópia de referência; estados vazio/loading/erro tratados.
 
 #### Métricas de sucesso
 
@@ -75,11 +75,11 @@ Rota dedicada `/highlights` que lista todos os highlights do `app.db` em cards (
 
 #### Incluído
 
-- Rota `/highlights` com lista cards, filtros cor/categoria/livro/bíblia/data + busca, ordenação recência, contagem/chips de filtros aplicados, navegação ao leitor, edição inline (Dialog/Sheet) de cor/categoria/conteúdo, exclusão com Undo, cópia de referência, estados loading (skeleton), vazio (CTA), erro OPFS.
+- Rota canônica `/highlights` no shell principal com master-detail (rail resumido + canvas com trecho completo em Lora), filtros cor/categoria/livro/bíblia/data + busca, ordenação recência, contagem/chips de filtros aplicados, navegação ao leitor, edição inline (Dialog/Sheet) de cor/categoria/conteúdo, exclusão com Undo, cópia de referência, estados loading (skeleton), vazio (CTA), erro OPFS. Mobile: lista → detalhe → edição com ações no thumb zone.
 
 #### Fora de escopo
 
-- Criação de highlight (continua no leitor/verse popover), FTS, paginação server, sync nuvem, export, agrupamento por livro, edição de versículos do highlight na V1, virtualização (>5k).
+- Criação de highlight (continua no leitor/verse popover), FTS, paginação server, sync nuvem, export, agrupamento por livro, edição de versículos do highlight na V1, virtualização (>5k), expansão de todos os versículos no próprio rail.
 
 #### Atores
 
@@ -94,9 +94,9 @@ Rota dedicada `/highlights` que lista todos os highlights do `app.db` em cards (
 
 ### 5. Histórias de usuário
 
-#### US-001 — Visualizar e filtrar highlights (P1)
+#### US-001 — Visualizar, filtrar e rever um destaque (P1)
 
-Como leitor, quero ver todos os meus highlights em `/highlights` com filtros e busca, para revisar por cor/categoria/livro/bíblia/data.
+Como leitor, quero ver todos os meus highlights em `/highlights` com filtros e busca e abrir um item no canvas, para revisar por cor/categoria/livro/bíblia/data e reencontrar o trecho no contexto da Escritura.
 
 **Por que P1**: Entrega valor central da feature sem depender de edição.
 **Teste independente**: Popular 5 highlights variados, acessar `/highlights`, aplicar filtros e busca, verificar interseção.
@@ -267,7 +267,7 @@ Feature: Filtro por data
 
 #### Funcionais
 
-- **FR-001**: O sistema deve listar em `/highlights` todos os highlights em cards com cor, categoria, conteúdo, versículos (bible/book/chapter:verse + texto resolvido) ordenados por updatedAt desc.
+- **FR-001**: O sistema deve apresentar em `/highlights` (rota canônica no shell principal) uma composição master-detail no desktop — rail contextual com resultados resumidos (cor, referência, 1–2 linhas do trecho) ordenados por updatedAt desc, e canvas com o trecho bíblico completo em Lora, referência e versão, cor e categoria como metadados e comentário pessoal — com navegação lista → detalhe no mobile.
 - **FR-002**: O sistema deve filtrar por cor, categoria, livro, versão bíblica e intervalo de data, além de busca textual (conteúdo + texto do versículo, LIKE COLLATE NOCASE), com interseção AND. A busca fica sempre visível; os demais filtros ficam em um painel aberto por botão, usando Sheet no desktop e Drawer no mobile. O filtro de cor deve apresentar swatches sem nomes visíveis, e o filtro de livro deve apresentar nomes completos, mantendo os IDs como valores internos.
 - **FR-003**: O sistema deve permitir editar cor/categoria/conteúdo de um highlight (Dialog/Sheet) e excluir com Undo (cascade em highlight_verses), sem confirmação nativa bloqueante.
 - **FR-004**: O sistema deve copiar referência formatada "Livro capítulo:versículo(s) (BÍBLIA) - conteúdo" para clipboard com toast.
@@ -374,11 +374,11 @@ apps/web/features/highlights/components/highlight-edit-dialog.tsx
 
 #### Fluxo de informação e navegação
 
-- Sidebar/MobileNav/CommandPalette → `/highlights` → filtros/busca → cards → ações (editar/excluir/copiar) ou clique versículo → `/?book=&chapter=&verse=` com highlight focado; volta via browser back.
+- A URL determina a área ativa no shell principal: `/`, `/notes` e `/highlights`; o estado `activeView` não é segunda fonte de verdade. Sidebar/MobileNav/CommandPalette → `/highlights` → filtros/busca no rail → item selecionado no canvas → ações (editar/excluir/copiar) ou "Abrir no leitor" → `/?book=&chapter=&verse=` com highlight focado; volta preserva busca, scroll e seleção.
 
 #### Menus e navegação principal
 
-- **Menu principal** (`AppSidebar` desktop, `MobileTabBar` mobile): itens — Leitura (`/`), Highlights (`/highlights` — novo, ícone bookmark), Notas (`/notes`), Configurações (`/config`); destino `/highlights` permissão anon local, sem auth.
+- **Menu principal** (`AppSidebar` desktop, `MobileTabBar` mobile): itens — Leitura (`/`), Notas (`/notes`), Highlights (`/highlights`, ícone bookmark), Configurações (`/config`); todas as rotas no mesmo shell, permissão anon local, sem auth. O `AppDock` e `CommandPalette` navegam pelas mesmas URLs.
 - **Menus secundários**: `AppDock`/`BottomDock` e `CommandPalette` (⌘K) com ação "Ir para Highlights" → `/highlights`; `HighlightCard` expõe ações contextuais (editar/excluir/copiar) e link versículo → `/?book=&chapter=&verse=`.
 - **Responsivo**: sidebar colapsa <768px para drawer; MobileTabBar mostra Highlights como tab central; foco teclado preservado.
 
@@ -389,7 +389,7 @@ apps/web/features/highlights/components/highlight-edit-dialog.tsx
 
 #### Composição e disposição
 
-- Desktop: header com título + busca, contagem e botão de filtros, chips para filtros aplicados, Sheet lateral e lista de cards; Mobile: busca e botão de filtros na página, Drawer inferior para os filtros, lista 1 coluna; densidade confortável, cards neutros com marcador de cor discreto.
+- Desktop: [Sidebar global: Leitura/Notas/Destaques/Configurações] + [Rail contextual de 320–360px: busca, botão de filtros, chips aplicados e resultados resumidos] + [Canvas: trecho bíblico completo em Lora, referência/versão, cor e categoria como metadados, comentário, ação primária "Abrir no leitor" e ações secundárias Editar/Copiar/Excluir]. Mobile: Tab bar → lista resumida → detalhe → edição, com ações na zona inferior e busca/scroll preservados ao voltar; densidade confortável, marcador de cor discreto, sem glow nem pill com texto colorido simultâneo.
 
 #### Blocos React e componentes selecionados
 
@@ -687,6 +687,18 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 
 #### Fase final — Qualidade
 
+- [ ] T025 [CODE] [US-001] Adaptar Highlights para master-detail (rail resumido + canvas com trecho completo) e rotas canônicas no shell em apps/web/features/highlights/components/highlights-page.tsx e apps/web/features/highlights/components/all-highlights-browser.tsx — Refs: US-001, FR-001, FR-002, NFR-002, AC-001, AC-002, AC-007, AC-008, DEC-002, DEC-010 — Depends: T016
+  - [ ] **PREP**: Confirmar DEC-002/010 e navegação do shell.
+  - [ ] **EXECUTE**: Rail resumido + canvas com trecho Lora, "Abrir no leitor" primário; mobile lista → detalhe.
+  - [ ] **VERIFY**: `pnpm test`, lint, build; navegação teclado.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
+- [ ] T026 [TEST] [TDD] [US-001] Derivar regressão para seleção de item no rail e renderização do canvas em tests/highlights-master-detail.test.ts — Refs: US-001, FR-001, NFR-002, AC-001 — Depends: T025
+  - [ ] **PREP**: Confirmar Gherkin AC-001/AC-007.
+  - [ ] **EXECUTE**: Caso SPECSFY: master-detail.
+  - [ ] **VERIFY**: RED antes da implementação.
+  - [ ] **EVIDENCE**: Registrar.
+  - [ ] **IMPROVE**: Revisar.
 - [x] T017 [TEST] Executar regressão e rastreabilidade em tests/highlights-regression.test.ts — Refs: US-001, US-002, US-003, FR-001, FR-002, FR-003, FR-004, FR-005, NFR-001, NFR-002, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010 — Depends: T011, T012, T013, T014, T015, T016, T019, T020, T021, T022, T023, T024
   - [x] **PREP**: Reconfirmar suites `pnpm test`, `pnpm lint`, `pnpm build` após a nova composição de filtros.
   - [x] **EXECUTE**: Executar regressão completa e rastreabilidade incluindo o teste de interface.
@@ -724,7 +736,7 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 ### 17. Decisões
 
 - **DEC-001**: Rota `/highlights` dedicada vs painel lateral — escolhido rota por descoberta escopo detalhado (cards + filtros completos).
-- **DEC-002**: Cards por highlight vs agrupado por livro — escolhido cards por simplicidade e ações por highlight.
+- **DEC-002**: Cards completos no feed vs master-detail (rail + canvas) — reavaliado para master-detail: rail resumido no desktop para visão rápida da coleção e canvas com trecho bíblico completo para reencontro no contexto da Escritura; mobile lista → detalhe. (Atualizada em 2026-08-26.)
 - **DEC-003**: Filtros completos (cor/categoria/livro/bíblia/data+busca) — escolhido para cobrir revisão multi-eixo.
 - **DEC-004**: Ordenação recência + vazio CTA — escolhido para priorizar recentes e onboarding.
 - **DEC-005**: Ações navegar/editar/excluir/copiar — escolhido para gestão completa sem criar highlight.
@@ -732,6 +744,15 @@ Cada tarefa possui exatamente este checklist, atualizado durante a execução:
 - **DEC-007**: Arquivo pessoal calmo — escolhido para alinhar a página ao sistema Papel & Tinta; remover quotation mark, glow, blur e sombras fortes, mantendo a cor como marcador semântico.
 - **DEC-008**: Undo-first para exclusão — escolhido para preservar ritmo e permitir recuperação de dados pessoais sem confirmação nativa bloqueante.
 - **DEC-009**: Cores como filtro secundário — escolhido para priorizar busca, referência, recência, chips aplicados e contagem de resultados; versões bíblicas devem exibir nomes legíveis.
+- **DEC-010**: Rotas canônicas no shell principal — `/`, `/notes` e `/highlights` compartilham o mesmo `PanelLayout`/shell e a URL é a fonte de verdade da área ativa, eliminando o `activeView` como segunda fonte. Habilitado por deep links, histórico, reload, command palette e evolução para `/notes/[noteId]` e `/highlights/[highlightId]`. (Registrada em 2026-08-26.)
+
+## Registro de mudança (2026-08-26)
+
+- **Classificação**: mudança de comportamento (Ato I) — resultado, composição de interface e navegação alterados.
+- **Gates**: `Definition Gate`, `Plan Gate` e `Delivery Gate` retornam a `Pending`; `Status: Draft`.
+- **IDs impactados**: US-001; FR-001, FR-002; AC-001, AC-002, AC-007, AC-008; DEC-002 (reavaliada), DEC-010 (nova).
+- **Evidências preservadas**: persistência/filtros/busca/intervalo de data/edição/exclusão com Undo/cópia ainda válidas conceitualmente; testes de componentes e composição (`highlight-card` como rail item, `all-highlights-browser` master-detail, roteamento no shell) precisam ser re-derivados no Ato II.
+- **Próximo passo**: `$specsfy-04-validate` para revalidar Definição; depois `$specsfy-05-tasks`.
 
 ### 18. Definition of Done
 
