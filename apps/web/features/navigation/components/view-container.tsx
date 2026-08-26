@@ -4,34 +4,21 @@ import { useAppNavigation } from "../context/app-navigation-context"
 import { useWorkspaceMode } from "@/features/workspace/hooks/use-workspace-mode"
 import { SimpleHome } from "@/features/workspace/components/simple-home"
 import { AdvancedHome } from "@/features/workspace/components/advanced-home"
-import { NotesBrowser } from "@/features/notes/components/notes-browser"
-import { NotesProvider } from "@/features/notes/context/notes-context"
-import { AllHighlightsBrowser } from "@/features/highlights/components/all-highlights-browser"
+import { NotesWorkspace } from "@/features/notes/components/notes-workspace"
+import { HighlightsMasterDetail } from "@/features/highlights/components/highlights-master-detail"
 
 function HighlightsView({ active }: { active: boolean }) {
   const { navigate } = useAppNavigation()
   return (
-    <AllHighlightsBrowser
+    <HighlightsMasterDetail
       active={active}
       onClose={() => navigate("reader")}
     />
   )
 }
 
-function NotesView({ active }: { active: boolean }) {
-  return (
-    <NotesProvider
-      bookId={null}
-      chapter={null}
-      versionId="ara"
-      open={active}
-      target={null}
-      onOpen={() => undefined}
-      onClose={() => undefined}
-    >
-      <NotesBrowser mode="all" active={active} />
-    </NotesProvider>
-  )
+function NotesView() {
+  return <NotesWorkspace />
 }
 
 export function ViewContainer({ openBookChapterSignal }: {
@@ -49,7 +36,7 @@ export function ViewContainer({ openBookChapterSignal }: {
       case "reader":
         return <AdvancedHome />
       case "notes":
-        return <NotesView active={activeView === "notes"} />
+        return <NotesView />
       case "highlights":
         return <HighlightsView active={activeView === "highlights"} />
       default:
@@ -61,7 +48,7 @@ export function ViewContainer({ openBookChapterSignal }: {
     case "reader":
       return <SimpleHome openBookChapterSignal={openBookChapterSignal} />
     case "notes":
-      return <NotesView active={activeView === "notes"} />
+      return <NotesView />
     case "highlights":
       return <HighlightsView active={activeView === "highlights"} />
     default:
