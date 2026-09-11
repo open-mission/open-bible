@@ -108,6 +108,6 @@
     "shadcn": "^4.12.0",
     "tailwindcss": "^4.2.0",
     "typescript": "6.0.3",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
